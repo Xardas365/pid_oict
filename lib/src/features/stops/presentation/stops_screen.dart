@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/errors/app_exception.dart';
 import '../../../core/network/golemio_api_client.dart';
-import '../../departures/presentation/departures_placeholder_screen.dart';
+import '../../departures/presentation/departures_screen.dart';
 import '../data/stops_repository.dart';
 import '../domain/stop.dart';
 import 'stop_filter.dart';
@@ -89,9 +89,7 @@ class _StopsScreenState extends State<StopsScreen> {
 
   void _openDepartures(Stop stop) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => DeparturesPlaceholderScreen(stop: stop),
-      ),
+      MaterialPageRoute<void>(builder: (_) => DeparturesScreen(stop: stop)),
     );
   }
 
