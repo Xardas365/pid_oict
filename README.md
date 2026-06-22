@@ -54,7 +54,31 @@ For local development, keep your real token in an ignored local env file:
 
 1. Copy `.env.example` to `.env.local`.
 2. Put your real Golemio token into `.env.local`.
-3. Run with the helper for your shell.
+3. Run with your IDE, the direct Flutter command, or the helper for your shell.
+
+Android Studio:
+
+1. Open the project.
+2. Select the run configuration `OICT PID - local token`.
+3. Run the app.
+
+If the shared configuration is not visible, create a Flutter run configuration
+manually:
+
+- Dart entrypoint: `lib/main.dart`
+- Additional run args: `--dart-define-from-file=.env.local`
+
+VS Code:
+
+1. Open Run and Debug.
+2. Select `OICT PID - local token`.
+3. Run the app.
+
+Direct Flutter command:
+
+```bash
+flutter run --dart-define-from-file=.env.local
+```
 
 Windows PowerShell:
 
@@ -68,7 +92,8 @@ Bash, macOS, Linux, or Git Bash:
 ./scripts/run_local.sh
 ```
 
-`.env.local` is ignored by Git and must not be committed. The direct
+`.env.local` is ignored by Git and must not be committed. Only `.env.example`
+with `GOLEMIO_API_TOKEN=your_token_here` is committed. The direct
 `flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here` command above is
 still supported as an alternative.
 
