@@ -41,6 +41,23 @@ void main() {
       expect(dto.longitude, isNull);
     });
 
+    test('ignores invalid optional coordinates', () {
+      final dto = StopDto.fromJson({
+        'type': 'Feature',
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [200.0, 95.0],
+        },
+        'properties': {'stop_id': 'U456', 'stop_name': 'Andel'},
+      });
+
+      expect(dto, isNotNull);
+      expect(dto!.id, 'U456');
+      expect(dto.name, 'Andel');
+      expect(dto.latitude, isNull);
+      expect(dto.longitude, isNull);
+    });
+
     test('rejects records without required fields', () {
       expect(StopDto.fromJson({'stop_id': 'U456'}), isNull);
       expect(StopDto.fromJson({'stop_name': 'Andel'}), isNull);

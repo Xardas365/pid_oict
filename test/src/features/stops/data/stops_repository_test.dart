@@ -66,6 +66,21 @@ void main() {
       );
     });
 
+    test('throws controlled error for empty API response object', () async {
+      final repository = StopsRepository(FakeGolemioApiClient(response: {}));
+
+      await expectLater(
+        repository.fetchStops(),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.type,
+            'type',
+            AppExceptionType.invalidData,
+          ),
+        ),
+      );
+    });
+
     test('propagates client errors', () async {
       const expectedError = AppException(
         type: AppExceptionType.missingToken,

@@ -106,5 +106,37 @@ void main() {
         );
       },
     );
+
+    test('throws controlled error for empty API response object', () async {
+      final repository = VehiclePositionRepository(
+        FakeGolemioApiClient(response: {}),
+      );
+
+      await expectLater(
+        repository.fetchVehiclePosition('tram-22-123'),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.type,
+            'type',
+            AppExceptionType.invalidData,
+          ),
+        ),
+      );
+    });
+
+    test('propagates client errors', () async {
+      const expectedError = AppException(
+        type: AppExceptionType.timeout,
+        message: 'Timeout.',
+      );
+      final repository = VehiclePositionRepository(
+        FakeGolemioApiClient(response: null, error: expectedError),
+      );
+
+      await expectLater(
+        repository.fetchVehiclePosition('tram-22-123'),
+        throwsA(same(expectedError)),
+      );
+    });
   });
 }

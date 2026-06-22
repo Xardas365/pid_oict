@@ -72,5 +72,37 @@ void main() {
         );
       },
     );
+
+    test('throws controlled error for empty departures response', () async {
+      final repository = DeparturesRepository(
+        FakeGolemioApiClient(response: {'departures': <Object?>[]}),
+      );
+
+      await expectLater(
+        repository.fetchDeparturesForStop(stop),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.type,
+            'type',
+            AppExceptionType.invalidData,
+          ),
+        ),
+      );
+    });
+
+    test('propagates client errors', () async {
+      const expectedError = AppException(
+        type: AppExceptionType.unauthorized,
+        message: 'Unauthorized.',
+      );
+      final repository = DeparturesRepository(
+        FakeGolemioApiClient(response: null, error: expectedError),
+      );
+
+      await expectLater(
+        repository.fetchDeparturesForStop(stop),
+        throwsA(same(expectedError)),
+      );
+    });
   });
 }

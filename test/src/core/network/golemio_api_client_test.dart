@@ -88,5 +88,66 @@ void main() {
         ),
       );
     });
+
+    test('normalizes empty responses', () async {
+      final client = GolemioApiClient(
+        config: const AppConfig(apiToken: 'configured-value'),
+        httpClient: MockClient((_) async => http.Response('   ', 200)),
+      );
+
+      await expectLater(
+        client.getJson('/v2/gtfs/stops'),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.type,
+            'type',
+            AppExceptionType.emptyResponse,
+          ),
+        ),
+      );
+    });
+
+    test('normalizes network failures', () async {
+      final client = GolemioApiClient(
+        config: const AppConfig(apiToken: 'configured-value'),
+        httpClient: MockClient((_) async {
+          throw http.ClientException('offline');
+        }),
+      );
+
+      await expectLater(
+        client.getJson('/v2/gtfs/stops'),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.type,
+            'type',
+            AppExceptionType.network,
+          ),
+        ),
+      );
+    });
+
+    test('normalizes timeout failures', () async {
+      final client = GolemioApiClient(
+        config: const AppConfig(apiToken: 'configured-value'),
+        timeout: const Duration(milliseconds: 1),
+        httpClient: MockClient((_) async {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+
+          return http.Response('{"ok":true}', 200);
+        }),
+      );
+
+      await expectLater(
+        client.getJson('/v2/gtfs/stops'),
+        throwsA(
+          isA<AppException>().having(
+            (error) => error.type,
+            'type',
+            AppExceptionType.timeout,
+          ),
+        ),
+      );
+    });
   });
 }

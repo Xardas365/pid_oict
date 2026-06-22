@@ -43,6 +43,20 @@ void main() {
       expect(dto.vehicleId, isNull);
     });
 
+    test('parses numeric epoch departure timestamps', () {
+      final dto = DepartureDto.fromJson({
+        'line': 'A',
+        'destination': 'Nemocnice Motol',
+        'departure_time': 1782123330,
+      });
+
+      expect(dto, isNotNull);
+      expect(
+        dto!.departureTime,
+        DateTime.fromMillisecondsSinceEpoch(1782123330000, isUtc: true),
+      );
+    });
+
     test('rejects records with invalid required data', () {
       expect(
         DepartureDto.fromJson({
@@ -57,6 +71,10 @@ void main() {
           'destination': 'Nemocnice Motol',
           'departure_time': '2026-06-22T10:15:30Z',
         }),
+        isNull,
+      );
+      expect(
+        DepartureDto.fromJson({'line': 'A', 'destination': 'Nemocnice Motol'}),
         isNull,
       );
     });

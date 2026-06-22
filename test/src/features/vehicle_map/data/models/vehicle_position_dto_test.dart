@@ -31,6 +31,25 @@ void main() {
       expect(position.longitude, dto.longitude);
     });
 
+    test('tolerates missing optional fields and invalid last update', () {
+      final dto = VehiclePositionDto.fromJson({
+        'geometry': {
+          'type': 'Point',
+          'coordinates': ['14.4378', '50.0755'],
+        },
+        'properties': {
+          'vehicle_id': 'tram-22-123',
+          'last_updated': 'not a date',
+        },
+      });
+
+      expect(dto, isNotNull);
+      expect(dto!.latitude, 50.0755);
+      expect(dto.longitude, 14.4378);
+      expect(dto.bearing, isNull);
+      expect(dto.lastUpdated, isNull);
+    });
+
     test('rejects missing vehicle ID or invalid coordinates', () {
       expect(
         VehiclePositionDto.fromJson({

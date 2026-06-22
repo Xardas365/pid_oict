@@ -126,5 +126,44 @@ void main() {
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
       expect(attempts, 2);
     });
+
+    testWidgets('pull-to-refresh reloads departures', (
+      WidgetTester tester,
+    ) async {
+      var attempts = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DeparturesScreen(
+            stop: stop,
+            loadDepartures: (_) async {
+              attempts += 1;
+
+              return [
+                Departure(
+                  routeShortName: '22',
+                  headsign: attempts == 1 ? 'Nadrazi Hostivar' : 'Vypich',
+                  departureTime: DateTime(2026, 6, 22, 10, 15),
+                ),
+              ];
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nadrazi Hostivar'), findsOneWidget);
+      expect(attempts, 1);
+
+      await tester.drag(find.byType(ListView), const Offset(0, 300));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nadrazi Hostivar'), findsNothing);
+      expect(find.text('Vypich'), findsOneWidget);
+      expect(attempts, 2);
+    });
   });
 }
