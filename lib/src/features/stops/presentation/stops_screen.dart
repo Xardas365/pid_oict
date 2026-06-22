@@ -98,21 +98,40 @@ class _StopsScreenState extends State<StopsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('PID zastavky')),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Column(
             children: [
               TextField(
                 controller: _searchController,
                 enabled: !_isLoading && _error == null,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: colorScheme.surface,
                   hintText: 'Hledat podle nazvu zastavky',
                   labelText: 'Vyhledat zastavku',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -154,8 +173,9 @@ class _StopsScreenState extends State<StopsScreen> {
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 16),
       itemCount: filteredStops.length,
-      separatorBuilder: (_, _) => const Divider(height: 1),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final stop = filteredStops[index];
 

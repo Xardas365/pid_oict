@@ -12,6 +12,7 @@ void main() {
         loadStops: () async => const [
           Stop(id: '1', name: 'Staromestska'),
           Stop(id: '2', name: 'Andel'),
+          Stop(id: '3', name: 'hr.VUSC Praha'),
         ],
       ),
     );
@@ -21,6 +22,7 @@ void main() {
     expect(find.text('PID zastavky'), findsOneWidget);
     expect(find.text('Staromestska'), findsOneWidget);
     expect(find.text('Andel'), findsOneWidget);
+    expect(find.text('hr.VUSC Praha'), findsNothing);
 
     await tester.enterText(find.byType(EditableText), 'and');
     await tester.pump();
