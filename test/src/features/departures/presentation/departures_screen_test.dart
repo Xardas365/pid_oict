@@ -47,9 +47,7 @@ void main() {
       expect(find.byTooltip('Zobrazit polohu vozidla'), findsOneWidget);
     });
 
-    testWidgets('opens temporary vehicle map placeholder', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('opens vehicle map screen', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: DeparturesScreen(
@@ -72,9 +70,13 @@ void main() {
 
       expect(find.text('Poloha vozidla'), findsOneWidget);
       expect(
-        find.text('Mapa vozidla vehicle-123 bude doplnena v dalsim kroku.'),
+        find.text(
+          'Chybi Golemio API token. Spustte aplikaci s GOLEMIO_API_TOKEN.',
+        ),
         findsOneWidget,
       );
+
+      await tester.pumpWidget(const SizedBox.shrink());
     });
 
     testWidgets('shows error and retries loading departures', (

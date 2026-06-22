@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/network/golemio_api_client.dart';
 import '../../stops/domain/stop.dart';
-import '../../vehicle_map/presentation/vehicle_map_placeholder_screen.dart';
+import '../../vehicle_map/presentation/vehicle_map_screen.dart';
 import '../data/departures_repository.dart';
 import '../domain/departure.dart';
 import 'widgets/departure_tile.dart';
@@ -78,7 +78,7 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
   void _openVehicleMap(String vehicleId) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => VehicleMapPlaceholderScreen(vehicleId: vehicleId),
+        builder: (_) => VehicleMapScreen(vehicleId: vehicleId),
       ),
     );
   }
