@@ -7,6 +7,7 @@ enum AppExceptionType {
   network,
   emptyResponse,
   invalidJson,
+  invalidData,
   server,
   unexpectedStatus,
 }

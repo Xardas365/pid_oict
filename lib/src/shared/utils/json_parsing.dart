@@ -28,6 +28,40 @@ JsonMap? asJsonMap(Object? value) {
   return null;
 }
 
+List<JsonMap> readJsonRecords(Object? value) {
+  if (value is List) {
+    return value.map(asJsonMap).whereType<JsonMap>().toList();
+  }
+
+  final json = asJsonMap(value);
+  if (json == null) {
+    return <JsonMap>[];
+  }
+
+  for (final path in const [
+    ['features'],
+    ['data'],
+    ['results'],
+    ['departures'],
+    ['vehicle_positions'],
+    ['vehiclePositions'],
+    ['vehiclepositions'],
+  ]) {
+    final nestedValue = readJsonValue(json, [path]);
+
+    if (nestedValue is List) {
+      return nestedValue.map(asJsonMap).whereType<JsonMap>().toList();
+    }
+
+    final nestedJson = asJsonMap(nestedValue);
+    if (nestedJson != null) {
+      return [nestedJson];
+    }
+  }
+
+  return [json];
+}
+
 Object? readJsonValue(JsonMap json, List<List<String>> paths) {
   for (final path in paths) {
     Object? current = json;
