@@ -1,0 +1,55 @@
+prefix_rule(
+    pattern = ["dart", "format"],
+    decision = "prompt",
+    justification = "Flutter/Dart tooling can hang or be unreliable in the Windows sandbox for this project.",
+    match = ["dart format .", "dart format --set-exit-if-changed ."],
+)
+
+prefix_rule(
+    pattern = ["flutter", "analyze"],
+    decision = "prompt",
+    justification = "Flutter tooling can hang or be unreliable in the Windows sandbox for this project.",
+    match = ["flutter analyze"],
+)
+
+prefix_rule(
+    pattern = ["flutter", "test"],
+    decision = "prompt",
+    justification = "Flutter tooling can hang or be unreliable in the Windows sandbox for this project.",
+    match = ["flutter test"],
+)
+
+prefix_rule(
+    pattern = ["flutter", "pub", "get"],
+    decision = "prompt",
+    justification = "Dependency resolution may access the network and write tool cache/dependency files.",
+    match = ["flutter pub get"],
+)
+
+prefix_rule(
+    pattern = ["dart", "run", "build_runner"],
+    decision = "prompt",
+    justification = "Code generation writes generated Dart files and Flutter/Dart tooling can be unreliable in the Windows sandbox.",
+    match = ["dart run build_runner build", "dart run build_runner build --delete-conflicting-outputs", "dart run build_runner watch"],
+)
+
+prefix_rule(
+    pattern = ["flutter", "build"],
+    decision = "prompt",
+    justification = "Flutter builds can be long-running and may access platform toolchains outside the sandbox.",
+    match = ["flutter build apk", "flutter build appbundle", "flutter build ios"],
+)
+
+prefix_rule(
+    pattern = ["npx"],
+    decision = "prompt",
+    justification = "npx can download and execute packages from the network.",
+    match = ["npx"],
+)
+
+prefix_rule(
+    pattern = ["npx", "--yes"],
+    decision = "forbidden",
+    justification = "Do not auto-approve downloaded npx packages.",
+    match = ["npx --yes"],
+)
