@@ -71,7 +71,8 @@ void main() {
       expect(find.text('Poloha vozidla'), findsOneWidget);
       expect(
         find.text(
-          'Chybi Golemio API token. Spustte aplikaci s GOLEMIO_API_TOKEN.',
+          'Chybi Golemio API token. Spustte aplikaci s '
+          '--dart-define=GOLEMIO_API_TOKEN=vas_token.',
         ),
         findsOneWidget,
       );
@@ -112,7 +113,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Nepodarilo se pripojit ke Golemio API.'),
+        find.text(
+          'Nepodarilo se pripojit ke Golemio API. '
+          'Zkontrolujte pripojeni k internetu.',
+        ),
         findsOneWidget,
       );
 

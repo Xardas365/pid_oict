@@ -97,7 +97,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Nepodarilo se pripojit ke Golemio API.'),
+        find.text(
+          'Nepodarilo se pripojit ke Golemio API. '
+          'Zkontrolujte pripojeni k internetu.',
+        ),
         findsOneWidget,
       );
 
@@ -148,7 +151,13 @@ void main() {
 
       expect(attempts, 2);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
-      expect(find.text('Pozadavek na Golemio API vyprsel.'), findsOneWidget);
+      expect(
+        find.text(
+          'Zobrazuji posledni znamou polohu. '
+          'Golemio API neodpovedelo vcas. Zkuste to prosim znovu.',
+        ),
+        findsOneWidget,
+      );
 
       await tester.pumpWidget(const SizedBox.shrink());
     });

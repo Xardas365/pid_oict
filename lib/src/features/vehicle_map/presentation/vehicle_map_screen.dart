@@ -6,6 +6,11 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../core/errors/app_exception.dart';
 import '../../../core/network/golemio_api_client.dart';
+import '../../../shared/utils/app_error_messages.dart';
+import '../../../shared/utils/date_time_formatters.dart';
+import '../../../shared/widgets/empty_state_view.dart';
+import '../../../shared/widgets/error_state_view.dart';
+import '../../../shared/widgets/loading_state_view.dart';
 import '../data/vehicle_position_repository.dart';
 import '../domain/vehicle_position.dart';
 
@@ -95,7 +100,7 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
           _error = error;
           _isLoading = false;
         } else {
-          _warning = _errorMessage(error);
+          _warning = staleDataWarning(error);
         }
       });
     } finally {
@@ -127,17 +132,33 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
 
   Widget _buildBody() {
     if (_isLoading && _position == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingStateView(message: 'Nacitani polohy vozidla...');
     }
 
     final position = _position;
     if (position == null) {
       final error = _error;
-      if (error is AppException && error.type == AppExceptionType.invalidData) {
-        return _NoPositionState(onRetry: _retry);
+      if (error != null && !_isNoPositionError(error)) {
+        return ErrorStateView(
+          message: userMessageForAppError(
+            error,
+            fallbackMessage:
+                'Polohu vozidla se nepodarilo nacist. Zkuste to prosim znovu.',
+          ),
+          onRetry: _retry,
+        );
       }
 
-      return _ErrorState(message: _errorMessage(error), onRetry: _retry);
+      return EmptyStateView(
+        message: userMessageForAppError(
+          error,
+          fallbackMessage:
+              'Polohu vozidla se nepodarilo nacist. Zkuste to prosim znovu.',
+          invalidDataMessage: 'Aktualni poloha vozidla neni dostupna.',
+        ),
+        icon: Icons.location_off_outlined,
+        onRetry: _retry,
+      );
     }
 
     return _MapState(
@@ -151,28 +172,8 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
     _loadPosition(showInitialLoading: true);
   }
 
-  String _errorMessage(Object? error) {
-    if (error is AppException) {
-      return switch (error.type) {
-        AppExceptionType.missingToken =>
-          'Chybi Golemio API token. Spustte aplikaci s GOLEMIO_API_TOKEN.',
-        AppExceptionType.unauthorized =>
-          'Golemio API token je neplatny nebo nema opravneni.',
-        AppExceptionType.network => 'Nepodarilo se pripojit ke Golemio API.',
-        AppExceptionType.timeout => 'Pozadavek na Golemio API vyprsel.',
-        AppExceptionType.invalidData =>
-          'Poloha vozidla neni momentalne dostupna.',
-        AppExceptionType.emptyResponse || AppExceptionType.invalidJson =>
-          'Golemio API vratilo polohu, kterou se nepodarilo nacist.',
-        AppExceptionType.badRequest ||
-        AppExceptionType.notFound ||
-        AppExceptionType.server ||
-        AppExceptionType.unexpectedStatus =>
-          'Golemio API vratilo chybu. Zkuste to prosim znovu.',
-      };
-    }
-
-    return 'Polohu vozidla se nepodarilo nacist. Zkuste to prosim znovu.';
+  bool _isNoPositionError(Object error) {
+    return error is AppException && error.type == AppExceptionType.invalidData;
   }
 }
 
@@ -251,7 +252,9 @@ class _VehiclePositionStatus extends StatelessWidget {
         children: [
           Text('Vozidlo ${position.vehicleId}'),
           if (lastUpdated != null)
-            Text('Posledni aktualizace ${_formatDateTime(lastUpdated)}'),
+            Text(
+              'Posledni aktualizace ${formatClockTimeWithSeconds(lastUpdated)}',
+            ),
           if (warning != null) ...[
             const SizedBox(height: 8),
             Text(
@@ -262,15 +265,6 @@ class _VehiclePositionStatus extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    final localTime = dateTime.toLocal();
-    final hour = localTime.hour.toString().padLeft(2, '0');
-    final minute = localTime.minute.toString().padLeft(2, '0');
-    final second = localTime.second.toString().padLeft(2, '0');
-
-    return '$hour:$minute:$second';
   }
 }
 
@@ -288,72 +282,6 @@ class _MapAttribution extends StatelessWidget {
         child: Text(
           'Map data (c) OpenStreetMap contributors',
           style: TextStyle(fontSize: 11),
-        ),
-      ),
-    );
-  }
-}
-
-class _NoPositionState extends StatelessWidget {
-  const _NoPositionState({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return _CenteredState(
-      icon: Icons.location_off_outlined,
-      message: 'Aktualni poloha vozidla neni dostupna.',
-      onRetry: onRetry,
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return _CenteredState(
-      icon: Icons.error_outline,
-      message: message,
-      onRetry: onRetry,
-    );
-  }
-}
-
-class _CenteredState extends StatelessWidget {
-  const _CenteredState({
-    required this.icon,
-    required this.message,
-    required this.onRetry,
-  });
-
-  final IconData icon;
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 40),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Zkusit znovu'),
-            ),
-          ],
         ),
       ),
     );

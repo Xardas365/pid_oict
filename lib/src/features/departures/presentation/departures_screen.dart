@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/errors/app_exception.dart';
 import '../../../core/network/golemio_api_client.dart';
+import '../../../shared/utils/app_error_messages.dart';
+import '../../../shared/widgets/centered_scroll_view.dart';
+import '../../../shared/widgets/empty_state_view.dart';
+import '../../../shared/widgets/error_state_view.dart';
+import '../../../shared/widgets/loading_state_view.dart';
 import '../../stops/domain/stop.dart';
 import '../../vehicle_map/presentation/vehicle_map_screen.dart';
 import '../data/departures_repository.dart';
@@ -93,7 +97,7 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingStateView(message: 'Nacitani odjezdu...');
     }
 
     return RefreshIndicator(
@@ -105,16 +109,27 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
   Widget _buildRefreshableContent() {
     final error = _error;
     if (error != null) {
-      return _CenteredRefreshable(
-        child: _ErrorState(
-          message: _errorMessage(error),
+      return CenteredScrollView(
+        child: ErrorStateView(
+          message: userMessageForAppError(
+            error,
+            fallbackMessage:
+                'Odjezdy se nepodarilo nacist. Zkuste to prosim znovu.',
+            invalidDataMessage:
+                'Golemio API nevratilo zadne pouzitelne odjezdy.',
+          ),
           onRetry: _loadDepartures,
         ),
       );
     }
 
     if (_departures.isEmpty) {
-      return const _CenteredRefreshable(child: _EmptyState());
+      return const CenteredScrollView(
+        child: EmptyStateView(
+          message: 'Pro tuto zastavku nejsou dostupne zadne odjezdy.',
+          icon: Icons.departure_board_outlined,
+        ),
+      );
     }
 
     return ListView.separated(
@@ -132,92 +147,6 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
               : () => _openVehicleMap(departure.vehicleId!),
         );
       },
-    );
-  }
-
-  String _errorMessage(Object error) {
-    if (error is AppException) {
-      return switch (error.type) {
-        AppExceptionType.missingToken =>
-          'Chybi Golemio API token. Spustte aplikaci s GOLEMIO_API_TOKEN.',
-        AppExceptionType.unauthorized =>
-          'Golemio API token je neplatny nebo nema opravneni.',
-        AppExceptionType.network => 'Nepodarilo se pripojit ke Golemio API.',
-        AppExceptionType.timeout => 'Pozadavek na Golemio API vyprsel.',
-        AppExceptionType.emptyResponse ||
-        AppExceptionType.invalidJson ||
-        AppExceptionType.invalidData =>
-          'Golemio API vratilo odjezdy, ktere se nepodarilo nacist.',
-        AppExceptionType.badRequest ||
-        AppExceptionType.notFound ||
-        AppExceptionType.server ||
-        AppExceptionType.unexpectedStatus =>
-          'Golemio API vratilo chybu. Zkuste to prosim znovu.',
-      };
-    }
-
-    return 'Odjezdy se nepodarilo nacist. Zkuste to prosim znovu.';
-  }
-}
-
-class _CenteredRefreshable extends StatelessWidget {
-  const _CenteredRefreshable({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Center(
-                child: Padding(padding: const EdgeInsets.all(24), child: child),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.error_outline, size: 40),
-        const SizedBox(height: 12),
-        Text(message, textAlign: TextAlign.center),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: onRetry,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Zkusit znovu'),
-        ),
-      ],
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Text(
-      'Pro tuto zastavku nebyly nalezeny zadne odjezdy.',
-      textAlign: TextAlign.center,
     );
   }
 }

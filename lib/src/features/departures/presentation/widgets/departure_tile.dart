@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/utils/date_time_formatters.dart';
 import '../../domain/departure.dart';
 
 class DepartureTile extends StatelessWidget {
@@ -14,7 +15,7 @@ class DepartureTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final delayText = _formatDelay(departure.delaySeconds);
+    final delayText = formatDelaySeconds(departure.delaySeconds);
     final platform = departure.platform;
 
     return Card(
@@ -24,7 +25,7 @@ class DepartureTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Odjezd ${_formatDepartureTime(departure.departureTime)}'),
+            Text('Odjezd ${formatClockTime(departure.departureTime)}'),
             if (delayText != null) Text(delayText),
             if (platform != null) Text('Nastupiste $platform'),
           ],
@@ -38,26 +39,5 @@ class DepartureTile extends StatelessWidget {
               ),
       ),
     );
-  }
-
-  String _formatDepartureTime(DateTime departureTime) {
-    final localTime = departureTime.toLocal();
-    final hour = localTime.hour.toString().padLeft(2, '0');
-    final minute = localTime.minute.toString().padLeft(2, '0');
-
-    return '$hour:$minute';
-  }
-
-  String? _formatDelay(int? delaySeconds) {
-    if (delaySeconds == null) {
-      return null;
-    }
-
-    if (delaySeconds <= 0) {
-      return 'Zpozdeni 0 min';
-    }
-
-    final minutes = (delaySeconds / 60).round();
-    return 'Zpozdeni +$minutes min';
   }
 }

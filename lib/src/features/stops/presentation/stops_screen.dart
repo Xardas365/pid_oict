@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/errors/app_exception.dart';
 import '../../../core/network/golemio_api_client.dart';
 import '../../departures/presentation/departures_screen.dart';
+import '../../../shared/utils/app_error_messages.dart';
+import '../../../shared/widgets/empty_state_view.dart';
+import '../../../shared/widgets/error_state_view.dart';
+import '../../../shared/widgets/loading_state_view.dart';
 import '../data/stops_repository.dart';
 import '../domain/stop.dart';
 import 'stop_filter.dart';
@@ -123,20 +126,30 @@ class _StopsScreenState extends State<StopsScreen> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const _LoadingState();
+      return const LoadingStateView(message: 'Nacitani zastavek...');
     }
 
     final error = _error;
     if (error != null) {
-      return _ErrorState(message: _errorMessage(error), onRetry: _loadStops);
+      return ErrorStateView(
+        message: userMessageForAppError(
+          error,
+          fallbackMessage:
+              'Zastavky se nepodarilo nacist. Zkuste to prosim znovu.',
+          invalidDataMessage:
+              'Golemio API nevratilo zadne pouzitelne zastavky.',
+        ),
+        onRetry: _loadStops,
+      );
     }
 
     final filteredStops = _filteredStops;
     if (filteredStops.isEmpty) {
-      return _EmptyState(
+      return EmptyStateView(
         message: _searchController.text.trim().isEmpty
-            ? 'Nebyly nalezeny zadne zastavky.'
+            ? 'Zadne zastavky nejsou k dispozici.'
             : 'Zadne zastavky neodpovidaji hledani.',
+        icon: Icons.location_off_outlined,
       );
     }
 
@@ -149,76 +162,5 @@ class _StopsScreenState extends State<StopsScreen> {
         return StopListTile(stop: stop, onTap: () => _openDepartures(stop));
       },
     );
-  }
-
-  String _errorMessage(Object error) {
-    if (error is AppException) {
-      return switch (error.type) {
-        AppExceptionType.missingToken =>
-          'Chybi Golemio API token. Spustte aplikaci s GOLEMIO_API_TOKEN.',
-        AppExceptionType.unauthorized =>
-          'Golemio API token je neplatny nebo nema opravneni.',
-        AppExceptionType.network => 'Nepodarilo se pripojit ke Golemio API.',
-        AppExceptionType.timeout => 'Pozadavek na Golemio API vyprsel.',
-        AppExceptionType.emptyResponse ||
-        AppExceptionType.invalidJson ||
-        AppExceptionType.invalidData =>
-          'Golemio API vratilo data, ktera se nepodarilo nacist.',
-        AppExceptionType.badRequest ||
-        AppExceptionType.notFound ||
-        AppExceptionType.server ||
-        AppExceptionType.unexpectedStatus =>
-          'Golemio API vratilo chybu. Zkuste to prosim znovu.',
-      };
-    }
-
-    return 'Zastavky se nepodarilo nacist. Zkuste to prosim znovu.';
-  }
-}
-
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline, size: 40),
-          const SizedBox(height: 12),
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Zkusit znovu'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(message, textAlign: TextAlign.center));
   }
 }
