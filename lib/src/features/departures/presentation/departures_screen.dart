@@ -13,10 +13,16 @@ import '../domain/departure.dart';
 import 'widgets/departure_tile.dart';
 
 class DeparturesScreen extends StatefulWidget {
-  const DeparturesScreen({required this.stop, super.key, this.loadDepartures});
+  const DeparturesScreen({
+    required this.stop,
+    super.key,
+    this.loadDepartures,
+    this.onVehicleSelected,
+  });
 
   final Stop stop;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
+  final ValueChanged<String>? onVehicleSelected;
 
   @override
   State<DeparturesScreen> createState() => _DeparturesScreenState();
@@ -80,6 +86,12 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
   }
 
   void _openVehicleMap(String vehicleId) {
+    final onVehicleSelected = widget.onVehicleSelected;
+    if (onVehicleSelected != null) {
+      onVehicleSelected(vehicleId);
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => VehicleMapScreen(vehicleId: vehicleId),

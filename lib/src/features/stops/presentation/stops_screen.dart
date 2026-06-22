@@ -12,9 +12,10 @@ import 'stop_filter.dart';
 import 'widgets/stop_list_tile.dart';
 
 class StopsScreen extends StatefulWidget {
-  const StopsScreen({super.key, this.loadStops});
+  const StopsScreen({super.key, this.loadStops, this.onStopSelected});
 
   final Future<List<Stop>> Function()? loadStops;
+  final ValueChanged<Stop>? onStopSelected;
 
   @override
   State<StopsScreen> createState() => _StopsScreenState();
@@ -91,6 +92,12 @@ class _StopsScreenState extends State<StopsScreen> {
   }
 
   void _openDepartures(Stop stop) {
+    final onStopSelected = widget.onStopSelected;
+    if (onStopSelected != null) {
+      onStopSelected(stop);
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => DeparturesScreen(stop: stop)),
     );

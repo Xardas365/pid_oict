@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'src/app/pid_oict_shell.dart';
+import 'src/features/departures/domain/departure.dart';
 import 'src/features/stops/domain/stop.dart';
-import 'src/features/stops/presentation/stops_screen.dart';
+import 'src/features/vehicle_map/domain/vehicle_position.dart';
 
 const _pidRed = Color(0xFFD32F2F);
 const _pidBackground = Color(0xFFFFF8F6);
@@ -11,9 +13,20 @@ void main() {
 }
 
 class PidOictApp extends StatelessWidget {
-  const PidOictApp({super.key, this.loadStops});
+  const PidOictApp({
+    super.key,
+    this.loadStops,
+    this.loadDepartures,
+    this.loadVehiclePosition,
+    this.vehicleMapRefreshInterval = const Duration(seconds: 15),
+    this.showMapTiles = true,
+  });
 
   final Future<List<Stop>> Function()? loadStops;
+  final Future<List<Departure>> Function(Stop stop)? loadDepartures;
+  final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
+  final Duration vehicleMapRefreshInterval;
+  final bool showMapTiles;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +47,13 @@ class PidOictApp extends StatelessWidget {
           foregroundColor: Color(0xFF241B1C),
         ),
       ),
-      home: StopsScreen(loadStops: loadStops),
+      home: PidOictShell(
+        loadStops: loadStops,
+        loadDepartures: loadDepartures,
+        loadVehiclePosition: loadVehiclePosition,
+        vehicleMapRefreshInterval: vehicleMapRefreshInterval,
+        showMapTiles: showMapTiles,
+      ),
     );
   }
 }
