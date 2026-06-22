@@ -1,17 +1,133 @@
-# pid_oict
+# PID OICT Golemio Flutter
 
-A new Flutter project.
+Small Flutter app for the OICT Praha / Golemio PID assignment. It shows Prague
+public transport stops, stop departures, and the current position of a selected
+vehicle on a map.
 
-## Getting Started
+Tested with Flutter 3.44.1 and Dart 3.12.1.
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- Stops list loaded from Golemio.
+- Local stop search by stop name.
+- Departures for the selected stop.
+- Pull-to-refresh on the departures screen.
+- Vehicle map for departures that include a vehicle ID.
+- Periodic vehicle position refresh every 15 seconds.
+- Loading, error, and empty states on the main screens.
+- Offline unit and widget tests using local maps, fakes, and mocked HTTP.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## API Setup
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The app uses the Golemio API at:
+
+```text
+https://api.golemio.cz
+```
+
+Provide the API token at run or build time with:
+
+```bash
+--dart-define=GOLEMIO_API_TOKEN=your_token_here
+```
+
+The token is sent in the `x-access-token` HTTP header. Do not hardcode it in
+Dart code, store it in committed files, or commit local environment files.
+
+## Setup
+
+Install dependencies:
+
+```bash
+flutter pub get
+```
+
+## Run
+
+```bash
+flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here
+```
+
+## Build
+
+Android:
+
+```bash
+flutter build apk --dart-define=GOLEMIO_API_TOKEN=your_token_here
+```
+
+iOS:
+
+```bash
+flutter build ios --dart-define=GOLEMIO_API_TOKEN=your_token_here
+```
+
+iOS builds require macOS with Xcode configured.
+
+## Verification
+
+```bash
+dart format .
+flutter analyze
+flutter test
+```
+
+The tests are offline. They do not call the real Golemio API and do not require
+`GOLEMIO_API_TOKEN`.
+
+## Dependencies
+
+- `http`: REST HTTP requests to the Golemio API.
+- `flutter_map`: OpenStreetMap-based map rendering without a Google Maps key.
+- `latlong2`: latitude/longitude value type used by `flutter_map`.
+
+The app keeps models and parsers manual to keep the assignment small.
+
+## Architecture
+
+- `lib/src/core/config`: base URL and token configuration.
+- `lib/src/core/network`: Golemio API client, JSON decoding, HTTP status,
+  timeout, and network error handling.
+- `lib/src/core/errors`: shared application exception types.
+- `lib/src/features/stops`: stop DTO/domain model, repository, filtering, and
+  stops screen.
+- `lib/src/features/departures`: departure DTO/domain model, repository, and
+  departure board screen.
+- `lib/src/features/vehicle_map`: vehicle position DTO/domain model,
+  repository, and map screen with polling.
+- `lib/src/shared/widgets`: reusable loading, error, empty, and centered state
+  widgets.
+- `lib/src/shared/utils`: JSON parsing, user-facing error text, and small date
+  formatting helpers.
+
+DTOs parse Golemio response shapes and convert to small domain models used by
+repositories and widgets. Repositories skip invalid records and surface
+controlled `AppException` errors.
+
+## Known Limitations
+
+- The departure board stop filter parameter is isolated as `ids[]`; it should
+  be live-verified against the current Golemio documentation before final
+  submission if documentation access is available.
+- The vehicle map action is available only for departures with a usable
+  `vehicleId`.
+- Map tiles require network access.
+- Vehicle polling preserves the last known position after a refresh failure,
+  but it does not implement background updates or push updates.
+- Tests use local/fake data and mocked HTTP instead of the real API.
+
+## Troubleshooting
+
+- Missing token: run or build with
+  `--dart-define=GOLEMIO_API_TOKEN=your_token_here`.
+- Unauthorized or invalid token: check that the Golemio token is valid and has
+  access to the used endpoints.
+- Network failure or timeout: verify internet connectivity and retry from the
+  in-app error state.
+- Empty departures: the selected stop may have no current departures, the stop
+  filter parameter may need live verification, or the API response may contain
+  no usable records.
+- No vehicle map action: the departure did not include a usable vehicle ID.
+- Vehicle position unavailable: the vehicle may not have a current public
+  position, or the API returned no usable coordinates.
+- Map tiles do not load: verify network access to OpenStreetMap tile servers.
