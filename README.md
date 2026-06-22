@@ -48,6 +48,30 @@ flutter pub get
 flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here
 ```
 
+## Local run with API token
+
+For local development, keep your real token in an ignored local env file:
+
+1. Copy `.env.example` to `.env.local`.
+2. Put your real Golemio token into `.env.local`.
+3. Run with the helper for your shell.
+
+Windows PowerShell:
+
+```powershell
+./scripts/run_local.ps1
+```
+
+Bash, macOS, Linux, or Git Bash:
+
+```bash
+./scripts/run_local.sh
+```
+
+`.env.local` is ignored by Git and must not be committed. The direct
+`flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here` command above is
+still supported as an alternative.
+
 ## Build
 
 Android:
