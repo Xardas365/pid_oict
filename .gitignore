@@ -11,6 +11,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+*.log
 
 # IntelliJ related
 *.iml
@@ -32,11 +33,16 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+**/.dart_tool/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
+build/
+**/build/
 /coverage/
+coverage/
+**/coverage/
 
 # Symbolication related
 app.*.symbols
@@ -52,4 +58,13 @@ app.*.map.json
 # Local secrets
 .env
 .env.*
+.env.local
 !.env.example
+
+# Local diagnostics and API sample outputs
+.debug/
+**/.debug/
+api_samples/
+api_sample_outputs/
+local_api_samples/
+sample_outputs/
