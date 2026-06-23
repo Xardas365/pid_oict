@@ -6,8 +6,10 @@ import '../../i18n/strings.g.dart';
 import '../features/departures/domain/departure.dart';
 import '../features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
 import '../features/departures/presentation/departures_screen.dart';
+import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/stop.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
+import '../features/stops/presentation/cubit/stops_cubit.dart';
 import '../features/stops/presentation/stops_screen.dart';
 import '../features/vehicle_map/domain/vehicle_position.dart';
 import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
@@ -57,8 +59,6 @@ class _PidOictShellState extends State<PidOictShell> {
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
-    final loadStops =
-        widget.loadStops ?? () => context.read<GetStopsUseCase>()();
     final loadDepartures =
         widget.loadDepartures ??
         (stop) => context.read<GetDeparturesForStopUseCase>()(stop);
@@ -71,7 +71,7 @@ class _PidOictShellState extends State<PidOictShell> {
       body: IndexedStack(
         index: _selectedTab.index,
         children: [
-          StopsScreen(loadStops: loadStops, onStopSelected: _selectStop),
+          _StopsTab(loadStops: widget.loadStops, onStopSelected: _selectStop),
           _DeparturesTab(
             selectedStop: _selectedStop,
             loadDepartures: loadDepartures,
@@ -100,6 +100,30 @@ class _PidOictShellState extends State<PidOictShell> {
         },
       ),
     );
+  }
+}
+
+class _StopsTab extends StatelessWidget {
+  const _StopsTab({required this.loadStops, required this.onStopSelected});
+
+  final Future<List<Stop>> Function()? loadStops;
+  final ValueChanged<Stop> onStopSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => StopsCubit(_getStopsUseCase(context))..loadStops(),
+      child: StopsScreen(onStopSelected: onStopSelected),
+    );
+  }
+
+  GetStopsUseCase _getStopsUseCase(BuildContext context) {
+    final loadStops = this.loadStops;
+    if (loadStops != null) {
+      return GetStopsUseCase(_CallbackStopsRepository(loadStops));
+    }
+
+    return context.read<GetStopsUseCase>();
   }
 }
 
@@ -133,6 +157,17 @@ class _DeparturesTab extends StatelessWidget {
       loadDepartures: loadDepartures,
       onTripSelected: onTripSelected,
     );
+  }
+}
+
+class _CallbackStopsRepository implements StopsRepository {
+  const _CallbackStopsRepository(this._loadStops);
+
+  final Future<List<Stop>> Function() _loadStops;
+
+  @override
+  Future<List<Stop>> fetchStops() {
+    return _loadStops();
   }
 }
 

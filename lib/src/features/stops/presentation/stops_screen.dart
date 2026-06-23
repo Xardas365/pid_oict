@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../../../i18n/strings.g.dart';
-import '../../../core/network/golemio_api_client.dart';
-import '../../departures/presentation/departures_screen.dart';
 import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
-import '../data/repositories/golemio_stops_repository.dart';
+import '../../departures/presentation/departures_screen.dart';
 import '../domain/stop.dart';
-import 'stop_filter.dart';
+import 'cubit/stops_cubit.dart';
+import 'cubit/stops_state.dart';
 
 class StopsScreen extends StatefulWidget {
-  const StopsScreen({super.key, this.loadStops, this.onStopSelected});
+  const StopsScreen({super.key, this.onStopSelected});
 
-  final Future<List<Stop>> Function()? loadStops;
   final ValueChanged<Stop>? onStopSelected;
 
   @override
@@ -25,18 +24,10 @@ class StopsScreen extends StatefulWidget {
 class _StopsScreenState extends State<StopsScreen> {
   final _searchController = TextEditingController();
 
-  var _stops = <Stop>[];
-  Object? _error;
-  var _isLoading = true;
-
-  List<Stop> get _filteredStops =>
-      filterStopsByName(_stops, _searchController.text);
-
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _loadStops();
   }
 
   @override
@@ -47,49 +38,11 @@ class _StopsScreenState extends State<StopsScreen> {
     super.dispose();
   }
 
-  Future<void> _loadStops() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final stops = await _defaultLoadStops();
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _stops = stops;
-        _isLoading = false;
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _error = error;
-        _stops = <Stop>[];
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<List<Stop>> _defaultLoadStops() {
-    final loadStops = widget.loadStops;
-    if (loadStops != null) {
-      return loadStops();
-    }
-
-    final apiClient = GolemioApiClient();
-    final repository = GolemioStopsRepository(apiClient);
-
-    return repository.fetchStops().whenComplete(apiClient.close);
-  }
-
   void _onSearchChanged() {
-    setState(() {});
+    final cubit = context.read<StopsCubit>();
+    if (_searchController.text != cubit.state.searchQuery) {
+      cubit.searchChanged(_searchController.text);
+    }
   }
 
   void _openDepartures(Stop stop) {
@@ -108,67 +61,97 @@ class _StopsScreenState extends State<StopsScreen> {
   Widget build(BuildContext context) {
     final strings = context.t;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(strings.stops.title)),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Column(
-            children: [
-              PidSearchField(
-                controller: _searchController,
-                enabled: !_isLoading && _error == null,
-                hintText: strings.stops.searchHint,
-              ),
-              const SizedBox(height: 16),
-              Expanded(child: _buildContent()),
-            ],
+    return BlocListener<StopsCubit, StopsState>(
+      listenWhen: (previous, current) =>
+          previous.searchQuery != current.searchQuery &&
+          _searchController.text != current.searchQuery,
+      listener: (_, state) {
+        _searchController.value = TextEditingValue(
+          text: state.searchQuery,
+          selection: TextSelection.collapsed(offset: state.searchQuery.length),
+        );
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(strings.stops.title)),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Column(
+              children: [
+                BlocSelector<StopsCubit, StopsState, bool>(
+                  selector: (state) =>
+                      state.status != StopsStatus.loading &&
+                      state.status != StopsStatus.error,
+                  builder: (context, enabled) {
+                    return PidSearchField(
+                      controller: _searchController,
+                      enabled: enabled,
+                      hintText: strings.stops.searchHint,
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: BlocBuilder<StopsCubit, StopsState>(
+                    builder: (context, state) => _buildContent(context, state),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context, StopsState state) {
     final strings = context.t;
 
-    if (_isLoading) {
-      return LoadingStateView(message: strings.stops.loading);
-    }
-
-    final error = _error;
-    if (error != null) {
-      return ErrorStateView(
+    return switch (state.status) {
+      StopsStatus.loading => LoadingStateView(message: strings.stops.loading),
+      StopsStatus.error => ErrorStateView(
         message: userMessageForAppError(
-          error,
+          state.error,
           fallbackMessage: strings.stops.loadFailed,
           invalidDataMessage: strings.stops.invalidData,
         ),
-        onRetry: _loadStops,
-      );
-    }
-
-    final filteredStops = _filteredStops;
-    if (filteredStops.isEmpty) {
-      return EmptyStateView(
-        message: _searchController.text.trim().isEmpty
-            ? strings.stops.empty
-            : strings.stops.emptySearch,
+        onRetry: context.read<StopsCubit>().retry,
+      ),
+      StopsStatus.empty => EmptyStateView(
+        message: state.isSearchActive
+            ? strings.stops.emptySearch
+            : strings.stops.empty,
         icon: Icons.location_off_outlined,
-      );
-    }
+      ),
+      StopsStatus.loaded => _StopsList(
+        stops: state.filteredStops,
+        onOpenDepartures: _openDepartures,
+      ),
+    };
+  }
+}
+
+class _StopsList extends StatelessWidget {
+  const _StopsList({required this.stops, required this.onOpenDepartures});
+
+  final List<Stop> stops;
+  final ValueChanged<Stop> onOpenDepartures;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.t;
 
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 16),
-      itemCount: filteredStops.length,
+      itemCount: stops.length,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final stop = filteredStops[index];
+        final stop = stops[index];
 
         return PidStopCard(
           stop: stop.toPidStopData(strings),
           semanticLabel: strings.stops.stopSemantic(name: stop.name),
-          onTap: () => _openDepartures(stop),
+          onTap: () => onOpenDepartures(stop),
         );
       },
     );
