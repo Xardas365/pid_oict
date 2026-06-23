@@ -9,6 +9,8 @@ import '../features/departures/domain/usecases/get_departures_for_stop_use_case.
 import '../features/departures/presentation/bloc/departures_bloc.dart';
 import '../features/departures/presentation/bloc/departures_event.dart';
 import '../features/departures/presentation/departures_screen.dart';
+import '../features/stops/data/datasources/saved_stops_data_source.dart';
+import '../features/stops/data/datasources/stops_cache_data_source.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/stop.dart';
 import '../features/stops/domain/stop_group.dart';
@@ -115,8 +117,18 @@ class _StopsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadStops = this.loadStops;
+
     return BlocProvider(
-      create: (context) => StopsCubit(_getStopsUseCase(context))..loadStops(),
+      create: (context) => StopsCubit(
+        _getStopsUseCase(context),
+        cacheDataSource: loadStops == null
+            ? context.read<StopsCacheDataSource>()
+            : null,
+        savedStopsDataSource: loadStops == null
+            ? context.read<SavedStopsDataSource>()
+            : null,
+      )..loadStops(),
       child: StopsScreen(onStopSelected: onStopSelected),
     );
   }

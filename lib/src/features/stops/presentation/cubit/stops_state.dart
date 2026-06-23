@@ -16,6 +16,13 @@ class StopsState {
     this.nextOffset = 0,
     this.isLoadingMore = false,
     this.isSearching = false,
+    this.isFromCache = false,
+    this.isCacheStale = false,
+    this.cacheRefreshError,
+    this.favoriteGroupIds = const <String>[],
+    this.recentGroupIds = const <String>[],
+    this.favoriteGroups = const <StopGroup>[],
+    this.recentGroups = const <StopGroup>[],
   });
 
   const StopsState.loading() : this(status: StopsStatus.loading);
@@ -31,8 +38,20 @@ class StopsState {
   final int nextOffset;
   final bool isLoadingMore;
   final bool isSearching;
+  final bool isFromCache;
+  final bool isCacheStale;
+  final Object? cacheRefreshError;
+  final List<String> favoriteGroupIds;
+  final List<String> recentGroupIds;
+  final List<StopGroup> favoriteGroups;
+  final List<StopGroup> recentGroups;
 
   bool get isSearchActive => searchQuery.trim().isNotEmpty;
+  bool get hasCacheWarning => isCacheStale || cacheRefreshError != null;
+
+  bool isFavorite(StopGroup group) {
+    return favoriteGroupIds.contains(group.id);
+  }
 
   StopsState copyWith({
     StopsStatus? status,
@@ -46,7 +65,15 @@ class StopsState {
     int? nextOffset,
     bool? isLoadingMore,
     bool? isSearching,
+    bool? isFromCache,
+    bool? isCacheStale,
+    Object? cacheRefreshError,
+    List<String>? favoriteGroupIds,
+    List<String>? recentGroupIds,
+    List<StopGroup>? favoriteGroups,
+    List<StopGroup>? recentGroups,
     bool clearError = false,
+    bool clearCacheRefreshError = false,
   }) {
     return StopsState(
       status: status ?? this.status,
@@ -60,6 +87,15 @@ class StopsState {
       nextOffset: nextOffset ?? this.nextOffset,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isSearching: isSearching ?? this.isSearching,
+      isFromCache: isFromCache ?? this.isFromCache,
+      isCacheStale: isCacheStale ?? this.isCacheStale,
+      cacheRefreshError: clearCacheRefreshError
+          ? null
+          : cacheRefreshError ?? this.cacheRefreshError,
+      favoriteGroupIds: favoriteGroupIds ?? this.favoriteGroupIds,
+      recentGroupIds: recentGroupIds ?? this.recentGroupIds,
+      favoriteGroups: favoriteGroups ?? this.favoriteGroups,
+      recentGroups: recentGroups ?? this.recentGroups,
     );
   }
 }
