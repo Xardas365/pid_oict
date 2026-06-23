@@ -54,7 +54,7 @@ void main() {
     test('does not log API token in debug logs', () async {
       final logs = <String>[];
       final adapter = _FakeDioAdapter((_) async {
-        return _jsonResponse('{"ok":true}');
+        return _jsonResponse('{"ok":true,"sample":"Andel"}');
       });
       final dio = createGolemioDio(enableLogging: true, logger: logs.add)
         ..httpClientAdapter = adapter;
@@ -65,9 +65,157 @@ void main() {
 
       await client.getJson('/v2/gtfs/stops', queryParameters: {'limit': '1'});
 
+      final combinedLogs = logs.join('\n');
+
       expect(logs, isNotEmpty);
-      expect(logs.join('\n'), isNot(contains('secret-token-value')));
-      expect(logs.join('\n'), isNot(contains('x-access-token')));
+      expect(
+        combinedLogs,
+        contains('========== GOLEMIO HTTP REQUEST START =========='),
+      );
+      expect(combinedLogs, contains('method: GET'));
+      expect(combinedLogs, contains('/v2/gtfs/stops?limit=1'));
+      expect(combinedLogs, contains('query:'));
+      expect(combinedLogs, contains('"limit": "1"'));
+      expect(combinedLogs, contains('body:'));
+      expect(combinedLogs, contains('<empty>'));
+      expect(
+        combinedLogs,
+        contains('========== GOLEMIO HTTP REQUEST END ============'),
+      );
+      expect(
+        combinedLogs,
+        contains('========= GOLEMIO HTTP RESPONSE START ========='),
+      );
+      expect(combinedLogs, contains('outcome: success'));
+      expect(combinedLogs, contains('status: 200'));
+      expect(combinedLogs, contains('"ok": true'));
+      expect(combinedLogs, contains('"sample": "Andel"'));
+      expect(
+        combinedLogs,
+        contains('========= GOLEMIO HTTP RESPONSE END ==========='),
+      );
+      expect(combinedLogs, isNot(contains('secret-token-value')));
+      expect(combinedLogs, isNot(contains('x-access-token')));
+    });
+
+    test('logs failed HTTP status without leaking token', () async {
+      final logs = <String>[];
+      final adapter = _FakeDioAdapter((_) async {
+        return _jsonResponse('{"error":"Unauthorized"}', 401);
+      });
+      final dio = createGolemioDio(enableLogging: true, logger: logs.add)
+        ..httpClientAdapter = adapter;
+      final client = GolemioApiClient(
+        config: const AppConfig(apiToken: 'secret-token-value'),
+        dio: dio,
+      );
+
+      await expectLater(
+        client.getJson('/v2/gtfs/stops'),
+        throwsA(isA<AppException>()),
+      );
+
+      final combinedLogs = logs.join('\n');
+
+      expect(
+        combinedLogs,
+        contains('========= GOLEMIO HTTP RESPONSE START ========='),
+      );
+      expect(combinedLogs, contains('outcome: failure'));
+      expect(combinedLogs, contains('status: 401'));
+      expect(combinedLogs, contains('/v2/gtfs/stops'));
+      expect(combinedLogs, contains('body:'));
+      expect(combinedLogs, contains('"error": "Unauthorized"'));
+      expect(
+        combinedLogs,
+        contains('========= GOLEMIO HTTP RESPONSE END ==========='),
+      );
+      expect(combinedLogs, isNot(contains('secret-token-value')));
+      expect(combinedLogs, isNot(contains('x-access-token')));
+    });
+
+    test('redacts sensitive request query, headers, and body logs', () async {
+      final logs = <String>[];
+      final adapter = _FakeDioAdapter((_) async {
+        return _jsonResponse('{"ok":true}');
+      });
+      final dio = createGolemioDio(enableLogging: true, logger: logs.add)
+        ..httpClientAdapter = adapter;
+
+      await dio.post<dynamic>(
+        '/v2/debug',
+        queryParameters: {
+          'accessToken': 'hidden-query-value',
+          'stopIds': '{"0":["U123Z1"]}',
+        },
+        data: {
+          'name': 'Andel',
+          'apiToken': 'hidden-body-token',
+          'nested': {'password': 'hidden-password'},
+        },
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'x-access-token': 'hidden-header-token',
+          },
+        ),
+      );
+
+      final combinedLogs = logs.join('\n');
+
+      expect(combinedLogs, contains('method: POST'));
+      expect(combinedLogs, contains('/v2/debug?accessToken=%3Credacted%3E'));
+      expect(combinedLogs, contains('"accessToken": "<redacted>"'));
+      expect(combinedLogs, contains('"stopIds": {'));
+      expect(combinedLogs, contains('"0": ['));
+      expect(combinedLogs, contains('"U123Z1"'));
+      expect(combinedLogs, contains('"name": "Andel"'));
+      expect(combinedLogs, contains('"apiToken": "<redacted>"'));
+      expect(combinedLogs, contains('"password": "<redacted>"'));
+      expect(combinedLogs, isNot(contains('hidden-query-value')));
+      expect(combinedLogs, isNot(contains('hidden-body-token')));
+      expect(combinedLogs, isNot(contains('hidden-password')));
+      expect(combinedLogs, isNot(contains('hidden-header-token')));
+      expect(combinedLogs, isNot(contains('x-access-token')));
+    });
+
+    test('logs transport failures without leaking token', () async {
+      final logs = <String>[];
+      final adapter = _FakeDioAdapter((options) {
+        throw DioException.connectionError(
+          requestOptions: options,
+          reason: 'offline',
+        );
+      });
+      final dio = createGolemioDio(enableLogging: true, logger: logs.add)
+        ..httpClientAdapter = adapter;
+      final client = GolemioApiClient(
+        config: const AppConfig(apiToken: 'secret-token-value'),
+        dio: dio,
+      );
+
+      await expectLater(
+        client.getJson('/v2/gtfs/stops'),
+        throwsA(isA<AppException>()),
+      );
+
+      final combinedLogs = logs.join('\n');
+
+      expect(
+        combinedLogs,
+        contains('========= GOLEMIO HTTP FAILURE START =========='),
+      );
+      expect(combinedLogs, contains('status: -'));
+      expect(combinedLogs, contains('type: connectionError'));
+      expect(combinedLogs, contains('/v2/gtfs/stops'));
+      expect(combinedLogs, contains('responseBody:'));
+      expect(combinedLogs, contains('<empty>'));
+      expect(
+        combinedLogs,
+        contains('========= GOLEMIO HTTP FAILURE END ============'),
+      );
+      expect(combinedLogs, isNot(contains('secret-token-value')));
+      expect(combinedLogs, isNot(contains('x-access-token')));
     });
 
     test('distinguishes unauthorized responses', () async {
@@ -111,6 +259,25 @@ void main() {
         ),
       );
     });
+
+    test(
+      'can treat 404 empty JSON list as an empty result when opted in',
+      () async {
+        final client = _client(
+          apiToken: 'configured-value',
+          adapter: _FakeDioAdapter((_) async {
+            return _jsonResponse('[]', 404);
+          }),
+        );
+
+        final result = await client.getJson(
+          '/v2/public/departureboards',
+          notFoundEmptyListAsSuccess: true,
+        );
+
+        expect(result, isEmpty);
+      },
+    );
 
     test('maps server errors', () async {
       final client = _client(

@@ -153,6 +153,27 @@ record counts plus a capped list of representative skip reasons. These
 diagnostics are used by tests and data-layer tooling only; they are not shown in
 the production UI.
 
+Debug Flutter runs can print safe Golemio diagnostics to the console. The
+committed Android Studio and VS Code local-token run templates enable these logs
+automatically:
+
+- request method, URL, query parameters, and non-sensitive headers,
+- block markers such as `GOLEMIO HTTP REQUEST START` and
+  `GOLEMIO HTTP REQUEST END`,
+- response outcome and status lines such as `outcome: success` and
+  `status: 200`,
+- HTTP failure responses such as `outcome: failure` with `status: 401`,
+- timeout/network failures in `GOLEMIO HTTP FAILURE` blocks,
+- response duration, byte count, and a bounded response preview,
+- parsed/skipped record counts and small parsed samples for stops/departures.
+
+The `x-access-token` header and token value are never printed. For manual CLI
+runs, enable these logs with:
+
+```bash
+flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here --dart-define=GOLEMIO_DEBUG_LOGS=true
+```
+
 To capture local Golemio response samples for debugging, set your token in the
 shell environment and run:
 
@@ -221,9 +242,9 @@ Repositories skip invalid records and surface controlled `AppException` errors.
 
 ## Known Limitations
 
-- The departure board stop filter parameter is isolated as `ids[]`; it should
-  be live-verified against the current Golemio documentation before final
-  submission if documentation access is available.
+- The public departure board request uses the OpenAPI-documented
+  `stopIds={"0":["<GTFS stop_id>"]}` stop group filter for
+  `/v2/public/departureboards`.
 - The vehicle map action is available only for departures with a usable
   `gtfsTripId`. The selected trip is requested through
   `/v2/vehiclepositions/{gtfsTripId}` with vehicle-position query options.

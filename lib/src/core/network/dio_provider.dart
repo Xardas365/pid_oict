@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:pid_oict/src/core/logging/golemio_debug_logger.dart';
 import 'package:pid_oict/src/core/network/logging_interceptor.dart';
 
 import '../config/app_config.dart';
@@ -7,7 +7,7 @@ import '../config/app_config.dart';
 Dio createGolemioDio({
   String baseUrl = golemioBaseUrl,
   Duration timeout = const Duration(seconds: 20),
-  bool enableLogging = kDebugMode,
+  bool enableLogging = isGolemioDebugLoggingEnabled,
   void Function(String message)? logger,
 }) {
   final dio = Dio(

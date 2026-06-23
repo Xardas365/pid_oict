@@ -5,10 +5,12 @@ class GolemioApiClientCall {
   const GolemioApiClientCall({
     required this.path,
     required this.queryParameters,
+    required this.notFoundEmptyListAsSuccess,
   });
 
   final String path;
   final Map<String, String?> queryParameters;
+  final bool notFoundEmptyListAsSuccess;
 }
 
 class FakeGolemioApiClient implements GolemioApiClient {
@@ -28,11 +30,13 @@ class FakeGolemioApiClient implements GolemioApiClient {
   Future<Object?> getJson(
     String path, {
     Map<String, String?> queryParameters = const {},
+    bool notFoundEmptyListAsSuccess = false,
   }) async {
     calls.add(
       GolemioApiClientCall(
         path: path,
         queryParameters: Map<String, String?>.from(queryParameters),
+        notFoundEmptyListAsSuccess: notFoundEmptyListAsSuccess,
       ),
     );
 

@@ -32,6 +32,7 @@ class GolemioApiClient {
   Future<Object?> getJson(
     String path, {
     Map<String, String?> queryParameters = const {},
+    bool notFoundEmptyListAsSuccess = false,
   }) async {
     final token = config.apiToken.trim();
 
@@ -59,9 +60,16 @@ class GolemioApiClient {
       throw _exceptionForDioError(error);
     }
 
+    final body = response.data?.trim() ?? '';
+
+    if (notFoundEmptyListAsSuccess &&
+        response.statusCode == 404 &&
+        _isEmptyJsonList(body)) {
+      return <Object?>[];
+    }
+
     _throwForStatus(response.statusCode);
 
-    final body = response.data?.trim() ?? '';
     if (body.isEmpty) {
       throw AppException(
         type: AppExceptionType.emptyResponse,
@@ -79,6 +87,15 @@ class GolemioApiClient {
         statusCode: response.statusCode,
         cause: error,
       );
+    }
+  }
+
+  bool _isEmptyJsonList(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      return decoded is List && decoded.isEmpty;
+    } on FormatException {
+      return false;
     }
   }
 
