@@ -1,78 +1,58 @@
 # PID OICT Golemio Flutter
 
-Small Flutter app for the OICT Praha / Golemio PID assignment. It shows Prague
-public transport stops, stop departures, and the current position of a selected
-vehicle on a map.
+Flutter showcase app for the OICT Praha public transport assignment. The app
+uses the Golemio PID API to browse public Prague transit stops, show grouped
+departure boards, and display the current position of a selected vehicle trip
+on a map.
 
-Tested with Flutter 3.44.1 and Dart 3.12.1.
+The repository is intentionally Android-focused. Non-Android Flutter platform
+folders are not maintained for this assignment.
+
+Project SDK constraint: Dart `^3.12.1`. The latest local verification was run
+with Flutter 3.44.1 and Dart 3.12.1.
 
 ## Features
 
-- Stops list loaded from Golemio.
-- Local stop search by stop name.
-- Departures for the selected stop.
-- Pull-to-refresh on the departures screen.
-- Vehicle map for departures that include a usable GTFS trip ID.
-- Periodic vehicle position refresh every 15 seconds.
-- Loading, error, and empty states on the main screens.
-- Offline unit and widget tests using local maps, fakes, and mocked HTTP.
+- Public-facing PID stops loaded from `/v2/gtfs/stops`.
+- Paginated stop loading with `limit` and `offset`.
+- API-backed stop search using `names[]`, with local fallback search.
+- Conservative filtering of technical GTFS stop points before display.
+- Grouped public stops, so platforms of one stop are shown as one item.
+- Departure boards for grouped stop IDs.
+- Departure deduplication, sorting, pull-to-refresh, periodic refresh, and
+  stale-data warning.
+- Vehicle tracking by `gtfsTripId` on an OpenStreetMap-based map.
+- Last known vehicle position stays visible when a refresh fails.
+- Public stops cache with 24-hour TTL and app-specific storage via
+  `path_provider`.
+- Favorite and recent stop groups persisted locally.
+- Czech and English UI localization through Slang.
+- Offline unit, widget, and golden tests.
 
-## API Setup
+## API Token
 
-The app uses the Golemio API at:
+Generate a Golemio API token at:
 
 ```text
-https://api.golemio.cz
+https://api.golemio.cz/api-keys
 ```
 
-Provide the API token at run or build time with:
-
-```bash
---dart-define=GOLEMIO_API_TOKEN=your_token_here
-```
-
-The token is sent in the `x-access-token` HTTP header. Do not hardcode it in
-Dart code, store it in committed files, or commit local environment files.
-
-## Setup
-
-Install dependencies:
-
-```bash
-flutter pub get
-```
-
-## Run
+Pass the token at run or build time:
 
 ```bash
 flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here
 ```
 
-## Local run with API token
+The app sends the token in the `x-access-token` HTTP header. Never hardcode a
+real token, commit it, or store it in tracked files.
 
-For local development, keep your real token in an ignored local env file:
+## Local Run With API Token
+
+For local development, keep your real token in an ignored file:
 
 1. Copy `.env.example` to `.env.local`.
-2. Put your real Golemio token into `.env.local`.
-3. Run with your IDE, the direct Flutter command, or the helper for your shell.
-
-Android Studio:
-
-1. Open the project.
-2. Select the run configuration `OICT PID - local token`.
-3. Run the app.
-
-If the shared configuration is not visible, create a Flutter run configuration
-manually:
-
-- Dart entrypoint: `lib/main.dart`
-- Additional run args: `--dart-define-from-file=.env.local`
-
-VS Code:
-
-1. Open Run and Debug.
-2. Select `OICT PID - local token`.
-3. Run the app.
+2. Put your real token into `.env.local`.
+3. Run with the CLI, helper script, or IDE template.
 
 Direct Flutter command:
 
@@ -92,179 +72,167 @@ Bash or Git Bash:
 ./scripts/run_local.sh
 ```
 
-`.env.local` is ignored by Git and must not be committed. Only `.env.example`
-with `GOLEMIO_API_TOKEN=your_token_here` is committed. The direct
-`flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here` command above is
-still supported as an alternative.
+Android Studio:
+
+1. Select the run configuration `OICT PID - local token`.
+2. Run the app.
+
+VS Code:
+
+1. Open Run and Debug.
+2. Select `OICT PID - local token`.
+3. Run the app.
+
+Only `.env.example` is committed. `.env.local` is ignored by Git.
 
 ## Build
-
-This showcase supports Android only. The non-Android Flutter platform folders
-are intentionally not maintained in this repository.
 
 ```bash
 flutter build apk --dart-define=GOLEMIO_API_TOKEN=your_token_here
 ```
 
+The release build currently uses debug signing so the showcase can be built and
+run locally without private signing material.
+
 ## Verification
 
 ```bash
+dart run slang
 dart format .
 flutter analyze
 flutter test
+git diff --check
 ```
 
-To update committed golden images after an intentional UI change:
+Also run the project token scan used during review and confirm it returns no
+real token-like strings.
+
+Update goldens only after intentional UI changes:
 
 ```bash
 flutter test --update-goldens
 ```
 
-If Freezed or JSON-serializable source files change, run code generation before
-analysis and tests:
+If generated model sources are changed later, run:
 
 ```bash
-dart run build_runner build
+dart run build_runner build --delete-conflicting-outputs
 ```
 
-If localization files under `lib/i18n/*.i18n.json` change, regenerate Slang
-translations before analysis and tests:
+The test suite is offline. It does not call the real Golemio API, require a real
+token, or load real map tiles.
 
-```bash
-dart run slang
+## API Endpoints
+
+Base URL:
+
+```text
+https://api.golemio.cz
 ```
 
-If localization files under `packages/pid_seeds/lib/i18n/*.i18n.json` change,
-regenerate that package too:
+Used endpoints:
 
-```bash
-cd packages/pid_seeds
-dart run slang
-cd ../..
+- `GET /v2/gtfs/stops`
+  - `limit`
+  - `offset`
+  - `names[]`
+  - `ids[]`
+  - `aswIds[]`
+  - `cisIds[]`
+- `GET /v2/public/departureboards`
+  - grouped `stopIds`, for example
+    `stopIds={"0":["U118Z101P","U118Z102P"]}`
+- `GET /v2/vehiclepositions/{gtfsTripId}`
+  - `includeNotTracking=true`
+  - `includePositions=true`
+  - `preferredTimezone=Europe_Prague`
+
+GTFS stops are filtered before they reach the public list because the raw feed
+also contains infrastructure and technical records. Public stop points are then
+grouped by `parent_station` or normalized stop name so the UI shows one stop row
+with all related platform stop IDs.
+
+## Architecture
+
+The app uses pragmatic Clean Architecture with Flutter Bloc:
+
+- `lib/src/core/config`: base URL, environment configuration, token access.
+- `lib/src/core/network`: Dio API client, safe debug logging, JSON handling,
+  status-code mapping, timeout and network error mapping.
+- `lib/src/core/errors`: app-level exceptions used by repositories and UI.
+- `lib/src/app`: app theme, bottom navigation shell, and explicit
+  `RepositoryProvider` composition.
+- `lib/src/features/stops`: GTFS stop DTO/domain parsing, public filtering,
+  grouping, pagination, cache data sources, favorites/recent storage,
+  `StopsCubit`, and the stops UI.
+- `lib/src/features/departures`: departure DTO/domain parsing, repository,
+  use case, `DeparturesBloc`, refresh/stale state, and departure board UI.
+- `lib/src/features/vehicle_map`: vehicle position parsing, repository, use
+  case, `VehicleMapBloc`, polling, stale state, and map UI.
+- `lib/src/shared`: reusable loading/error/empty widgets, JSON parsing helpers,
+  formatting helpers, and user-facing error mapping.
+- `lib/i18n`: Slang source files and generated Czech/English accessors.
+- `packages/pid_seeds`: local reusable PID UI/theme package.
+
+State flow is intentionally explicit:
+
+```text
+UI -> Cubit/Bloc -> Use case -> Domain repository -> Data implementation -> Dio
 ```
 
-The tests are offline. They do not call the real Golemio API and do not require
-`GOLEMIO_API_TOKEN`.
+Constructor injection and Flutter Bloc providers are used instead of service
+locators.
 
-## Parser diagnostics and API samples
+## Cache And Saved Stops
 
-DTO parsers expose developer-facing diagnostics with raw, parsed, and skipped
-record counts plus a capped list of representative skip reasons. These
-diagnostics are used by tests and data-layer tooling only; they are not shown in
-the production UI.
+- Public stop records that pass filtering are cached locally.
+- Cache schema version is `1`.
+- Cache TTL is 24 hours.
+- Runtime cache files are stored in app-specific support storage via
+  `path_provider`.
+- Cached stops are restored immediately on startup when available.
+- A background refresh updates the cache and clears stale warnings on success.
+- Favorite and recent stops store stable `StopGroup.id` values plus timestamps,
+  not duplicated full stop datasets.
+- Recent stops are kept newest-first and capped to 10 items.
 
-Debug Flutter runs can print safe Golemio diagnostics to the console. The
-committed Android Studio and VS Code local-token run templates enable these logs
-automatically:
+Real-time departure and vehicle-position data is not cached.
 
-- request method, URL, query parameters, and non-sensitive headers,
-- block markers such as `GOLEMIO HTTP REQUEST START` and
-  `GOLEMIO HTTP REQUEST END`,
-- response outcome and status lines such as `outcome: success` and
-  `status: 200`,
-- HTTP failure responses such as `outcome: failure` with `status: 401`,
-- timeout/network failures in `GOLEMIO HTTP FAILURE` blocks,
-- response duration, byte count, and a bounded response preview,
-- parsed/skipped record counts and small parsed samples for stops/departures.
+## Debugging Golemio Responses
 
-The `x-access-token` header and token value are never printed. For manual CLI
-runs, enable these logs with:
+Debug HTTP logging is disabled by default and can be enabled with:
 
 ```bash
 flutter run --dart-define=GOLEMIO_API_TOKEN=your_token_here --dart-define=GOLEMIO_DEBUG_LOGS=true
 ```
 
-To capture local Golemio response samples for debugging, set your token in the
-shell environment and run:
+Logs include request method, URL, query parameters, status code, duration,
+bounded response preview, and parser diagnostics. The API token and sensitive
+headers are redacted.
 
-PowerShell:
+To fetch local sample responses for manual inspection:
+
+```bash
+GOLEMIO_API_TOKEN=your_token_here dart run tool/fetch_golemio_samples.dart --stop-id=U118Z101P --gtfs-trip-id=your_gtfs_trip_id
+```
+
+On PowerShell:
 
 ```powershell
 $env:GOLEMIO_API_TOKEN="your_token_here"
-dart run tool/fetch_golemio_samples.dart --stop-id=U123Z1 --gtfs-trip-id=your_gtfs_trip_id
+dart run tool/fetch_golemio_samples.dart --stop-id=U118Z101P --gtfs-trip-id=your_gtfs_trip_id
 ```
 
-Bash/macOS/Linux/Git Bash:
-
-```bash
-GOLEMIO_API_TOKEN=your_token_here dart run tool/fetch_golemio_samples.dart --stop-id=U123Z1 --gtfs-trip-id=your_gtfs_trip_id
-```
-
-The tool writes timestamped JSON samples under `.debug/golemio_samples/`, which
-is ignored by Git. Do not commit real tokens or generated sample JSON files.
-
-## Dependencies
-
-- `dio`: REST HTTP requests to the Golemio API, timeout handling, and safe
-  debug request/response diagnostics.
-- `flutter_bloc`: app-level dependency composition now, and the approved
-  state-management package for the planned Bloc/Cubit screen migration.
-- `flutter_map`: OpenStreetMap-based map rendering without a Google Maps key.
-- `latlong2`: latitude/longitude value type used by `flutter_map`.
-- `pid_seeds`: local PID UI seed package used for theme and reusable UI
-  components.
-- `freezed_annotation` / `json_annotation`: annotation packages for the
-  approved generated model/state migration.
-- `build_runner`, `freezed`, `json_serializable`: code generation tooling.
-- `slang` / `slang_flutter`: type-safe Czech and English app localization.
-- `flutter_localizations`: Flutter Material localization delegates.
-
-The current runtime still contains manual DTO/domain parsing in several places.
-The generator toolchain is available for the planned incremental Freezed/JSON
-mapping migration.
-
-## Architecture
-
-- `lib/src/core/config`: base URL and token configuration.
-- `lib/src/core/network`: Dio-based Golemio API client, JSON decoding, HTTP status,
-  timeout, and network error handling.
-- `lib/src/core/errors`: shared application exception types.
-- `lib/src/app`: app shell and explicit `RepositoryProvider` composition.
-- `lib/src/features/stops`: stop DTO/domain model, repository, filtering, and
-  stops screen.
-- `lib/src/features/departures`: departure DTO/domain model, repository, and
-  departure board screen.
-- `lib/src/features/vehicle_map`: vehicle position DTO/domain model,
-  repository, and map screen with polling.
-- `lib/src/shared/widgets`: reusable loading, error, empty, and centered state
-  widgets.
-- `lib/src/shared/utils`: JSON parsing, user-facing error text, and small date
-  formatting helpers.
-- `lib/i18n`: Czech and English Slang translation sources and generated typed
-  accessors.
-- `packages/pid_seeds/lib/i18n`: package-local Czech and English fallback
-  strings for reusable PID UI widgets.
-
-DTOs parse Golemio response shapes and convert to small domain models.
-Domain repository interfaces and use cases sit between data repositories and
-the current screens, preparing the incremental Bloc/Cubit migration.
-Repositories skip invalid records and surface controlled `AppException` errors.
+The tool writes only under `.debug/golemio_samples/`, which is ignored by Git.
 
 ## Known Limitations
 
-- The public departure board request uses the OpenAPI-documented
-  `stopIds={"0":["<GTFS stop_id>"]}` stop group filter for
-  `/v2/public/departureboards`.
-- The vehicle map action is available only for departures with a usable
-  `gtfsTripId`. The selected trip is requested through
-  `/v2/vehiclepositions/{gtfsTripId}` with vehicle-position query options.
+- `names[]` is not guaranteed to behave as true full-text search, so the app
+  keeps a local fallback over loaded/cached groups.
+- Manual runtime verification requires a valid Golemio token.
+- Vehicle tracking depends on a departure containing a usable `gtfsTripId`.
 - Map tiles require network access.
-- Vehicle polling preserves the last known position after a refresh failure,
-  but it does not implement background updates or push updates.
-- Tests use local/fake data and mocked HTTP instead of the real API.
-
-## Troubleshooting
-
-- Missing token: run or build with
-  `--dart-define=GOLEMIO_API_TOKEN=your_token_here`.
-- Unauthorized or invalid token: check that the Golemio token is valid and has
-  access to the used endpoints.
-- Network failure or timeout: verify internet connectivity and retry from the
-  in-app error state.
-- Empty departures: the selected stop may have no current departures, the stop
-  filter parameter may need live verification, or the API response may contain
-  no usable records.
-- No vehicle map action: the departure did not include a usable GTFS trip ID.
-- Vehicle position unavailable: the vehicle may not have a current public
-  position, or the API returned no usable coordinates.
-- Map tiles do not load: verify network access to OpenStreetMap tile servers.
+- The stop cache TTL is fixed at 24 hours.
+- Favorites and recent stops store group IDs; if a saved group is not present in
+  the current loaded/cached stop set, it is kept in storage but not shown.
+- The Android release build uses debug signing for local review only.
