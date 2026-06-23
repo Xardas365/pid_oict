@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pid_seeds/pid_seeds.dart';
@@ -25,8 +27,11 @@ class StopsScreen extends StatefulWidget {
 }
 
 class _StopsScreenState extends State<StopsScreen> {
+  static const _backToTopOffset = 240.0;
+
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
+  var _showBackToTopButton = false;
 
   @override
   void initState() {
@@ -59,13 +64,48 @@ class _StopsScreenState extends State<StopsScreen> {
     }
 
     final position = _scrollController.position;
+    _updateBackToTopButton(position);
+
     final remainingExtent = position.maxScrollExtent - position.pixels;
     if (remainingExtent < 480) {
       context.read<StopsCubit>().loadMore();
     }
   }
 
+  void _updateBackToTopButton(ScrollPosition position) {
+    if (!mounted) {
+      return;
+    }
+
+    final showBackToTopButton =
+        position.maxScrollExtent > 0 && position.pixels > _backToTopOffset;
+
+    if (showBackToTopButton == _showBackToTopButton) {
+      return;
+    }
+
+    setState(() {
+      _showBackToTopButton = showBackToTopButton;
+    });
+  }
+
+  void _scrollToTop() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    unawaited(
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
   void _openDepartures(StopGroup stop) {
+    unawaited(context.read<StopsCubit>().recordRecentStop(stop));
+
     final onStopSelected = widget.onStopSelected;
     if (onStopSelected != null) {
       onStopSelected(stop);
@@ -129,6 +169,18 @@ class _StopsScreenState extends State<StopsScreen> {
                         : const SizedBox.shrink(),
                   ),
                 ),
+                BlocSelector<StopsCubit, StopsState, _StopsCacheBannerData?>(
+                  selector: _cacheBannerData,
+                  builder: (context, banner) => AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 150),
+                    child: banner == null
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: _StopsCacheBanner(data: banner),
+                          ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: BlocBuilder<StopsCubit, StopsState>(
@@ -163,53 +215,415 @@ class _StopsScreenState extends State<StopsScreen> {
         icon: Icons.location_off_outlined,
       ),
       StopsStatus.loaded => _StopsList(
-        stops: state.filteredGroups,
+        state: state,
         isLoadingMore: state.isLoadingMore,
+        showBackToTopButton: _showBackToTopButton,
         controller: _scrollController,
         onOpenDepartures: _openDepartures,
+        onScrollToTop: _scrollToTop,
+        onToggleFavorite: (stop) {
+          unawaited(context.read<StopsCubit>().toggleFavorite(stop));
+        },
       ),
     };
+  }
+
+  _StopsCacheBannerData? _cacheBannerData(StopsState state) {
+    if (state.status == StopsStatus.loading ||
+        state.status == StopsStatus.error ||
+        !state.isFromCache) {
+      return null;
+    }
+
+    final strings = context.t;
+    if (state.cacheRefreshError != null) {
+      return _StopsCacheBannerData(
+        message: strings.stops.savedStopsRefreshFailed,
+        kind: _StopsCacheBannerKind.warning,
+      );
+    }
+
+    if (state.isCacheStale) {
+      return _StopsCacheBannerData(
+        message: strings.stops.showingOlderSavedStops,
+        kind: _StopsCacheBannerKind.warning,
+      );
+    }
+
+    return _StopsCacheBannerData(
+      message: strings.stops.showingSavedStops,
+      kind: _StopsCacheBannerKind.info,
+    );
+  }
+}
+
+enum _StopsCacheBannerKind { info, warning }
+
+class _StopsCacheBannerData {
+  const _StopsCacheBannerData({required this.message, required this.kind});
+
+  final String message;
+  final _StopsCacheBannerKind kind;
+}
+
+class _StopsCacheBanner extends StatelessWidget {
+  const _StopsCacheBanner({required this.data});
+
+  final _StopsCacheBannerData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isWarning = data.kind == _StopsCacheBannerKind.warning;
+    final backgroundColor = isWarning
+        ? colorScheme.errorContainer
+        : colorScheme.secondaryContainer;
+    final foregroundColor = isWarning
+        ? colorScheme.onErrorContainer
+        : colorScheme.onSecondaryContainer;
+
+    return Material(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              isWarning ? Icons.warning_amber_rounded : Icons.save_outlined,
+              color: foregroundColor,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                data.message,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: foregroundColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class _StopsList extends StatelessWidget {
   const _StopsList({
-    required this.stops,
+    required this.state,
     required this.isLoadingMore,
+    required this.showBackToTopButton,
     required this.controller,
     required this.onOpenDepartures,
+    required this.onScrollToTop,
+    required this.onToggleFavorite,
   });
 
-  final List<StopGroup> stops;
+  final StopsState state;
   final bool isLoadingMore;
+  final bool showBackToTopButton;
   final ScrollController controller;
   final ValueChanged<StopGroup> onOpenDepartures;
+  final VoidCallback onScrollToTop;
+  final ValueChanged<StopGroup> onToggleFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.t;
+    final isSearchActive = state.isSearchActive;
+    final favoriteGroups = isSearchActive
+        ? const <StopGroup>[]
+        : state.favoriteGroups;
+    final favoriteGroupIds = favoriteGroups.map((group) => group.id).toSet();
+    final recentGroupCandidates = isSearchActive
+        ? const <StopGroup>[]
+        : state.recentGroups
+              .where((group) => !favoriteGroupIds.contains(group.id))
+              .toList(growable: false);
+    final candidatePinnedGroupIds = <String>{
+      for (final group in favoriteGroups) group.id,
+      for (final group in recentGroupCandidates) group.id,
+    };
+    final mainGroupsWithCandidatePinned = isSearchActive
+        ? state.filteredGroups
+        : state.filteredGroups
+              .where((group) => !candidatePinnedGroupIds.contains(group.id))
+              .toList(growable: false);
+    final recentGroups =
+        recentGroupCandidates.isNotEmpty &&
+            (favoriteGroups.isNotEmpty ||
+                mainGroupsWithCandidatePinned.isNotEmpty)
+        ? recentGroupCandidates
+        : const <StopGroup>[];
+    final pinnedGroupIds = <String>{
+      for (final group in favoriteGroups) group.id,
+      for (final group in recentGroups) group.id,
+    };
+    final mainGroups = isSearchActive
+        ? state.filteredGroups
+        : state.filteredGroups
+              .where((group) => !pinnedGroupIds.contains(group.id))
+              .toList(growable: false);
+
+    return Stack(
+      children: [
+        Scrollbar(
+          controller: controller,
+          interactive: false,
+          radius: const Radius.circular(999),
+          thickness: 4,
+          child: ListView.builder(
+            controller: controller,
+            padding: const EdgeInsets.only(bottom: 88),
+            itemCount:
+                _sectionItemCount(favoriteGroups) +
+                _sectionItemCount(recentGroups) +
+                mainGroups.length +
+                (isLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              var cursor = 0;
+
+              if (favoriteGroups.isNotEmpty) {
+                if (index == cursor) {
+                  return _SectionHeader(title: strings.stops.favoriteStops);
+                }
+                cursor++;
+
+                final localIndex = index - cursor;
+                if (localIndex >= 0 && localIndex < favoriteGroups.length) {
+                  final stop = favoriteGroups[localIndex];
+                  return _StopGroupCard(
+                    stop: stop,
+                    isFavorite: state.isFavorite(stop),
+                    onTap: () => onOpenDepartures(stop),
+                    onToggleFavorite: () => onToggleFavorite(stop),
+                  );
+                }
+                cursor += favoriteGroups.length;
+              }
+
+              if (recentGroups.isNotEmpty) {
+                if (index == cursor) {
+                  return _SectionHeader(
+                    title: strings.stops.recentStops,
+                    topPadding: favoriteGroups.isEmpty ? 0 : 14,
+                  );
+                }
+                cursor++;
+
+                final localIndex = index - cursor;
+                if (localIndex >= 0 && localIndex < recentGroups.length) {
+                  final stop = recentGroups[localIndex];
+                  return _StopGroupCard(
+                    stop: stop,
+                    isFavorite: state.isFavorite(stop),
+                    onTap: () => onOpenDepartures(stop),
+                    onToggleFavorite: () => onToggleFavorite(stop),
+                  );
+                }
+                cursor += recentGroups.length;
+              }
+
+              final mainIndex = index - cursor;
+              if (mainIndex >= 0 && mainIndex < mainGroups.length) {
+                final stop = mainGroups[mainIndex];
+                return _StopGroupCard(
+                  stop: stop,
+                  isFavorite: state.isFavorite(stop),
+                  onTap: () => onOpenDepartures(stop),
+                  onToggleFavorite: () => onToggleFavorite(stop),
+                );
+              }
+
+              if (isLoadingMore) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+        Positioned(
+          right: 0,
+          bottom: 16,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: showBackToTopButton
+                ? _BackToTopButton(onPressed: onScrollToTop)
+                : const SizedBox.shrink(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  int _sectionItemCount(List<StopGroup> groups) {
+    return groups.isEmpty ? 0 : groups.length + 1;
+  }
+}
+
+class _BackToTopButton extends StatelessWidget {
+  const _BackToTopButton({required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
 
-    return ListView.separated(
-      controller: controller,
-      padding: const EdgeInsets.only(bottom: 16),
-      itemCount: stops.length + (isLoadingMore ? 1 : 0),
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        if (index >= stops.length) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+    return Tooltip(
+      message: strings.stops.backToTop,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: PidSeedShadows.card,
+        ),
+        child: IconButton.filled(
+          key: const ValueKey('stops-back-to-top'),
+          onPressed: onPressed,
+          icon: const Icon(Icons.keyboard_arrow_up_rounded),
+        ),
+      ),
+    );
+  }
+}
 
-        final stop = stops[index];
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, this.topPadding = 0});
 
-        return PidStopCard(
-          stop: stop.toPidStopData(strings),
-          semanticLabel: strings.stops.stopSemantic(name: stop.name),
-          onTap: () => onOpenDepartures(stop),
-        );
-      },
+  final String title;
+  final double topPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: topPadding, bottom: 8),
+      child: PidSectionTitle(title: title),
+    );
+  }
+}
+
+class _StopGroupCard extends StatelessWidget {
+  const _StopGroupCard({
+    required this.stop,
+    required this.isFavorite,
+    required this.onTap,
+    required this.onToggleFavorite,
+  });
+
+  final StopGroup stop;
+  final bool isFavorite;
+  final VoidCallback onTap;
+  final VoidCallback onToggleFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = context.t;
+    final stopData = stop.toPidStopData(strings);
+    final accent = stopData.transportType.foreground;
+    final iconBackground = stopData.transportType.background;
+    final cardBackground = isFavorite
+        ? PidSeedColors.primarySoft
+        : PidSeedColors.surface;
+    final borderColor = isFavorite
+        ? PidSeedColors.primaryBorder
+        : PidSeedColors.border;
+    final favoriteLabel = isFavorite
+        ? strings.stops.removeFavorite
+        : strings.stops.addFavorite;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: cardBackground,
+        borderRadius: PidSeedRadius.card,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: PidSeedRadius.card,
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  label: strings.stops.stopSemantic(name: stop.name),
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: PidSeedRadius.card,
+                    child: Padding(
+                      padding: const EdgeInsets.all(PidSeedSpacing.lg),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: iconBackground,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.location_on_outlined,
+                              color: accent,
+                              size: 23,
+                            ),
+                          ),
+                          const SizedBox(width: PidSeedSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  stopData.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: PidSeedTypography.cardTitle,
+                                ),
+                                if (stopData.subtitle.isNotEmpty) ...[
+                                  const SizedBox(height: PidSeedSpacing.xs),
+                                  Text(
+                                    stopData.subtitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: PidSeedTypography.caption,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: PidSeedSpacing.sm),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: PidSeedColors.textMuted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: PidSeedSpacing.sm),
+                child: IconButton(
+                  tooltip: favoriteLabel,
+                  onPressed: onToggleFavorite,
+                  icon: Icon(
+                    isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+                  ),
+                  color: isFavorite
+                      ? PidSeedColors.primary
+                      : PidSeedColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

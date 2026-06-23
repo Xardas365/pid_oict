@@ -117,6 +117,15 @@ class _Translations$stops$en extends Translations$stops$cs {
 	@override String get invalidData => 'The Golemio API did not return any usable stops.';
 	@override String get empty => 'No stops are available.';
 	@override String get emptySearch => 'No stops match the search.';
+	@override String get showingSavedStops => 'Showing saved stops.';
+	@override String get showingOlderSavedStops => 'Showing older saved stop data.';
+	@override String get savedStopsRefreshFailed => 'Showing saved stops. Refresh failed.';
+	@override String get favoriteStops => 'Favorite stops';
+	@override String get recentStops => 'Recent stops';
+	@override String get addFavorite => 'Add to favorites';
+	@override String get removeFavorite => 'Remove from favorites';
+	@override String get noFavoriteStops => 'No favorite stops';
+	@override String get backToTop => 'Back to top';
 	@override String stopSemantic({required Object name}) => 'Stop ${name}';
 	@override String stopId({required Object id}) => 'ID ${id}';
 	@override String platformWithId({required Object platform, required Object id}) => 'Platform ${platform} • ID ${id}';
@@ -208,6 +217,15 @@ extension on TranslationsEn {
 			'stops.invalidData' => 'The Golemio API did not return any usable stops.',
 			'stops.empty' => 'No stops are available.',
 			'stops.emptySearch' => 'No stops match the search.',
+			'stops.showingSavedStops' => 'Showing saved stops.',
+			'stops.showingOlderSavedStops' => 'Showing older saved stop data.',
+			'stops.savedStopsRefreshFailed' => 'Showing saved stops. Refresh failed.',
+			'stops.favoriteStops' => 'Favorite stops',
+			'stops.recentStops' => 'Recent stops',
+			'stops.addFavorite' => 'Add to favorites',
+			'stops.removeFavorite' => 'Remove from favorites',
+			'stops.noFavoriteStops' => 'No favorite stops',
+			'stops.backToTop' => 'Back to top',
 			'stops.stopSemantic' => ({required Object name}) => 'Stop ${name}',
 			'stops.stopId' => ({required Object id}) => 'ID ${id}',
 			'stops.platformWithId' => ({required Object platform, required Object id}) => 'Platform ${platform} • ID ${id}',

@@ -169,6 +169,33 @@ class Translations$stops$cs {
 	/// cs: 'Žádné zastávky neodpovídají hledání.'
 	String get emptySearch => 'Žádné zastávky neodpovídají hledání.';
 
+	/// cs: 'Zobrazujeme uložené zastávky.'
+	String get showingSavedStops => 'Zobrazujeme uložené zastávky.';
+
+	/// cs: 'Zobrazujeme starší uložená data zastávek.'
+	String get showingOlderSavedStops => 'Zobrazujeme starší uložená data zastávek.';
+
+	/// cs: 'Zobrazujeme uložené zastávky. Aktualizace se nezdařila.'
+	String get savedStopsRefreshFailed => 'Zobrazujeme uložené zastávky. Aktualizace se nezdařila.';
+
+	/// cs: 'Oblíbené zastávky'
+	String get favoriteStops => 'Oblíbené zastávky';
+
+	/// cs: 'Poslední zastávky'
+	String get recentStops => 'Poslední zastávky';
+
+	/// cs: 'Přidat do oblíbených'
+	String get addFavorite => 'Přidat do oblíbených';
+
+	/// cs: 'Odebrat z oblíbených'
+	String get removeFavorite => 'Odebrat z oblíbených';
+
+	/// cs: 'Žádné oblíbené zastávky'
+	String get noFavoriteStops => 'Žádné oblíbené zastávky';
+
+	/// cs: 'Zpět nahoru'
+	String get backToTop => 'Zpět nahoru';
+
 	/// cs: 'Zastávka $name'
 	String stopSemantic({required Object name}) => 'Zastávka ${name}';
 
@@ -317,6 +344,15 @@ extension on Translations {
 			'stops.invalidData' => 'Golemio API nevrátilo žádné použitelné zastávky.',
 			'stops.empty' => 'Žádné zastávky nejsou k dispozici.',
 			'stops.emptySearch' => 'Žádné zastávky neodpovídají hledání.',
+			'stops.showingSavedStops' => 'Zobrazujeme uložené zastávky.',
+			'stops.showingOlderSavedStops' => 'Zobrazujeme starší uložená data zastávek.',
+			'stops.savedStopsRefreshFailed' => 'Zobrazujeme uložené zastávky. Aktualizace se nezdařila.',
+			'stops.favoriteStops' => 'Oblíbené zastávky',
+			'stops.recentStops' => 'Poslední zastávky',
+			'stops.addFavorite' => 'Přidat do oblíbených',
+			'stops.removeFavorite' => 'Odebrat z oblíbených',
+			'stops.noFavoriteStops' => 'Žádné oblíbené zastávky',
+			'stops.backToTop' => 'Zpět nahoru',
 			'stops.stopSemantic' => ({required Object name}) => 'Zastávka ${name}',
 			'stops.stopId' => ({required Object id}) => 'ID ${id}',
 			'stops.platformWithId' => ({required Object platform, required Object id}) => 'Nástupiště ${platform} • ID ${id}',
