@@ -3,7 +3,7 @@ import '../domain/stop_group.dart';
 import '../domain/stop_visibility.dart';
 
 List<Stop> filterStopsByName(List<Stop> stops, String query) {
-  final normalizedQuery = query.trim().toLowerCase();
+  final normalizedQuery = normalizeStopSearchText(query);
   final displayableStops = stops.where(isDisplayablePassengerStop);
 
   if (normalizedQuery.isEmpty) {
@@ -11,12 +11,14 @@ List<Stop> filterStopsByName(List<Stop> stops, String query) {
   }
 
   return displayableStops
-      .where((stop) => stop.name.toLowerCase().contains(normalizedQuery))
+      .where(
+        (stop) => normalizeStopSearchText(stop.name).contains(normalizedQuery),
+      )
       .toList(growable: false);
 }
 
 List<StopGroup> filterStopGroupsByName(List<StopGroup> groups, String query) {
-  final normalizedQuery = query.trim().toLowerCase();
+  final normalizedQuery = normalizeStopSearchText(query);
   final displayableGroups = groups.where(isDisplayablePassengerStopGroup);
 
   if (normalizedQuery.isEmpty) {
@@ -24,9 +26,45 @@ List<StopGroup> filterStopGroupsByName(List<StopGroup> groups, String query) {
   }
 
   return displayableGroups
-      .where((group) => group.name.toLowerCase().contains(normalizedQuery))
+      .where(
+        (group) =>
+            normalizeStopSearchText(group.name).contains(normalizedQuery),
+      )
       .toList(growable: false);
 }
+
+String normalizeStopSearchText(String value) {
+  final normalizedWhitespace = value.trim().toLowerCase().replaceAll(
+    RegExp(r'\s+'),
+    ' ',
+  );
+  final buffer = StringBuffer();
+
+  for (final codeUnit in normalizedWhitespace.codeUnits) {
+    final character = String.fromCharCode(codeUnit);
+    buffer.write(_searchCharacterReplacements[character] ?? character);
+  }
+
+  return buffer.toString();
+}
+
+const _searchCharacterReplacements = <String, String>{
+  'á': 'a',
+  'č': 'c',
+  'ď': 'd',
+  'é': 'e',
+  'ě': 'e',
+  'í': 'i',
+  'ň': 'n',
+  'ó': 'o',
+  'ř': 'r',
+  'š': 's',
+  'ť': 't',
+  'ú': 'u',
+  'ů': 'u',
+  'ý': 'y',
+  'ž': 'z',
+};
 
 /// Defensive guard for grouped stop sources. Production Golemio data is already
 /// filtered in the repository, but injected tests and future sources should not
