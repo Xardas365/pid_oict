@@ -5,6 +5,10 @@ import '../core/network/golemio_api_client.dart';
 import '../features/departures/data/repositories/golemio_departures_repository.dart';
 import '../features/departures/domain/repositories/departures_repository.dart';
 import '../features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
+import '../features/stops/data/datasources/app_saved_stops_data_source.dart';
+import '../features/stops/data/datasources/app_stops_cache_data_source.dart';
+import '../features/stops/data/datasources/saved_stops_data_source.dart';
+import '../features/stops/data/datasources/stops_cache_data_source.dart';
 import '../features/stops/data/repositories/golemio_stops_repository.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
@@ -47,6 +51,12 @@ class AppDependencies extends StatelessWidget {
         ),
         RepositoryProvider<GetStopsUseCase>(
           create: (context) => GetStopsUseCase(context.read<StopsRepository>()),
+        ),
+        RepositoryProvider<StopsCacheDataSource>(
+          create: (_) => const AppStopsCacheDataSource(),
+        ),
+        RepositoryProvider<SavedStopsDataSource>(
+          create: (_) => const AppSavedStopsDataSource(),
         ),
         RepositoryProvider<GetDeparturesForStopUseCase>(
           create: (context) =>

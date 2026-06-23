@@ -144,6 +144,26 @@ int? readInt(JsonMap json, List<List<String>> paths) {
   return null;
 }
 
+bool? readBool(JsonMap json, List<List<String>> paths) {
+  final value = readJsonValue(json, paths);
+
+  if (value is bool) {
+    return value;
+  }
+
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'true') {
+      return true;
+    }
+    if (normalized == 'false') {
+      return false;
+    }
+  }
+
+  return null;
+}
+
 DateTime? readDateTime(JsonMap json, List<List<String>> paths) {
   final value = readJsonValue(json, paths);
 
