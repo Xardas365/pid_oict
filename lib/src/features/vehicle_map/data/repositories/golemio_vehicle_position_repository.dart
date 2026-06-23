@@ -1,14 +1,16 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/network/golemio_api_client.dart';
-import '../../../shared/utils/json_parsing.dart';
-import '../domain/vehicle_position.dart';
-import 'models/vehicle_position_dto.dart';
+import '../../../../core/errors/app_exception.dart';
+import '../../../../core/network/golemio_api_client.dart';
+import '../../../../shared/utils/json_parsing.dart';
+import '../../domain/repositories/vehicle_position_repository.dart';
+import '../../domain/vehicle_position.dart';
+import '../models/vehicle_position_dto.dart';
 
-class VehiclePositionRepository {
-  const VehiclePositionRepository(this._apiClient);
+class GolemioVehiclePositionRepository implements VehiclePositionRepository {
+  const GolemioVehiclePositionRepository(this._apiClient);
 
   final GolemioApiClient _apiClient;
 
+  @override
   Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) async {
     final trimmedGtfsTripId = gtfsTripId.trim();
     if (trimmedGtfsTripId.isEmpty) {

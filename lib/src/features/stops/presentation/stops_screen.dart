@@ -8,7 +8,7 @@ import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
-import '../data/stops_repository.dart';
+import '../data/repositories/golemio_stops_repository.dart';
 import '../domain/stop.dart';
 import 'stop_filter.dart';
 
@@ -83,7 +83,7 @@ class _StopsScreenState extends State<StopsScreen> {
     }
 
     final apiClient = GolemioApiClient();
-    final repository = StopsRepository(apiClient);
+    final repository = GolemioStopsRepository(apiClient);
 
     return repository.fetchStops().whenComplete(apiClient.close);
   }

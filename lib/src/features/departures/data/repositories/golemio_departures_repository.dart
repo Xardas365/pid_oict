@@ -1,19 +1,21 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/network/golemio_api_client.dart';
-import '../../../shared/utils/json_parsing.dart';
-import '../../stops/domain/stop.dart';
-import '../domain/departure.dart';
-import 'models/departure_dto.dart';
+import '../../../../core/errors/app_exception.dart';
+import '../../../../core/network/golemio_api_client.dart';
+import '../../../../shared/utils/json_parsing.dart';
+import '../../../stops/domain/stop.dart';
+import '../../domain/departure.dart';
+import '../../domain/repositories/departures_repository.dart';
+import '../models/departure_dto.dart';
 
 // Direct OpenAPI documentation was not available during implementation.
 // Keep the departure board stop filter isolated here for live verification.
 const departureBoardsStopFilterParameter = 'ids[]';
 
-class DeparturesRepository {
-  const DeparturesRepository(this._apiClient);
+class GolemioDeparturesRepository implements DeparturesRepository {
+  const GolemioDeparturesRepository(this._apiClient);
 
   final GolemioApiClient _apiClient;
 
+  @override
   Future<List<Departure>> fetchDeparturesForStop(Stop stop) async {
     final response = await _apiClient.getJson(
       '/v2/public/departureboards',

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
-import 'package:pid_oict/src/features/stops/data/stops_repository.dart';
+import 'package:pid_oict/src/features/stops/data/repositories/golemio_stops_repository.dart';
 
 import '../../../fakes/fake_golemio_api_client.dart';
 
@@ -27,7 +27,7 @@ void main() {
           ],
         },
       );
-      final repository = StopsRepository(apiClient);
+      final repository = GolemioStopsRepository(apiClient);
 
       final stops = await repository.fetchStops();
 
@@ -42,7 +42,7 @@ void main() {
     });
 
     test('throws controlled error when no valid stops are returned', () async {
-      final repository = StopsRepository(
+      final repository = GolemioStopsRepository(
         FakeGolemioApiClient(
           response: {
             'features': [
@@ -67,7 +67,9 @@ void main() {
     });
 
     test('throws controlled error for empty API response object', () async {
-      final repository = StopsRepository(FakeGolemioApiClient(response: {}));
+      final repository = GolemioStopsRepository(
+        FakeGolemioApiClient(response: {}),
+      );
 
       await expectLater(
         repository.fetchStops(),
@@ -86,7 +88,7 @@ void main() {
         type: AppExceptionType.missingToken,
         message: 'Missing token.',
       );
-      final repository = StopsRepository(
+      final repository = GolemioStopsRepository(
         FakeGolemioApiClient(response: null, error: expectedError),
       );
 

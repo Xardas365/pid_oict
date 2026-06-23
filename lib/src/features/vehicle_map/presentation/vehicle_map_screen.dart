@@ -12,7 +12,7 @@ import '../../../shared/utils/date_time_formatters.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
-import '../data/vehicle_position_repository.dart';
+import '../data/repositories/golemio_vehicle_position_repository.dart';
 import '../domain/vehicle_position.dart';
 
 class VehicleMapScreen extends StatefulWidget {
@@ -117,7 +117,7 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
     }
 
     final apiClient = GolemioApiClient();
-    final repository = VehiclePositionRepository(apiClient);
+    final repository = GolemioVehiclePositionRepository(apiClient);
 
     return repository
         .fetchVehiclePosition(widget.gtfsTripId)

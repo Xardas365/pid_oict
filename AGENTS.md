@@ -28,7 +28,7 @@ Then read only the context files relevant to the request:
 * Use constructor injection with Flutter Bloc `RepositoryProvider` and `BlocProvider`. Do not add service locator packages.
 * This showcase targets Android only. Do not restore `ios/`, `macos/`, `linux/`, `web/`, or `windows/` unless the assignment scope changes.
 * Keep dependencies intentional and justify each addition.
-* Dio is the approved HTTP client for the next API-layer migration. Existing `http` usage may remain until that migration is implemented.
+* Dio is the approved and active HTTP client for the Golemio API layer.
 * Freezed and `json_serializable` are approved for immutable models/states and JSON mapping. Generated files must be produced with `build_runner` and never edited manually.
 * Use Slang for user-facing app strings. Keep Czech and English translations in `lib/i18n/`; `pid_seeds` keeps its own translations in `packages/pid_seeds/lib/i18n/`. Regenerate changed translations with `dart run slang` in the related package root.
 * Create the app's own API layer. Do not use a generated or third-party Dart client for Golemio.

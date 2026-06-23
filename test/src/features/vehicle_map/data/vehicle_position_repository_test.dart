@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
-import 'package:pid_oict/src/features/vehicle_map/data/vehicle_position_repository.dart';
+import 'package:pid_oict/src/features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
 
 import '../../../fakes/fake_golemio_api_client.dart';
 
@@ -27,7 +27,7 @@ void main() {
           ],
         },
       );
-      final repository = VehiclePositionRepository(apiClient);
+      final repository = GolemioVehiclePositionRepository(apiClient);
 
       final position = await repository.fetchVehiclePosition('trip-22-123');
 
@@ -54,7 +54,7 @@ void main() {
           'properties': {'vehicle_id': 'vehicle/with slash'},
         },
       );
-      final repository = VehiclePositionRepository(apiClient);
+      final repository = GolemioVehiclePositionRepository(apiClient);
 
       await repository.fetchVehiclePosition('trip/with slash');
 
@@ -65,7 +65,7 @@ void main() {
     });
 
     test('throws controlled error when gtfsTripId is blank', () async {
-      final repository = VehiclePositionRepository(
+      final repository = GolemioVehiclePositionRepository(
         FakeGolemioApiClient(response: null),
       );
 
@@ -84,7 +84,7 @@ void main() {
     test(
       'throws controlled error when no valid position is returned',
       () async {
-        final repository = VehiclePositionRepository(
+        final repository = GolemioVehiclePositionRepository(
           FakeGolemioApiClient(
             response: {
               'features': [
@@ -110,7 +110,7 @@ void main() {
     );
 
     test('throws controlled error for empty API response object', () async {
-      final repository = VehiclePositionRepository(
+      final repository = GolemioVehiclePositionRepository(
         FakeGolemioApiClient(response: {}),
       );
 
@@ -131,7 +131,7 @@ void main() {
         type: AppExceptionType.timeout,
         message: 'Timeout.',
       );
-      final repository = VehiclePositionRepository(
+      final repository = GolemioVehiclePositionRepository(
         FakeGolemioApiClient(response: null, error: expectedError),
       );
 

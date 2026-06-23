@@ -144,6 +144,8 @@ The tests are offline. They do not call the real Golemio API and do not require
 
 - `dio`: REST HTTP requests to the Golemio API, timeout handling, and safe
   debug request/response diagnostics.
+- `flutter_bloc`: app-level dependency composition now, and the approved
+  state-management package for the planned Bloc/Cubit screen migration.
 - `flutter_map`: OpenStreetMap-based map rendering without a Google Maps key.
 - `latlong2`: latitude/longitude value type used by `flutter_map`.
 - `pid_seeds`: local PID UI seed package used for theme and reusable UI
@@ -164,6 +166,7 @@ mapping migration.
 - `lib/src/core/network`: Dio-based Golemio API client, JSON decoding, HTTP status,
   timeout, and network error handling.
 - `lib/src/core/errors`: shared application exception types.
+- `lib/src/app`: app shell and explicit `RepositoryProvider` composition.
 - `lib/src/features/stops`: stop DTO/domain model, repository, filtering, and
   stops screen.
 - `lib/src/features/departures`: departure DTO/domain model, repository, and
@@ -179,9 +182,10 @@ mapping migration.
 - `packages/pid_seeds/lib/i18n`: package-local Czech and English fallback
   strings for reusable PID UI widgets.
 
-DTOs parse Golemio response shapes and convert to small domain models used by
-repositories and widgets. Repositories skip invalid records and surface
-controlled `AppException` errors.
+DTOs parse Golemio response shapes and convert to small domain models.
+Domain repository interfaces and use cases sit between data repositories and
+the current screens, preparing the incremental Bloc/Cubit migration.
+Repositories skip invalid records and surface controlled `AppException` errors.
 
 ## Known Limitations
 

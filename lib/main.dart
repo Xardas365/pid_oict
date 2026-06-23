@@ -4,6 +4,7 @@ import 'package:pid_seeds/i18n/pid_seed_strings.g.dart' as pid_seed_strings;
 import 'package:pid_seeds/pid_seeds.dart';
 
 import 'i18n/strings.g.dart';
+import 'src/app/app_dependencies.dart';
 import 'src/app/pid_oict_shell.dart';
 import 'src/features/departures/domain/departure.dart';
 import 'src/features/stops/domain/stop.dart';
@@ -69,12 +70,14 @@ class _PidOictAppState extends State<PidOictApp> {
             locale: TranslationProvider.of(context).flutterLocale,
             supportedLocales: AppLocaleUtils.supportedLocales,
             localizationsDelegates: GlobalMaterialLocalizations.delegates,
-            home: PidOictShell(
-              loadStops: widget.loadStops,
-              loadDepartures: widget.loadDepartures,
-              loadVehiclePosition: widget.loadVehiclePosition,
-              vehicleMapRefreshInterval: widget.vehicleMapRefreshInterval,
-              showMapTiles: widget.showMapTiles,
+            home: AppDependencies(
+              child: PidOictShell(
+                loadStops: widget.loadStops,
+                loadDepartures: widget.loadDepartures,
+                loadVehiclePosition: widget.loadVehiclePosition,
+                vehicleMapRefreshInterval: widget.vehicleMapRefreshInterval,
+                showMapTiles: widget.showMapTiles,
+              ),
             ),
           );
         },

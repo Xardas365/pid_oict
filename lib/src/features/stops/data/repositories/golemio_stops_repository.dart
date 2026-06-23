@@ -1,14 +1,16 @@
-import '../../../core/errors/app_exception.dart';
-import '../../../core/network/golemio_api_client.dart';
-import '../../../shared/utils/json_parsing.dart';
-import '../domain/stop.dart';
-import 'models/stop_dto.dart';
+import '../../../../core/errors/app_exception.dart';
+import '../../../../core/network/golemio_api_client.dart';
+import '../../../../shared/utils/json_parsing.dart';
+import '../../domain/repositories/stops_repository.dart';
+import '../../domain/stop.dart';
+import '../models/stop_dto.dart';
 
-class StopsRepository {
-  const StopsRepository(this._apiClient);
+class GolemioStopsRepository implements StopsRepository {
+  const GolemioStopsRepository(this._apiClient);
 
   final GolemioApiClient _apiClient;
 
+  @override
   Future<List<Stop>> fetchStops() async {
     final response = await _apiClient.getJson('/v2/gtfs/stops');
     final stops = readJsonRecords(response)

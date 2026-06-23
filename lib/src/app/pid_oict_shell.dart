@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../i18n/strings.g.dart';
 import '../features/departures/domain/departure.dart';
+import '../features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
 import '../features/departures/presentation/departures_screen.dart';
 import '../features/stops/domain/stop.dart';
+import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/stops/presentation/stops_screen.dart';
 import '../features/vehicle_map/domain/vehicle_position.dart';
+import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
 import '../features/vehicle_map/presentation/vehicle_map_screen.dart';
 import '../shared/widgets/empty_state_view.dart';
 
@@ -53,20 +57,29 @@ class _PidOictShellState extends State<PidOictShell> {
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
+    final loadStops =
+        widget.loadStops ?? () => context.read<GetStopsUseCase>()();
+    final loadDepartures =
+        widget.loadDepartures ??
+        (stop) => context.read<GetDeparturesForStopUseCase>()(stop);
+    final loadVehiclePosition =
+        widget.loadVehiclePosition ??
+        (gtfsTripId) =>
+            context.read<GetVehiclePositionForTripUseCase>()(gtfsTripId);
 
     return Scaffold(
       body: IndexedStack(
         index: _selectedTab.index,
         children: [
-          StopsScreen(loadStops: widget.loadStops, onStopSelected: _selectStop),
+          StopsScreen(loadStops: loadStops, onStopSelected: _selectStop),
           _DeparturesTab(
             selectedStop: _selectedStop,
-            loadDepartures: widget.loadDepartures,
+            loadDepartures: loadDepartures,
             onTripSelected: _selectTrip,
           ),
           _MapTab(
             selectedGtfsTripId: _selectedGtfsTripId,
-            loadVehiclePosition: widget.loadVehiclePosition,
+            loadVehiclePosition: loadVehiclePosition,
             refreshInterval: widget.vehicleMapRefreshInterval,
             showMapTiles: widget.showMapTiles,
             isActive: _selectedTab == PidNavigationTab.map,

@@ -6,7 +6,7 @@ The MVP is functionally complete. The post-MVP direction is a more senior but
 still pragmatic Flutter implementation using:
 
 * `flutter_bloc` as the single state-management package,
-* Dio as the target HTTP client for the app-owned API layer,
+* Dio as the active HTTP client for the app-owned API layer,
 * Freezed and `json_serializable` for generated immutable models/states and
   JSON mapping where they reduce boilerplate,
 * Slang for Czech and English user-facing strings,
@@ -111,7 +111,7 @@ lib/
     app/
       pid_oict_app.dart
       pid_oict_shell.dart
-      app_providers.dart
+      app_dependencies.dart
       app_theme.dart
     core/
       config/

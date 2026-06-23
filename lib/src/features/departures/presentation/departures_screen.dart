@@ -9,7 +9,7 @@ import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
 import '../../stops/domain/stop.dart';
 import '../../vehicle_map/presentation/vehicle_map_screen.dart';
-import '../data/departures_repository.dart';
+import '../data/repositories/golemio_departures_repository.dart';
 import '../domain/departure.dart';
 import 'widgets/departure_tile.dart';
 
@@ -79,7 +79,7 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
     }
 
     final apiClient = GolemioApiClient();
-    final repository = DeparturesRepository(apiClient);
+    final repository = GolemioDeparturesRepository(apiClient);
 
     return repository
         .fetchDeparturesForStop(widget.stop)

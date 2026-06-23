@@ -26,6 +26,7 @@ dependencies:
   latlong2: ^0.9.1
   slang: ^4.16.0
   slang_flutter: ^4.16.0
+  flutter_bloc: ^9.1.1
 
 dev_dependencies:
   flutter_test:

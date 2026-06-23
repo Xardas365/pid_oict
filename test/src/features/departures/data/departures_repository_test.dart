@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
-import 'package:pid_oict/src/features/departures/data/departures_repository.dart';
+import 'package:pid_oict/src/features/departures/data/repositories/golemio_departures_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 
 import '../../../fakes/fake_golemio_api_client.dart';
@@ -28,7 +28,7 @@ void main() {
             ],
           },
         );
-        final repository = DeparturesRepository(apiClient);
+        final repository = GolemioDeparturesRepository(apiClient);
 
         final departures = await repository.fetchDeparturesForStop(stop);
 
@@ -49,7 +49,7 @@ void main() {
     test(
       'throws controlled error when no valid departures are returned',
       () async {
-        final repository = DeparturesRepository(
+        final repository = GolemioDeparturesRepository(
           FakeGolemioApiClient(
             response: {
               'departures': [
@@ -73,7 +73,7 @@ void main() {
     );
 
     test('throws controlled error for empty departures response', () async {
-      final repository = DeparturesRepository(
+      final repository = GolemioDeparturesRepository(
         FakeGolemioApiClient(response: {'departures': <Object?>[]}),
       );
 
@@ -94,7 +94,7 @@ void main() {
         type: AppExceptionType.unauthorized,
         message: 'Unauthorized.',
       );
-      final repository = DeparturesRepository(
+      final repository = GolemioDeparturesRepository(
         FakeGolemioApiClient(response: null, error: expectedError),
       );
 
