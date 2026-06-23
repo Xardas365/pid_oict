@@ -4,7 +4,10 @@ import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../i18n/strings.g.dart';
 import '../features/departures/domain/departure.dart';
+import '../features/departures/domain/repositories/departures_repository.dart';
 import '../features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
+import '../features/departures/presentation/bloc/departures_bloc.dart';
+import '../features/departures/presentation/bloc/departures_event.dart';
 import '../features/departures/presentation/departures_screen.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/stop.dart';
@@ -59,9 +62,6 @@ class _PidOictShellState extends State<PidOictShell> {
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
-    final loadDepartures =
-        widget.loadDepartures ??
-        (stop) => context.read<GetDeparturesForStopUseCase>()(stop);
     final loadVehiclePosition =
         widget.loadVehiclePosition ??
         (gtfsTripId) =>
@@ -74,7 +74,7 @@ class _PidOictShellState extends State<PidOictShell> {
           _StopsTab(loadStops: widget.loadStops, onStopSelected: _selectStop),
           _DeparturesTab(
             selectedStop: _selectedStop,
-            loadDepartures: loadDepartures,
+            loadDepartures: widget.loadDepartures,
             onTripSelected: _selectTrip,
           ),
           _MapTab(
@@ -151,12 +151,24 @@ class _DeparturesTab extends StatelessWidget {
       );
     }
 
-    return DeparturesScreen(
+    return BlocProvider(
       key: ValueKey(stop.id),
-      stop: stop,
-      loadDepartures: loadDepartures,
-      onTripSelected: onTripSelected,
+      create: (context) =>
+          DeparturesBloc(_getDeparturesUseCase(context))
+            ..add(DeparturesStarted(stop)),
+      child: DeparturesScreen(stop: stop, onTripSelected: onTripSelected),
     );
+  }
+
+  GetDeparturesForStopUseCase _getDeparturesUseCase(BuildContext context) {
+    final loadDepartures = this.loadDepartures;
+    if (loadDepartures != null) {
+      return GetDeparturesForStopUseCase(
+        _CallbackDeparturesRepository(loadDepartures),
+      );
+    }
+
+    return context.read<GetDeparturesForStopUseCase>();
   }
 }
 
@@ -168,6 +180,17 @@ class _CallbackStopsRepository implements StopsRepository {
   @override
   Future<List<Stop>> fetchStops() {
     return _loadStops();
+  }
+}
+
+class _CallbackDeparturesRepository implements DeparturesRepository {
+  const _CallbackDeparturesRepository(this._loadDepartures);
+
+  final Future<List<Departure>> Function(Stop stop) _loadDepartures;
+
+  @override
+  Future<List<Departure>> fetchDeparturesForStop(Stop stop) {
+    return _loadDepartures(stop);
   }
 }
 
