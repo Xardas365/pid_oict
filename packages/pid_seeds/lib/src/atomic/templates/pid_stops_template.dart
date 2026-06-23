@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_navigation_tab.dart';
 import '../../models/pid_stop_data.dart';
 import '../../tokens/pid_seed_spacing.dart';
@@ -56,9 +57,9 @@ class PidStopsTemplate extends StatelessWidget {
         PidSeedSpacing.xxl,
       ),
       children: [
-        const PidHomeHeader(
-          title: 'Zastávky PID',
-          subtitle: 'Najděte zastávku a pokračujte na aktuální odjezdy',
+        PidHomeHeader(
+          title: t.templates.stops.title,
+          subtitle: t.templates.stops.subtitle,
         ),
         const SizedBox(height: PidSeedSpacing.xl),
         PidSearchField(
@@ -75,17 +76,17 @@ class PidStopsTemplate extends StatelessWidget {
         ),
         const SizedBox(height: PidSeedSpacing.xl),
         PidSectionTitle(
-          title: 'Nejbližší zastávky',
-          actionLabel: 'Filtrovat',
+          title: t.templates.stops.nearbyStops,
+          actionLabel: t.templates.stops.filterAction,
           onActionPressed: onFilterPressed,
         ),
         const SizedBox(height: PidSeedSpacing.md),
         if (errorMessage != null)
           PidFeedbackState(
             icon: Icons.wifi_off_rounded,
-            title: 'Nepodařilo se načíst zastávky',
+            title: t.templates.stops.loadFailed,
             message: errorMessage!,
-            actionLabel: onRefresh == null ? null : 'Zkusit znovu',
+            actionLabel: onRefresh == null ? null : t.templates.stops.retry,
             onActionPressed: onRefresh == null
                 ? null
                 : () {

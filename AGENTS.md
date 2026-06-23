@@ -30,6 +30,7 @@ Then read only the context files relevant to the request:
 * Keep dependencies intentional and justify each addition.
 * Dio is the approved HTTP client for the next API-layer migration. Existing `http` usage may remain until that migration is implemented.
 * Freezed and `json_serializable` are approved for immutable models/states and JSON mapping. Generated files must be produced with `build_runner` and never edited manually.
+* Use Slang for user-facing app strings. Keep Czech and English translations in `lib/i18n/`; `pid_seeds` keeps its own translations in `packages/pid_seeds/lib/i18n/`. Regenerate changed translations with `dart run slang` in the related package root.
 * Create the app's own API layer. Do not use a generated or third-party Dart client for Golemio.
 * Never hardcode or commit a real Golemio API token.
 * Do not log secrets. Technical logs are allowed only in debug mode.

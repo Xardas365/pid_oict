@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../i18n/strings.g.dart';
 import '../../domain/stop.dart';
 
 class StopListTile extends StatelessWidget {
@@ -12,7 +13,7 @@ class StopListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final subtitle = _subtitle;
+    final subtitle = _subtitle(context.t);
 
     return Card(
       margin: EdgeInsets.zero,
@@ -77,13 +78,16 @@ class StopListTile extends StatelessWidget {
     );
   }
 
-  String get _subtitle {
+  String _subtitle(Translations strings) {
     final platformCode = stop.platformCode;
 
     if (platformCode == null) {
-      return 'ID ${stop.id}';
+      return strings.stops.stopId(id: stop.id);
     }
 
-    return 'Nastupiste $platformCode - ID ${stop.id}';
+    return strings.stops.legacyPlatformWithId(
+      platform: platformCode,
+      id: stop.id,
+    );
   }
 }

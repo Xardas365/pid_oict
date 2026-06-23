@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../../i18n/strings.g.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/network/golemio_api_client.dart';
 import '../../../shared/utils/app_error_messages.dart';
@@ -125,25 +126,25 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Poloha vozidla')),
+      appBar: AppBar(title: Text(context.t.vehicleMap.title)),
       body: SafeArea(child: _buildBody()),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading && _position == null) {
-      return const LoadingStateView(message: 'Nacitani polohy vozidla...');
+      return LoadingStateView(message: context.t.vehicleMap.loading);
     }
 
     final position = _position;
     if (position == null) {
       final error = _error;
+      final strings = context.t;
       if (error != null && !_isNoPositionError(error)) {
         return ErrorStateView(
           message: userMessageForAppError(
             error,
-            fallbackMessage:
-                'Polohu vozidla se nepodarilo nacist. Zkuste to prosim znovu.',
+            fallbackMessage: strings.vehicleMap.loadFailed,
           ),
           onRetry: _retry,
         );
@@ -152,9 +153,8 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
       return EmptyStateView(
         message: userMessageForAppError(
           error,
-          fallbackMessage:
-              'Polohu vozidla se nepodarilo nacist. Zkuste to prosim znovu.',
-          invalidDataMessage: 'Aktualni poloha vozidla neni dostupna.',
+          fallbackMessage: strings.vehicleMap.loadFailed,
+          invalidDataMessage: strings.vehicleMap.invalidData,
         ),
         icon: Icons.location_off_outlined,
         onRetry: _retry,
@@ -250,10 +250,14 @@ class _VehiclePositionStatus extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Vozidlo ${position.vehicleId}'),
+          Text(
+            context.t.vehicleMap.vehicleLabel(vehicleId: position.vehicleId),
+          ),
           if (lastUpdated != null)
             Text(
-              'Posledni aktualizace ${formatClockTimeWithSeconds(lastUpdated)}',
+              context.t.vehicleMap.lastUpdated(
+                time: formatClockTimeWithSeconds(lastUpdated),
+              ),
             ),
           if (warning != null) ...[
             const SizedBox(height: 8),
@@ -277,11 +281,11 @@ class _MapAttribution extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
       ),
-      child: const Padding(
-        padding: EdgeInsets.all(4),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
         child: Text(
-          'Map data (c) OpenStreetMap contributors',
-          style: TextStyle(fontSize: 11),
+          context.t.vehicleMap.attribution,
+          style: const TextStyle(fontSize: 11),
         ),
       ),
     );

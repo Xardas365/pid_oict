@@ -1,0 +1,66 @@
+{
+  "app": {
+    "title": "PID Odjezdy"
+  },
+  "navigation": {
+    "stops": "Zastávky",
+    "departures": "Odjezdy",
+    "map": "Mapa"
+  },
+  "common": {
+    "retry": "Zkusit znovu"
+  },
+  "errors": {
+    "missingToken": "Chybí Golemio API token. Spusťte aplikaci s --dart-define=GOLEMIO_API_TOKEN=vas_token.",
+    "unauthorized": "Golemio API token je neplatný nebo nemá oprávnění. Zkontrolujte token.",
+    "network": "Nepodařilo se připojit ke Golemio API. Zkontrolujte připojení k internetu.",
+    "timeout": "Golemio API neodpovědělo včas. Zkuste to prosím znovu.",
+    "emptyResponse": "Golemio API vrátilo prázdnou odpověď.",
+    "invalidJson": "Golemio API vrátilo odpověď, kterou se nepodařilo přečíst.",
+    "invalidData": "Golemio API vrátilo nekompletní nebo neplatná data.",
+    "badRequest": "Golemio API požadavek nebyl přijat. Zkuste akci zopakovat.",
+    "notFound": "Požadovaná data nebyla v Golemio API nalezena.",
+    "server": "Golemio API je dočasně nedostupné. Zkuste to prosím později.",
+    "unexpectedStatus": "Golemio API vrátilo neočekávanou odpověď.",
+    "stalePosition": "Zobrazuji poslední známou polohu. $message",
+    "refreshFailed": "Aktualizace se nepodařila."
+  },
+  "stops": {
+    "title": "PID zastávky",
+    "searchHint": "Vyhledat zastávku...",
+    "loading": "Načítání zastávek...",
+    "loadFailed": "Zastávky se nepodařilo načíst. Zkuste to prosím znovu.",
+    "invalidData": "Golemio API nevrátilo žádné použitelné zastávky.",
+    "empty": "Žádné zastávky nejsou k dispozici.",
+    "emptySearch": "Žádné zastávky neodpovídají hledání.",
+    "stopSemantic": "Zastávka $name",
+    "stopId": "ID $id",
+    "platformWithId": "Nástupiště $platform • ID $id",
+    "coordinatesWithId": "ID $id • $latitude, $longitude",
+    "legacyPlatformWithId": "Nástupiště $platform - ID $id"
+  },
+  "departures": {
+    "emptyTabMessage": "Nejdříve vyberte zastávku ze seznamu.",
+    "loading": "Načítání odjezdů...",
+    "loadFailed": "Odjezdy se nepodařilo načíst. Zkuste to prosím znovu.",
+    "invalidData": "Golemio API nevrátilo žádné použitelné odjezdy.",
+    "empty": "Pro tuto zastávku nejsou dostupné žádné odjezdy.",
+    "departureTime": "Odjezd $time",
+    "platform": "Nástupiště $platform",
+    "showVehicleTooltip": "Zobrazit polohu vozidla"
+  },
+  "vehicleMap": {
+    "emptyTabMessage": "Vyberte odjezd s dostupnou polohou vozidla.",
+    "title": "Poloha vozidla",
+    "loading": "Načítání polohy vozidla...",
+    "loadFailed": "Polohu vozidla se nepodařilo načíst. Zkuste to prosím znovu.",
+    "invalidData": "Aktuální poloha vozidla není dostupná.",
+    "vehicleLabel": "Vozidlo $vehicleId",
+    "lastUpdated": "Poslední aktualizace $time",
+    "attribution": "Mapová data (c) přispěvatelé OpenStreetMap"
+  },
+  "format": {
+    "noDelay": "Bez zpoždění",
+    "delayMinutes": "Zpoždění +$minutes min"
+  }
+}

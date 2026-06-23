@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../i18n/strings.g.dart';
 import '../../../../shared/utils/date_time_formatters.dart';
 import '../../domain/departure.dart';
 
@@ -17,6 +18,7 @@ class DepartureTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final delayText = formatDelaySeconds(departure.delaySeconds);
     final platform = departure.platform;
+    final strings = context.t;
 
     return Card(
       child: ListTile(
@@ -25,15 +27,20 @@ class DepartureTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Odjezd ${formatClockTime(departure.departureTime)}'),
+            Text(
+              strings.departures.departureTime(
+                time: formatClockTime(departure.departureTime),
+              ),
+            ),
             if (delayText != null) Text(delayText),
-            if (platform != null) Text('Nastupiste $platform'),
+            if (platform != null)
+              Text(strings.departures.platform(platform: platform)),
           ],
         ),
         trailing: onOpenVehicleMap == null
             ? null
             : IconButton(
-                tooltip: 'Zobrazit polohu vozidla',
+                tooltip: strings.departures.showVehicleTooltip,
                 onPressed: onOpenVehicleMap,
                 icon: const Icon(Icons.map_outlined),
               ),

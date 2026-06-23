@@ -5,6 +5,8 @@ import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/presentation/departures_screen.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 
+import '../../../test_localized_app.dart';
+
 void main() {
   group('DeparturesScreen', () {
     const stop = Stop(id: 'U123Z1', name: 'Staromestska');
@@ -13,7 +15,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: DeparturesScreen(
             stop: stop,
             loadDepartures: (_) async => [
@@ -41,15 +43,15 @@ void main() {
       expect(find.text('22'), findsOneWidget);
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
       expect(find.text('Odjezd 10:15'), findsOneWidget);
-      expect(find.text('Zpozdeni +2 min'), findsOneWidget);
-      expect(find.text('Nastupiste 3'), findsOneWidget);
+      expect(find.text('Zpoždění +2 min'), findsOneWidget);
+      expect(find.text('Nástupiště 3'), findsOneWidget);
       expect(find.text('A'), findsOneWidget);
       expect(find.byTooltip('Zobrazit polohu vozidla'), findsOneWidget);
     });
 
     testWidgets('opens vehicle map screen', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: DeparturesScreen(
             stop: stop,
             loadDepartures: (_) async => [
@@ -71,7 +73,7 @@ void main() {
       expect(find.text('Poloha vozidla'), findsOneWidget);
       expect(
         find.text(
-          'Chybi Golemio API token. Spustte aplikaci s '
+          'Chybí Golemio API token. Spusťte aplikaci s '
           '--dart-define=GOLEMIO_API_TOKEN=vas_token.',
         ),
         findsOneWidget,
@@ -86,7 +88,7 @@ void main() {
       var attempts = 0;
 
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: DeparturesScreen(
             stop: stop,
             loadDepartures: (_) async {
@@ -114,8 +116,8 @@ void main() {
 
       expect(
         find.text(
-          'Nepodarilo se pripojit ke Golemio API. '
-          'Zkontrolujte pripojeni k internetu.',
+          'Nepodařilo se připojit ke Golemio API. '
+          'Zkontrolujte připojení k internetu.',
         ),
         findsOneWidget,
       );
@@ -133,7 +135,7 @@ void main() {
       var attempts = 0;
 
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: DeparturesScreen(
             stop: stop,
             loadDepartures: (_) async {

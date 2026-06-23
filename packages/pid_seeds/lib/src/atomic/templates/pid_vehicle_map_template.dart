@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_navigation_tab.dart';
 import '../../models/pid_vehicle_position_data.dart';
 import '../../tokens/pid_seed_colors.dart';
@@ -60,8 +61,8 @@ class PidVehicleMapTemplate extends StatelessWidget {
                 children: [
                   PidIconButton(
                     icon: Icons.arrow_back_rounded,
-                    tooltip: 'Zpět na odjezdy',
-                    semanticLabel: 'Zpět na odjezdy',
+                    tooltip: t.templates.vehicleMap.backTooltip,
+                    semanticLabel: t.templates.vehicleMap.backSemantic,
                     onPressed: onBack,
                     backgroundColor: PidSeedColors.surface,
                     foregroundColor: PidSeedColors.textPrimary,
@@ -80,8 +81,8 @@ class PidVehicleMapTemplate extends StatelessWidget {
                         ),
                         border: Border.all(color: PidSeedColors.border),
                       ),
-                      child: const Text(
-                        'Poloha vozidla',
+                      child: Text(
+                        t.templates.vehicleMap.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: PidSeedTypography.bodyStrong,
@@ -99,13 +100,13 @@ class PidVehicleMapTemplate extends StatelessWidget {
               children: [
                 PidMapControlButton(
                   icon: Icons.my_location_rounded,
-                  tooltip: 'Vycentrovat mapu',
+                  tooltip: t.templates.vehicleMap.centerTooltip,
                   onPressed: onLocatePressed,
                 ),
                 const SizedBox(height: PidSeedSpacing.sm),
                 PidMapControlButton(
                   icon: Icons.refresh_rounded,
-                  tooltip: 'Obnovit polohu',
+                  tooltip: t.templates.vehicleMap.refreshTooltip,
                   onPressed: onRefresh,
                 ),
               ],

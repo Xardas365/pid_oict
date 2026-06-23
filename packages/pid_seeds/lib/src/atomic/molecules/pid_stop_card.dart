@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_stop_data.dart';
 import '../../tokens/pid_seed_colors.dart';
 import '../../tokens/pid_seed_radius.dart';
@@ -12,10 +13,12 @@ class PidStopCard extends StatelessWidget {
   const PidStopCard({
     super.key,
     required this.stop,
+    this.semanticLabel,
     this.onTap,
   });
 
   final PidStopData stop;
+  final String? semanticLabel;
   final VoidCallback? onTap;
 
   @override
@@ -29,7 +32,7 @@ class PidStopCard extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Zastávka ${stop.name}',
+      label: semanticLabel ?? t.stopCard.semanticLabel(name: stop.name),
       child: Material(
         color: cardBackground,
         borderRadius: PidSeedRadius.card,

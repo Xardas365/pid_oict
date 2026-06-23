@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../tokens/pid_seed_colors.dart';
 import '../../tokens/pid_seed_radius.dart';
 import '../../tokens/pid_seed_shadows.dart';
@@ -23,7 +24,7 @@ class PidVehicleMapMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: semanticLabel ?? 'Aktuální poloha vozidla linky $lineLabel',
+      label: semanticLabel ?? t.mapMarker.semanticLabel(line: lineLabel),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
@@ -74,7 +75,7 @@ class PidVehicleMapMarker extends StatelessWidget {
                 boxShadow: PidSeedShadows.soft,
               ),
               child: Text(
-                'živě',
+                t.mapMarker.live,
                 style: PidSeedTypography.label
                     .copyWith(color: PidSeedColors.tealDark),
               ),

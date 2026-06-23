@@ -1,0 +1,73 @@
+{
+  "navigation": {
+    "stops": "Stops",
+    "departures": "Departures",
+    "map": "Map"
+  },
+  "transport": {
+    "tram": "Tram",
+    "bus": "Bus",
+    "metro": "Metro",
+    "train": "Train",
+    "ferry": "Ferry",
+    "unknown": "Service"
+  },
+  "search": {
+    "hint": "Search for a stop...",
+    "filterTooltip": "Filter",
+    "filterSemantic": "Filter stops"
+  },
+  "loading": {
+    "generic": "Loading...",
+    "stops": "Loading stops...",
+    "departures": "Loading departures..."
+  },
+  "feedback": {
+    "stopsEmptyTitle": "No stops",
+    "stopsEmptyMessage": "Try changing the search or filter.",
+    "departuresEmptyTitle": "No current departures",
+    "departuresEmptyMessage": "Try refreshing data or selecting another direction."
+  },
+  "stopCard": {
+    "semanticLabel": "Stop $name"
+  },
+  "departureTile": {
+    "semanticLabel": "Departure of line $line toward $destination",
+    "minutesUnit": "min",
+    "showVehicleTooltip": "Show vehicle on map",
+    "showVehicleSemantic": "Show current vehicle position",
+    "vehicleUnavailable": "Vehicle position is not available"
+  },
+  "mapMarker": {
+    "semanticLabel": "Current position of line $line",
+    "live": "live"
+  },
+  "templates": {
+    "stops": {
+      "title": "PID stops",
+      "subtitle": "Find a stop and continue to current departures",
+      "nearbyStops": "Nearby stops",
+      "filterAction": "Filter",
+      "loadFailed": "Could not load stops",
+      "retry": "Try again"
+    },
+    "departures": {
+      "backTooltip": "Back to stops",
+      "backSemantic": "Back to the stop list",
+      "pullToRefresh": "Pull down to refresh departures",
+      "directionAndPlatform": "Direction and platform",
+      "nearestDepartures": "Nearest departures",
+      "connectionCount": "Services: $count",
+      "loadFailed": "Could not load departures",
+      "refresh": "Refresh",
+      "mapHint": "The map icon opens the current vehicle position"
+    },
+    "vehicleMap": {
+      "backTooltip": "Back to departures",
+      "backSemantic": "Back to departures",
+      "title": "Vehicle position",
+      "centerTooltip": "Center map",
+      "refreshTooltip": "Refresh position"
+    }
+  }
+}

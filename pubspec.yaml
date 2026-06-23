@@ -12,6 +12,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   pid_seeds:
     path: packages/pid_seeds
@@ -23,6 +25,8 @@ dependencies:
   flutter_map: ^8.3.0
   json_annotation: ^4.11.0
   latlong2: ^0.9.1
+  slang: ^4.16.0
+  slang_flutter: ^4.16.0
 
 dev_dependencies:
   flutter_test:

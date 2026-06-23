@@ -1,0 +1,10 @@
+base_locale: cs
+fallback_strategy: base_locale
+input_directory: lib/i18n
+input_file_pattern: .i18n.json
+output_directory: lib/i18n
+output_file_name: pid_seed_strings.g.dart
+lazy: false
+locale_handling: true
+flutter_integration: false
+namespaces: false

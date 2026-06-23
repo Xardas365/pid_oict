@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/strings.g.dart';
+
 class ErrorStateView extends StatelessWidget {
   const ErrorStateView({
     required this.message,
@@ -27,7 +29,7 @@ class ErrorStateView extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Zkusit znovu'),
+              label: Text(context.t.common.retry),
             ),
           ],
         ),

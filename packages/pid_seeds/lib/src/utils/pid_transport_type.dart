@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../i18n/pid_seed_strings.g.dart';
 import '../tokens/pid_seed_colors.dart';
 
 /// Supported PID transport categories used for color and icon mapping.
@@ -7,12 +8,12 @@ enum PidTransportType { tram, bus, metro, train, ferry, unknown }
 
 extension PidTransportTypeX on PidTransportType {
   String get labelCs => switch (this) {
-        PidTransportType.tram => 'Tram',
-        PidTransportType.bus => 'Bus',
-        PidTransportType.metro => 'Metro',
-        PidTransportType.train => 'Vlak',
-        PidTransportType.ferry => 'Přívoz',
-        PidTransportType.unknown => 'Spoj',
+        PidTransportType.tram => t.transport.tram,
+        PidTransportType.bus => t.transport.bus,
+        PidTransportType.metro => t.transport.metro,
+        PidTransportType.train => t.transport.train,
+        PidTransportType.ferry => t.transport.ferry,
+        PidTransportType.unknown => t.transport.unknown,
       };
 
   IconData get icon => switch (this) {

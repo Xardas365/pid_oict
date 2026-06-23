@@ -1,0 +1,73 @@
+{
+  "navigation": {
+    "stops": "Zastávky",
+    "departures": "Odjezdy",
+    "map": "Mapa"
+  },
+  "transport": {
+    "tram": "Tram",
+    "bus": "Bus",
+    "metro": "Metro",
+    "train": "Vlak",
+    "ferry": "Přívoz",
+    "unknown": "Spoj"
+  },
+  "search": {
+    "hint": "Vyhledat zastávku...",
+    "filterTooltip": "Filtrovat",
+    "filterSemantic": "Filtrovat zastávky"
+  },
+  "loading": {
+    "generic": "Načítání...",
+    "stops": "Načítání zastávek...",
+    "departures": "Načítání odjezdů..."
+  },
+  "feedback": {
+    "stopsEmptyTitle": "Žádné zastávky",
+    "stopsEmptyMessage": "Zkuste upravit vyhledávání nebo filtr.",
+    "departuresEmptyTitle": "Žádné aktuální odjezdy",
+    "departuresEmptyMessage": "Zkuste obnovit data nebo vybrat jiný směr."
+  },
+  "stopCard": {
+    "semanticLabel": "Zastávka $name"
+  },
+  "departureTile": {
+    "semanticLabel": "Odjezd linky $line směr $destination",
+    "minutesUnit": "min",
+    "showVehicleTooltip": "Zobrazit vozidlo na mapě",
+    "showVehicleSemantic": "Zobrazit aktuální polohu vozidla",
+    "vehicleUnavailable": "Poloha vozidla není dostupná"
+  },
+  "mapMarker": {
+    "semanticLabel": "Aktuální poloha vozidla linky $line",
+    "live": "živě"
+  },
+  "templates": {
+    "stops": {
+      "title": "Zastávky PID",
+      "subtitle": "Najděte zastávku a pokračujte na aktuální odjezdy",
+      "nearbyStops": "Nejbližší zastávky",
+      "filterAction": "Filtrovat",
+      "loadFailed": "Nepodařilo se načíst zastávky",
+      "retry": "Zkusit znovu"
+    },
+    "departures": {
+      "backTooltip": "Zpět na zastávky",
+      "backSemantic": "Zpět na seznam zastávek",
+      "pullToRefresh": "Potáhněte dolů pro obnovení odjezdů",
+      "directionAndPlatform": "Směr a nástupiště",
+      "nearestDepartures": "Nejbližší odjezdy",
+      "connectionCount": "Spoje: $count",
+      "loadFailed": "Nepodařilo se načíst odjezdy",
+      "refresh": "Obnovit",
+      "mapHint": "Ikona mapy u spoje otevře aktuální polohu vozidla"
+    },
+    "vehicleMap": {
+      "backTooltip": "Zpět na odjezdy",
+      "backSemantic": "Zpět na odjezdy",
+      "title": "Poloha vozidla",
+      "centerTooltip": "Vycentrovat mapu",
+      "refreshTooltip": "Obnovit polohu"
+    }
+  }
+}

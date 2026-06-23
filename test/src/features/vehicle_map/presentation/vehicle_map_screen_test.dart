@@ -4,13 +4,15 @@ import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_screen.dart';
 
+import '../../../test_localized_app.dart';
+
 void main() {
   group('VehicleMapScreen', () {
     testWidgets('shows map marker and last update after position loads', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: VehicleMapScreen(
             vehicleId: 'vehicle-123',
             refreshInterval: Duration.zero,
@@ -32,9 +34,9 @@ void main() {
       expect(find.text('Poloha vozidla'), findsOneWidget);
       expect(find.byIcon(Icons.directions_bus), findsOneWidget);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
-      expect(find.text('Posledni aktualizace 10:20:00'), findsOneWidget);
+      expect(find.text('Poslední aktualizace 10:20:00'), findsOneWidget);
       expect(
-        find.text('Map data (c) OpenStreetMap contributors'),
+        find.text('Mapová data (c) přispěvatelé OpenStreetMap'),
         findsOneWidget,
       );
     });
@@ -43,7 +45,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: VehicleMapScreen(
             vehicleId: 'vehicle-123',
             refreshInterval: Duration.zero,
@@ -59,7 +61,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Aktualni poloha vozidla neni dostupna.'),
+        find.text('Aktuální poloha vozidla není dostupná.'),
         findsOneWidget,
       );
     });
@@ -70,7 +72,7 @@ void main() {
       var attempts = 0;
 
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: VehicleMapScreen(
             vehicleId: 'vehicle-123',
             refreshInterval: Duration.zero,
@@ -98,8 +100,8 @@ void main() {
 
       expect(
         find.text(
-          'Nepodarilo se pripojit ke Golemio API. '
-          'Zkontrolujte pripojeni k internetu.',
+          'Nepodařilo se připojit ke Golemio API. '
+          'Zkontrolujte připojení k internetu.',
         ),
         findsOneWidget,
       );
@@ -117,7 +119,7 @@ void main() {
       var attempts = 0;
 
       await tester.pumpWidget(
-        MaterialApp(
+        localizedTestApp(
           home: VehicleMapScreen(
             vehicleId: 'vehicle-123',
             refreshInterval: const Duration(seconds: 1),
@@ -153,8 +155,8 @@ void main() {
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
       expect(
         find.text(
-          'Zobrazuji posledni znamou polohu. '
-          'Golemio API neodpovedelo vcas. Zkuste to prosim znovu.',
+          'Zobrazuji poslední známou polohu. '
+          'Golemio API neodpovědělo včas. Zkuste to prosím znovu.',
         ),
         findsOneWidget,
       );

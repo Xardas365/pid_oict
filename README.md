@@ -121,6 +121,22 @@ analysis and tests:
 dart run build_runner build
 ```
 
+If localization files under `lib/i18n/*.i18n.json` change, regenerate Slang
+translations before analysis and tests:
+
+```bash
+dart run slang
+```
+
+If localization files under `packages/pid_seeds/lib/i18n/*.i18n.json` change,
+regenerate that package too:
+
+```bash
+cd packages/pid_seeds
+dart run slang
+cd ../..
+```
+
 The tests are offline. They do not call the real Golemio API and do not require
 `GOLEMIO_API_TOKEN`.
 
@@ -136,6 +152,8 @@ The tests are offline. They do not call the real Golemio API and do not require
 - `freezed_annotation` / `json_annotation`: annotation packages for the
   approved generated model/state migration.
 - `build_runner`, `freezed`, `json_serializable`: code generation tooling.
+- `slang` / `slang_flutter`: type-safe Czech and English app localization.
+- `flutter_localizations`: Flutter Material localization delegates.
 
 The current runtime still contains manual DTO/domain parsing in several places.
 The generator toolchain is available for the planned incremental Freezed/JSON
@@ -157,6 +175,10 @@ mapping migration.
   widgets.
 - `lib/src/shared/utils`: JSON parsing, user-facing error text, and small date
   formatting helpers.
+- `lib/i18n`: Czech and English Slang translation sources and generated typed
+  accessors.
+- `packages/pid_seeds/lib/i18n`: package-local Czech and English fallback
+  strings for reusable PID UI widgets.
 
 DTOs parse Golemio response shapes and convert to small domain models used by
 repositories and widgets. Repositories skip invalid records and surface

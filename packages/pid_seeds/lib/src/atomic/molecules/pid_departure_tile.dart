@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_departure_data.dart';
 import '../../tokens/pid_seed_colors.dart';
 import '../../tokens/pid_seed_radius.dart';
@@ -27,8 +28,10 @@ class PidDepartureTile extends StatelessWidget {
 
     return Semantics(
       button: hasVehicle,
-      label:
-          'Odjezd linky ${departure.lineLabel} směr ${departure.destination}',
+      label: t.departureTile.semanticLabel(
+        line: departure.lineLabel,
+        destination: departure.destination,
+      ),
       child: Material(
         color: PidSeedColors.surface,
         borderRadius: PidSeedRadius.card,
@@ -88,18 +91,21 @@ class PidDepartureTile extends StatelessWidget {
                       style:
                           PidSeedTypography.sectionTitle.copyWith(fontSize: 19),
                     ),
-                    const Text('min', style: PidSeedTypography.caption),
+                    Text(
+                      t.departureTile.minutesUnit,
+                      style: PidSeedTypography.caption,
+                    ),
                   ],
                 ),
               const SizedBox(width: PidSeedSpacing.md),
               PidIconButton(
                 icon: Icons.near_me_outlined,
                 tooltip: hasVehicle
-                    ? 'Zobrazit vozidlo na mapě'
-                    : 'Poloha vozidla není dostupná',
+                    ? t.departureTile.showVehicleTooltip
+                    : t.departureTile.vehicleUnavailable,
                 semanticLabel: hasVehicle
-                    ? 'Zobrazit aktuální polohu vozidla'
-                    : 'Poloha vozidla není dostupná',
+                    ? t.departureTile.showVehicleSemantic
+                    : t.departureTile.vehicleUnavailable,
                 onPressed: hasVehicle ? onShowVehicle : null,
               ),
             ],

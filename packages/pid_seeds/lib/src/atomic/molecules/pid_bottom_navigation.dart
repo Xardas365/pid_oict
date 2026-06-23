@@ -6,14 +6,18 @@ import '../../tokens/pid_seed_radius.dart';
 import '../../tokens/pid_seed_spacing.dart';
 import '../../tokens/pid_seed_typography.dart';
 
+typedef PidNavigationTabLabelBuilder = String Function(PidNavigationTab tab);
+
 class PidBottomNavigation extends StatelessWidget {
   const PidBottomNavigation({
     super.key,
     required this.selectedTab,
+    this.labelBuilder,
     this.onTabSelected,
   });
 
   final PidNavigationTab selectedTab;
+  final PidNavigationTabLabelBuilder? labelBuilder;
   final ValueChanged<PidNavigationTab>? onTabSelected;
 
   @override
@@ -38,11 +42,12 @@ class PidBottomNavigation extends StatelessWidget {
     final isSelected = tab == selectedTab;
     final foreground =
         isSelected ? PidSeedColors.primary : PidSeedColors.textMuted;
+    final label = labelBuilder?.call(tab) ?? tab.labelCs;
 
     return Semantics(
       button: true,
       selected: isSelected,
-      label: tab.labelCs,
+      label: label,
       child: InkWell(
         borderRadius: PidSeedRadius.navPill,
         onTap: onTabSelected == null ? null : () => onTabSelected!(tab),
@@ -66,7 +71,7 @@ class PidBottomNavigation extends StatelessWidget {
               ),
               const SizedBox(height: PidSeedSpacing.xs),
               Text(
-                tab.labelCs,
+                label,
                 style: PidSeedTypography.caption.copyWith(
                   color: foreground,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

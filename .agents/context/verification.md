@@ -16,6 +16,20 @@ If model files, generated annotations, or JSON mapping changed and the project u
 dart run build_runner build
 ```
 
+If root app localization JSON files changed, run Slang generation first:
+
+```bash
+dart run slang
+```
+
+If `packages/pid_seeds/lib/i18n/*.i18n.json` changed, run Slang in that package:
+
+```bash
+cd packages/pid_seeds
+dart run slang
+cd ../..
+```
+
 For documentation-only or agent-instruction-only changes, full Flutter checks are usually not required. If a relevant check is skipped, explain why in the final response.
 
 ## Windows execution guidance
@@ -30,6 +44,8 @@ Do not attempt a sandboxed run first for:
 * `flutter test`
 * `flutter pub get`
 * `dart run build_runner build`
+* `dart run slang`
+* `cd packages/pid_seeds && dart run slang`
 * `flutter build ...`
 
 Use this justification:
@@ -49,6 +65,20 @@ When code generation is used and source model files change, run:
 
 ```bash
 dart run build_runner build
+```
+
+When root app localization source files change, run:
+
+```bash
+dart run slang
+```
+
+When `pid_seeds` localization source files change, run:
+
+```bash
+cd packages/pid_seeds
+dart run slang
+cd ../..
 ```
 
 Then run formatting, analysis, and tests.

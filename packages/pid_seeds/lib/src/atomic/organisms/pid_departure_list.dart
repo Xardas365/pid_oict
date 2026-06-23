@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_departure_data.dart';
 import '../../tokens/pid_seed_spacing.dart';
 import '../molecules/pid_departure_tile.dart';
@@ -10,25 +11,25 @@ class PidDepartureList extends StatelessWidget {
     super.key,
     required this.departures,
     this.isLoading = false,
-    this.emptyTitle = 'Žádné aktuální odjezdy',
-    this.emptyMessage = 'Zkuste obnovit data nebo vybrat jiný směr.',
+    this.emptyTitle,
+    this.emptyMessage,
     this.onShowVehicle,
   });
 
   final List<PidDepartureData> departures;
   final bool isLoading;
-  final String emptyTitle;
-  final String emptyMessage;
+  final String? emptyTitle;
+  final String? emptyMessage;
   final ValueChanged<PidDepartureData>? onShowVehicle;
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const PidLoadingState(label: 'Načítání odjezdů...');
+    if (isLoading) return PidLoadingState(label: t.loading.departures);
     if (departures.isEmpty) {
       return PidFeedbackState(
         icon: Icons.departure_board_outlined,
-        title: emptyTitle,
-        message: emptyMessage,
+        title: emptyTitle ?? t.feedback.departuresEmptyTitle,
+        message: emptyMessage ?? t.feedback.departuresEmptyMessage,
       );
     }
 

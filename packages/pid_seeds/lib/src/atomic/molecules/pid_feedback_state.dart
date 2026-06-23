@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../tokens/pid_seed_colors.dart';
 import '../../tokens/pid_seed_radius.dart';
 import '../../tokens/pid_seed_spacing.dart';
@@ -55,9 +56,9 @@ class PidFeedbackState extends StatelessWidget {
 }
 
 class PidLoadingState extends StatelessWidget {
-  const PidLoadingState({super.key, this.label = 'Načítání...'});
+  const PidLoadingState({super.key, this.label});
 
-  final String label;
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +68,7 @@ class PidLoadingState extends StatelessWidget {
         children: [
           const CircularProgressIndicator(),
           const SizedBox(height: PidSeedSpacing.lg),
-          Text(label, style: PidSeedTypography.body),
+          Text(label ?? t.loading.generic, style: PidSeedTypography.body),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_departure_data.dart';
 import '../../models/pid_navigation_tab.dart';
 import '../../tokens/pid_seed_colors.dart';
@@ -62,8 +63,8 @@ class PidDeparturesTemplate extends StatelessWidget {
           children: [
             PidIconButton(
               icon: Icons.arrow_back_rounded,
-              tooltip: 'Zpět na zastávky',
-              semanticLabel: 'Zpět na seznam zastávek',
+              tooltip: t.templates.departures.backTooltip,
+              semanticLabel: t.templates.departures.backSemantic,
               onPressed: onBack,
               backgroundColor: PidSeedColors.surface,
               foregroundColor: PidSeedColors.textPrimary,
@@ -91,7 +92,7 @@ class PidDeparturesTemplate extends StatelessWidget {
         const SizedBox(height: PidSeedSpacing.xl),
         PidRefreshStatusCard(
           title: updatedText,
-          subtitle: 'Potáhněte dolů pro obnovení odjezdů',
+          subtitle: t.templates.departures.pullToRefresh,
           onRefresh: onRefresh == null
               ? null
               : () {
@@ -99,7 +100,7 @@ class PidDeparturesTemplate extends StatelessWidget {
                 },
         ),
         const SizedBox(height: PidSeedSpacing.xl),
-        const PidSectionTitle(title: 'Směr a nástupiště'),
+        PidSectionTitle(title: t.templates.departures.directionAndPlatform),
         const SizedBox(height: PidSeedSpacing.sm),
         PidFilterChips(
           filters: filters,
@@ -108,17 +109,20 @@ class PidDeparturesTemplate extends StatelessWidget {
         ),
         const SizedBox(height: PidSeedSpacing.xl),
         PidSectionTitle(
-          title: 'Nejbližší odjezdy',
-          trailing: Text('${departures.length} spoje',
-              style: PidSeedTypography.label),
+          title: t.templates.departures.nearestDepartures,
+          trailing: Text(
+            t.templates.departures.connectionCount(count: departures.length),
+            style: PidSeedTypography.label,
+          ),
         ),
         const SizedBox(height: PidSeedSpacing.md),
         if (errorMessage != null)
           PidFeedbackState(
             icon: Icons.wifi_off_rounded,
-            title: 'Nepodařilo se načíst odjezdy',
+            title: t.templates.departures.loadFailed,
             message: errorMessage!,
-            actionLabel: onRefresh == null ? null : 'Obnovit',
+            actionLabel:
+                onRefresh == null ? null : t.templates.departures.refresh,
             onActionPressed: onRefresh == null
                 ? null
                 : () {
@@ -170,8 +174,8 @@ class _DepartureHint extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: PidSeedColors.border),
       ),
-      child: const Text(
-        'Ikona mapy u spoje otevře aktuální polohu vozidla',
+      child: Text(
+        t.templates.departures.mapHint,
         style: PidSeedTypography.caption,
       ),
     );

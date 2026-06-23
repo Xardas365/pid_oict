@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../tokens/pid_seed_colors.dart';
 import '../../tokens/pid_seed_radius.dart';
 import '../../tokens/pid_seed_spacing.dart';
@@ -10,7 +11,7 @@ class PidSearchField extends StatelessWidget {
   const PidSearchField({
     super.key,
     this.controller,
-    this.hintText = 'Vyhledat zastávku...',
+    this.hintText,
     this.onChanged,
     this.onSubmitted,
     this.onFilterPressed,
@@ -19,7 +20,7 @@ class PidSearchField extends StatelessWidget {
   });
 
   final TextEditingController? controller;
-  final String hintText;
+  final String? hintText;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final VoidCallback? onFilterPressed;
@@ -28,9 +29,11 @@ class PidSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveHintText = hintText ?? t.search.hint;
+
     return Semantics(
       textField: true,
-      label: hintText,
+      label: effectiveHintText,
       child: TextField(
         controller: controller,
         autofocus: autofocus,
@@ -39,7 +42,7 @@ class PidSearchField extends StatelessWidget {
         onSubmitted: onSubmitted,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: hintText,
+          hintText: effectiveHintText,
           hintStyle:
               PidSeedTypography.body.copyWith(color: PidSeedColors.textMuted),
           prefixIcon:
@@ -50,8 +53,8 @@ class PidSearchField extends StatelessWidget {
                   padding: const EdgeInsets.only(right: PidSeedSpacing.sm),
                   child: PidIconButton(
                     icon: Icons.tune_rounded,
-                    tooltip: 'Filtrovat',
-                    semanticLabel: 'Filtrovat zastávky',
+                    tooltip: t.search.filterTooltip,
+                    semanticLabel: t.search.filterSemantic,
                     onPressed: onFilterPressed,
                     size: 36,
                     iconSize: 20,

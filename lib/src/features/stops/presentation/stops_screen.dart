@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pid_seeds/pid_seeds.dart';
 
+import '../../../../i18n/strings.g.dart';
 import '../../../core/network/golemio_api_client.dart';
 import '../../departures/presentation/departures_screen.dart';
 import '../../../shared/utils/app_error_messages.dart';
@@ -105,8 +106,10 @@ class _StopsScreenState extends State<StopsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.t;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('PID zastávky')),
+      appBar: AppBar(title: Text(strings.stops.title)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -115,7 +118,7 @@ class _StopsScreenState extends State<StopsScreen> {
               PidSearchField(
                 controller: _searchController,
                 enabled: !_isLoading && _error == null,
-                hintText: 'Vyhledat zastávku...',
+                hintText: strings.stops.searchHint,
               ),
               const SizedBox(height: 16),
               Expanded(child: _buildContent()),
@@ -127,8 +130,10 @@ class _StopsScreenState extends State<StopsScreen> {
   }
 
   Widget _buildContent() {
+    final strings = context.t;
+
     if (_isLoading) {
-      return const LoadingStateView(message: 'Nacitani zastavek...');
+      return LoadingStateView(message: strings.stops.loading);
     }
 
     final error = _error;
@@ -136,10 +141,8 @@ class _StopsScreenState extends State<StopsScreen> {
       return ErrorStateView(
         message: userMessageForAppError(
           error,
-          fallbackMessage:
-              'Zastavky se nepodarilo nacist. Zkuste to prosim znovu.',
-          invalidDataMessage:
-              'Golemio API nevratilo zadne pouzitelne zastavky.',
+          fallbackMessage: strings.stops.loadFailed,
+          invalidDataMessage: strings.stops.invalidData,
         ),
         onRetry: _loadStops,
       );
@@ -149,8 +152,8 @@ class _StopsScreenState extends State<StopsScreen> {
     if (filteredStops.isEmpty) {
       return EmptyStateView(
         message: _searchController.text.trim().isEmpty
-            ? 'Zadne zastavky nejsou k dispozici.'
-            : 'Zadne zastavky neodpovidaji hledani.',
+            ? strings.stops.empty
+            : strings.stops.emptySearch,
         icon: Icons.location_off_outlined,
       );
     }
@@ -163,7 +166,8 @@ class _StopsScreenState extends State<StopsScreen> {
         final stop = filteredStops[index];
 
         return PidStopCard(
-          stop: stop.toPidStopData(),
+          stop: stop.toPidStopData(strings),
+          semanticLabel: strings.stops.stopSemantic(name: stop.name),
           onTap: () => _openDepartures(stop),
         );
       },
@@ -172,23 +176,26 @@ class _StopsScreenState extends State<StopsScreen> {
 }
 
 extension on Stop {
-  PidStopData toPidStopData() {
-    return PidStopData(id: id, name: name, subtitle: _subtitle);
+  PidStopData toPidStopData(Translations strings) {
+    return PidStopData(id: id, name: name, subtitle: _subtitle(strings));
   }
 
-  String get _subtitle {
+  String _subtitle(Translations strings) {
     final platform = platformCode?.trim();
     if (platform != null && platform.isNotEmpty) {
-      return 'Nástupiště $platform • ID $id';
+      return strings.stops.platformWithId(platform: platform, id: id);
     }
 
     final latitude = this.latitude;
     final longitude = this.longitude;
     if (latitude != null && longitude != null) {
-      return 'ID $id • ${latitude.toStringAsFixed(5)}, '
-          '${longitude.toStringAsFixed(5)}';
+      return strings.stops.coordinatesWithId(
+        id: id,
+        latitude: latitude.toStringAsFixed(5),
+        longitude: longitude.toStringAsFixed(5),
+      );
     }
 
-    return 'ID $id';
+    return strings.stops.stopId(id: id);
   }
 }

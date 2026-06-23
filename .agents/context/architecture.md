@@ -9,6 +9,7 @@ still pragmatic Flutter implementation using:
 * Dio as the target HTTP client for the app-owned API layer,
 * Freezed and `json_serializable` for generated immutable models/states and
   JSON mapping where they reduce boilerplate,
+* Slang for Czech and English user-facing strings,
 * Cubit for simple state/actions,
 * Bloc where events make flows clearer, especially loading, retry, refresh,
   search, and polling,
@@ -34,6 +35,8 @@ Allowed or preferred dependencies:
 * `latlong2` for map coordinates when using `flutter_map`.
 * `freezed_annotation` and `json_annotation` for generated models, DTOs, and
   Bloc state when the extra structure improves reviewability.
+* `slang` and `slang_flutter` for app localization. The `pid_seeds`
+  package may use `slang` for its own package-local fallback strings.
 * `flutter_lints` or a stricter analyzer package for linting.
 
 Allowed dev dependencies:
@@ -223,8 +226,26 @@ manual boilerplate or parsing risk.
 
 Generated files must not be edited manually:
 
+* `lib/i18n/strings.g.dart`
+* `lib/i18n/strings_*.g.dart`
+* `packages/pid_seeds/lib/i18n/pid_seed_strings.g.dart`
+* `packages/pid_seeds/lib/i18n/pid_seed_strings_*.g.dart`
 * `*.freezed.dart`
 * `*.g.dart`
+
+If root app localization JSON files change, run:
+
+```bash
+dart run slang
+```
+
+If `pid_seeds` localization JSON files change, run:
+
+```bash
+cd packages/pid_seeds
+dart run slang
+cd ../..
+```
 
 If a later task explicitly adds generated models, run:
 
@@ -263,6 +284,12 @@ Screens should keep:
 * user-friendly error with retry where useful,
 * readable PID/public-transport presentation,
 * no fake production data.
+
+User-facing app text belongs in Slang translations under `lib/i18n/` with both
+Czech and English values. User-facing fallback text inside the local
+`pid_seeds` package belongs under `packages/pid_seeds/lib/i18n/`. Technical
+constants such as endpoint paths, JSON field names, and internal exception
+debug messages may remain as Dart strings.
 
 Shared reusable widgets are encouraged, but do not create a broad design system
 unless it removes real duplication.

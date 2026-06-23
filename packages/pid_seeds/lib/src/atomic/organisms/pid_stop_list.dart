@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_stop_data.dart';
 import '../../tokens/pid_seed_spacing.dart';
 import '../molecules/pid_feedback_state.dart';
@@ -10,25 +11,25 @@ class PidStopList extends StatelessWidget {
     super.key,
     required this.stops,
     this.isLoading = false,
-    this.emptyTitle = 'Žádné zastávky',
-    this.emptyMessage = 'Zkuste upravit vyhledávání nebo filtr.',
+    this.emptyTitle,
+    this.emptyMessage,
     this.onStopSelected,
   });
 
   final List<PidStopData> stops;
   final bool isLoading;
-  final String emptyTitle;
-  final String emptyMessage;
+  final String? emptyTitle;
+  final String? emptyMessage;
   final ValueChanged<PidStopData>? onStopSelected;
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const PidLoadingState(label: 'Načítání zastávek...');
+    if (isLoading) return PidLoadingState(label: t.loading.stops);
     if (stops.isEmpty) {
       return PidFeedbackState(
         icon: Icons.location_off_outlined,
-        title: emptyTitle,
-        message: emptyMessage,
+        title: emptyTitle ?? t.feedback.stopsEmptyTitle,
+        message: emptyMessage ?? t.feedback.stopsEmptyMessage,
       );
     }
 

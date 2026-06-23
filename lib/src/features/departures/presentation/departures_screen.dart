@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../i18n/strings.g.dart';
 import '../../../core/network/golemio_api_client.dart';
 import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/widgets/centered_scroll_view.dart';
@@ -109,7 +110,7 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const LoadingStateView(message: 'Nacitani odjezdu...');
+      return LoadingStateView(message: context.t.departures.loading);
     }
 
     return RefreshIndicator(
@@ -121,14 +122,14 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
   Widget _buildRefreshableContent() {
     final error = _error;
     if (error != null) {
+      final strings = context.t;
+
       return CenteredScrollView(
         child: ErrorStateView(
           message: userMessageForAppError(
             error,
-            fallbackMessage:
-                'Odjezdy se nepodarilo nacist. Zkuste to prosim znovu.',
-            invalidDataMessage:
-                'Golemio API nevratilo zadne pouzitelne odjezdy.',
+            fallbackMessage: strings.departures.loadFailed,
+            invalidDataMessage: strings.departures.invalidData,
           ),
           onRetry: _loadDepartures,
         ),
@@ -136,9 +137,9 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
     }
 
     if (_departures.isEmpty) {
-      return const CenteredScrollView(
+      return CenteredScrollView(
         child: EmptyStateView(
-          message: 'Pro tuto zastavku nejsou dostupne zadne odjezdy.',
+          message: context.t.departures.empty,
           icon: Icons.departure_board_outlined,
         ),
       );

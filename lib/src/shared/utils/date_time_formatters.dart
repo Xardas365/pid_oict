@@ -1,3 +1,5 @@
+import '../../../i18n/strings.g.dart';
+
 String formatClockTime(DateTime dateTime) {
   final localTime = dateTime.toLocal();
 
@@ -18,12 +20,12 @@ String? formatDelaySeconds(int? delaySeconds) {
   }
 
   if (delaySeconds <= 0) {
-    return 'Bez zpozdeni';
+    return t.format.noDelay;
   }
 
   final minutes = (delaySeconds + 59) ~/ 60;
 
-  return 'Zpozdeni +$minutes min';
+  return t.format.delayMinutes(minutes: minutes);
 }
 
 String _twoDigits(int value) => value.toString().padLeft(2, '0');

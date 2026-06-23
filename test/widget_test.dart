@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/i18n/strings.g.dart';
 import 'package:pid_oict/main.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
@@ -45,7 +46,20 @@ void main() {
     await tester.tap(find.text('Odjezdy'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Nejdrive vyberte zastavku ze seznamu.'), findsOneWidget);
+    expect(find.text('Nejdříve vyberte zastávku ze seznamu.'), findsOneWidget);
+  });
+
+  testWidgets('app can render English locale', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      PidOictApp(locale: AppLocale.en, loadStops: () async => const <Stop>[]),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Stops'), findsOneWidget);
+    expect(find.text('Departures'), findsOneWidget);
+    expect(find.text('Map'), findsOneWidget);
+    expect(find.text('PID stops'), findsOneWidget);
   });
 
   testWidgets('map tab asks for a selected vehicle first', (

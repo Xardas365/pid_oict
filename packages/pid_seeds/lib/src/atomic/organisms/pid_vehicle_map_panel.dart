@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../i18n/pid_seed_strings.g.dart';
 import '../../models/pid_vehicle_position_data.dart';
 import '../../tokens/pid_seed_colors.dart';
 import '../../tokens/pid_seed_radius.dart';
@@ -72,7 +73,7 @@ class PidVehicleMapPanel extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Obnovit polohu',
+                tooltip: t.templates.vehicleMap.refreshTooltip,
                 onPressed: onRefresh,
                 icon: const Icon(Icons.refresh_rounded,
                     color: PidSeedColors.primary),

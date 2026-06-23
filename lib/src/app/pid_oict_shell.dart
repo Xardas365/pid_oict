@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pid_seeds/pid_seeds.dart';
 
+import '../../i18n/strings.g.dart';
 import '../features/departures/domain/departure.dart';
 import '../features/departures/presentation/departures_screen.dart';
 import '../features/stops/domain/stop.dart';
@@ -50,6 +51,8 @@ class _PidOictShellState extends State<PidOictShell> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.t;
+
     return Scaffold(
       body: IndexedStack(
         index: _selectedTab.index,
@@ -71,6 +74,11 @@ class _PidOictShellState extends State<PidOictShell> {
       ),
       bottomNavigationBar: PidBottomNavigation(
         selectedTab: _selectedTab,
+        labelBuilder: (tab) => switch (tab) {
+          PidNavigationTab.stops => strings.navigation.stops,
+          PidNavigationTab.departures => strings.navigation.departures,
+          PidNavigationTab.map => strings.navigation.map,
+        },
         onTabSelected: (tab) {
           setState(() {
             _selectedTab = tab;
@@ -96,9 +104,11 @@ class _DeparturesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final stop = selectedStop;
     if (stop == null) {
-      return const _ShellEmptyTab(
-        title: 'Odjezdy',
-        message: 'Nejdrive vyberte zastavku ze seznamu.',
+      final strings = context.t;
+
+      return _ShellEmptyTab(
+        title: strings.navigation.departures,
+        message: strings.departures.emptyTabMessage,
         icon: Icons.departure_board_outlined,
       );
     }
@@ -131,9 +141,11 @@ class _MapTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final vehicleId = selectedVehicleId;
     if (vehicleId == null) {
-      return const _ShellEmptyTab(
-        title: 'Mapa',
-        message: 'Vyberte odjezd s dostupnou polohou vozidla.',
+      final strings = context.t;
+
+      return _ShellEmptyTab(
+        title: strings.navigation.map,
+        message: strings.vehicleMap.emptyTabMessage,
         icon: Icons.map_outlined,
       );
     }
