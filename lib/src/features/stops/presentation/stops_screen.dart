@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../../core/network/golemio_api_client.dart';
 import '../../departures/presentation/departures_screen.dart';
@@ -9,7 +10,6 @@ import '../../../shared/widgets/loading_state_view.dart';
 import '../data/stops_repository.dart';
 import '../domain/stop.dart';
 import 'stop_filter.dart';
-import 'widgets/stop_list_tile.dart';
 
 class StopsScreen extends StatefulWidget {
   const StopsScreen({super.key, this.loadStops, this.onStopSelected});
@@ -105,41 +105,17 @@ class _StopsScreenState extends State<StopsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: AppBar(title: const Text('PID zastavky')),
+      appBar: AppBar(title: const Text('PID zastávky')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Column(
             children: [
-              TextField(
+              PidSearchField(
                 controller: _searchController,
                 enabled: !_isLoading && _error == null,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: colorScheme.surface,
-                  hintText: 'Hledat podle nazvu zastavky',
-                  labelText: 'Vyhledat zastavku',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(28),
-                    borderSide: BorderSide(
-                      color: colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                ),
+                hintText: 'Vyhledat zastávku...',
               ),
               const SizedBox(height: 16),
               Expanded(child: _buildContent()),
@@ -186,8 +162,33 @@ class _StopsScreenState extends State<StopsScreen> {
       itemBuilder: (context, index) {
         final stop = filteredStops[index];
 
-        return StopListTile(stop: stop, onTap: () => _openDepartures(stop));
+        return PidStopCard(
+          stop: stop.toPidStopData(),
+          onTap: () => _openDepartures(stop),
+        );
       },
     );
+  }
+}
+
+extension on Stop {
+  PidStopData toPidStopData() {
+    return PidStopData(id: id, name: name, subtitle: _subtitle);
+  }
+
+  String get _subtitle {
+    final platform = platformCode?.trim();
+    if (platform != null && platform.isNotEmpty) {
+      return 'Nástupiště $platform • ID $id';
+    }
+
+    final latitude = this.latitude;
+    final longitude = this.longitude;
+    if (latitude != null && longitude != null) {
+      return 'ID $id • ${latitude.toStringAsFixed(5)}, '
+          '${longitude.toStringAsFixed(5)}';
+    }
+
+    return 'ID $id';
   }
 }

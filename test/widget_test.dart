@@ -21,10 +21,10 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Zastavky'), findsOneWidget);
+    expect(find.text('Zastávky'), findsOneWidget);
     expect(find.text('Odjezdy'), findsOneWidget);
     expect(find.text('Mapa'), findsOneWidget);
-    expect(find.text('PID zastavky'), findsOneWidget);
+    expect(find.text('PID zastávky'), findsOneWidget);
     expect(find.text('Staromestska'), findsOneWidget);
     expect(find.text('Andel'), findsOneWidget);
     expect(find.text('hr.VUSC Praha'), findsNothing);

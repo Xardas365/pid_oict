@@ -37,7 +37,8 @@ flutter build apk \
   --dart-define=GOLEMIO_API_TOKEN=your_token_here
 ```
 
-If iOS build instructions are included, make it clear that macOS/Xcode is required.
+This showcase supports Android only. Do not include iOS, macOS, Linux, web, or
+Windows app build commands unless platform support is explicitly restored later.
 
 ## API token section
 
@@ -51,7 +52,8 @@ Explain:
 
 ## Code generation section
 
-Include this section only if the project actually uses Freezed, json_serializable, or another generator.
+Include this section when Freezed, json_serializable, or another generator is
+present in the project, even if migration is still incremental.
 
 Example wording:
 

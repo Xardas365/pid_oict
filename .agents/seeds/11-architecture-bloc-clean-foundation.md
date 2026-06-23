@@ -14,8 +14,10 @@ Scope:
 
 - Add only the dependencies required for the architecture foundation:
   - `flutter_bloc`
-- Do not add Riverpod, Provider, GetX, service locator packages, Freezed,
-  build_runner, or code generation.
+  - Dio, Freezed, `json_serializable`, and `build_runner` if they are not
+    already present.
+- Do not add Riverpod, Provider, GetX, service locator packages, or a generated
+  Golemio API client.
 - Create the minimal target folders for:
   - domain repository interfaces,
   - use cases,
@@ -25,6 +27,8 @@ Scope:
 - Add explicit app-level provider composition if useful, using
   `RepositoryProvider` and `BlocProvider`.
 - Keep constructor injection.
+- Keep code generation configuration ready, but do not migrate DTOs/models in
+  this seed unless required to make the foundation compile.
 - Do not migrate stops, departures, or map screen state in this seed.
 - Do not change endpoint parameters or token handling.
 

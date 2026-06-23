@@ -23,6 +23,8 @@ Architecture.
 
 * Add `flutter_bloc` as the single state-management package.
 * Add explicit app composition using `RepositoryProvider` and `BlocProvider`.
+* Keep Dio, Freezed, and JSON code generation as the approved foundation for
+  the upcoming data/model migration.
 * Introduce domain repository interfaces and use case folders without changing
   behavior.
 * Keep constructor injection. Do not add service locators.
@@ -47,7 +49,7 @@ Each migration must preserve existing behavior and tests must remain offline.
 
 ## Post-MVP Phase 10 - Developer Observability
 
-* Add safe debug HTTP logging.
+* Migrate or adapt the API client toward Dio and add safe debug HTTP logging.
 * Add local API sample tooling that writes only ignored debug artifacts.
 * Add parser/repository diagnostics for skipped records.
 * Never log or commit real tokens.
@@ -63,5 +65,5 @@ Each migration must preserve existing behavior and tests must remain offline.
 
 * No Riverpod, Provider, GetX, Bloc alternatives, or service locator packages.
 * No generated Golemio client.
-* No code generation unless separately justified.
 * No endpoint parameter changes without proof from Golemio docs/API.
+* No non-Android platform support unless the assignment scope changes.

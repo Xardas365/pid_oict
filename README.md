@@ -86,7 +86,7 @@ Windows PowerShell:
 ./scripts/run_local.ps1
 ```
 
-Bash, macOS, Linux, or Git Bash:
+Bash or Git Bash:
 
 ```bash
 ./scripts/run_local.sh
@@ -99,19 +99,12 @@ still supported as an alternative.
 
 ## Build
 
-Android:
+This showcase supports Android only. The non-Android Flutter platform folders
+are intentionally not maintained in this repository.
 
 ```bash
 flutter build apk --dart-define=GOLEMIO_API_TOKEN=your_token_here
 ```
-
-iOS:
-
-```bash
-flutter build ios --dart-define=GOLEMIO_API_TOKEN=your_token_here
-```
-
-iOS builds require macOS with Xcode configured.
 
 ## Verification
 
@@ -121,16 +114,32 @@ flutter analyze
 flutter test
 ```
 
+If Freezed or JSON-serializable source files change, run code generation before
+analysis and tests:
+
+```bash
+dart run build_runner build
+```
+
 The tests are offline. They do not call the real Golemio API and do not require
 `GOLEMIO_API_TOKEN`.
 
 ## Dependencies
 
+- `dio`: approved target HTTP client for the next API-layer migration and safe
+  request/response diagnostics.
 - `http`: REST HTTP requests to the Golemio API.
 - `flutter_map`: OpenStreetMap-based map rendering without a Google Maps key.
 - `latlong2`: latitude/longitude value type used by `flutter_map`.
+- `pid_seeds`: local PID UI seed package used for theme and reusable UI
+  components.
+- `freezed_annotation` / `json_annotation`: annotation packages for the
+  approved generated model/state migration.
+- `build_runner`, `freezed`, `json_serializable`: code generation tooling.
 
-The app keeps models and parsers manual to keep the assignment small.
+The current runtime still contains manual DTO/domain parsing in several places.
+The generator toolchain is available for the planned incremental Freezed/JSON
+mapping migration.
 
 ## Architecture
 

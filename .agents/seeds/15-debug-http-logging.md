@@ -13,6 +13,9 @@ Context:
 Scope:
 
 - Add safe debug-only HTTP logging to the app-owned Golemio API client.
+- Prefer a Dio interceptor if the client has been migrated to Dio. If the
+  migration has not happened yet, keep the logging adapter isolated so it can
+  move to Dio later.
 - Enable logging only in debug mode and/or with an explicit dart define such as
   `GOLEMIO_DEBUG_HTTP=true`.
 - Log:
@@ -24,7 +27,8 @@ Scope:
   - bounded response preview when enabled.
 - Never log `x-access-token` or the token value.
 - Keep response preview small and bounded.
-- Do not add logging packages unless there is a strong reason.
+- Do not add logging packages unless there is a strong reason; Dio is already
+  approved for request/response instrumentation.
 - Do not change endpoint parameters or token handling.
 
 Testing:

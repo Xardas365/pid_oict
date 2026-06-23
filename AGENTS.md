@@ -26,7 +26,10 @@ Then read only the context files relevant to the request:
 * Use `flutter_bloc` as the single state-management approach for new migration work. Use Cubit for simple state/actions and Bloc where explicit events help loading, retry, refresh, search, or polling flows.
 * Existing simple `StatefulWidget` state may remain until the relevant migration seed is executed. Do not introduce Riverpod, Provider, GetX, service locators, or mixed state-management.
 * Use constructor injection with Flutter Bloc `RepositoryProvider` and `BlocProvider`. Do not add service locator packages.
-* Keep dependencies minimal and justify each addition.
+* This showcase targets Android only. Do not restore `ios/`, `macos/`, `linux/`, `web/`, or `windows/` unless the assignment scope changes.
+* Keep dependencies intentional and justify each addition.
+* Dio is the approved HTTP client for the next API-layer migration. Existing `http` usage may remain until that migration is implemented.
+* Freezed and `json_serializable` are approved for immutable models/states and JSON mapping. Generated files must be produced with `build_runner` and never edited manually.
 * Create the app's own API layer. Do not use a generated or third-party Dart client for Golemio.
 * Never hardcode or commit a real Golemio API token.
 * Do not log secrets. Technical logs are allowed only in debug mode.

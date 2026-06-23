@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pid_seeds/pid_seeds.dart';
 
 import '../features/departures/domain/departure.dart';
 import '../features/departures/presentation/departures_screen.dart';
@@ -29,21 +30,21 @@ class PidOictShell extends StatefulWidget {
 }
 
 class _PidOictShellState extends State<PidOictShell> {
-  var _selectedIndex = 0;
+  var _selectedTab = PidNavigationTab.stops;
   Stop? _selectedStop;
   String? _selectedVehicleId;
 
   void _selectStop(Stop stop) {
     setState(() {
       _selectedStop = stop;
-      _selectedIndex = 1;
+      _selectedTab = PidNavigationTab.departures;
     });
   }
 
   void _selectVehicle(String vehicleId) {
     setState(() {
       _selectedVehicleId = vehicleId;
-      _selectedIndex = 2;
+      _selectedTab = PidNavigationTab.map;
     });
   }
 
@@ -51,7 +52,7 @@ class _PidOictShellState extends State<PidOictShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
-        index: _selectedIndex,
+        index: _selectedTab.index,
         children: [
           StopsScreen(loadStops: widget.loadStops, onStopSelected: _selectStop),
           _DeparturesTab(
@@ -64,34 +65,17 @@ class _PidOictShellState extends State<PidOictShell> {
             loadVehiclePosition: widget.loadVehiclePosition,
             refreshInterval: widget.vehicleMapRefreshInterval,
             showMapTiles: widget.showMapTiles,
-            isActive: _selectedIndex == 2,
+            isActive: _selectedTab == PidNavigationTab.map,
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
+      bottomNavigationBar: PidBottomNavigation(
+        selectedTab: _selectedTab,
+        onTabSelected: (tab) {
           setState(() {
-            _selectedIndex = index;
+            _selectedTab = tab;
           });
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.directions_transit_outlined),
-            selectedIcon: Icon(Icons.directions_transit),
-            label: 'Zastavky',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.departure_board_outlined),
-            selectedIcon: Icon(Icons.departure_board),
-            label: 'Odjezdy',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Mapa',
-          ),
-        ],
       ),
     );
   }

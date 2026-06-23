@@ -6,6 +6,9 @@ The MVP is functionally complete. The post-MVP direction is a more senior but
 still pragmatic Flutter implementation using:
 
 * `flutter_bloc` as the single state-management package,
+* Dio as the target HTTP client for the app-owned API layer,
+* Freezed and `json_serializable` for generated immutable models/states and
+  JSON mapping where they reduce boilerplate,
 * Cubit for simple state/actions,
 * Bloc where events make flows clearer, especially loading, retry, refresh,
   search, and polling,
@@ -22,19 +25,23 @@ Keep dependencies minimal and justify each addition.
 
 Allowed or preferred dependencies:
 
-* `http` for REST calls. Do not add `dio` unless there is a separate justified
-  migration.
+* `dio` for the target Golemio REST client, interceptors, timeout handling, and
+  safe debug logging.
+* `http` may remain during the incremental migration if existing code still
+  uses it. Do not keep two active API clients long term.
 * `flutter_bloc` for state management.
 * `flutter_map` for map rendering without a Google Maps key.
 * `latlong2` for map coordinates when using `flutter_map`.
+* `freezed_annotation` and `json_annotation` for generated models, DTOs, and
+  Bloc state when the extra structure improves reviewability.
 * `flutter_lints` or a stricter analyzer package for linting.
 
 Allowed dev dependencies:
 
 * Flutter test tooling.
+* `build_runner`, `freezed`, and `json_serializable` for code generation.
 * `bloc_test` only if it materially improves Bloc/Cubit tests.
 * `mocktail` only if handwritten fakes become too costly.
-* Code generation tooling only if a later task explicitly justifies it.
 
 Do not add:
 
@@ -43,8 +50,24 @@ Do not add:
 * GetX,
 * service locator packages,
 * generated or third-party Golemio Dart API clients,
-* map SDKs that require extra API keys,
-* code generation by default.
+* map SDKs that require extra API keys.
+
+## Platform Scope
+
+This repository is an Android-only showcase for the OICT/Golemio assignment.
+
+Keep only the Android Flutter platform unless the assignment scope explicitly
+changes. Do not restore or maintain:
+
+* `ios/`,
+* `macos/`,
+* `linux/`,
+* `web/`,
+* `windows/`.
+
+README, build commands, CI, and verification notes should describe Android
+only. Cross-platform helper scripts may remain for local developer convenience
+when they do not imply app platform support.
 
 ## State Management
 
@@ -194,7 +217,9 @@ Debug logging should be safe:
 
 ## Code Generation
 
-Do not introduce code generation by default.
+Code generation is part of the approved post-MVP architecture for selected
+models, DTOs, and Bloc state classes. Use it pragmatically where it reduces
+manual boilerplate or parsing risk.
 
 Generated files must not be edited manually:
 
