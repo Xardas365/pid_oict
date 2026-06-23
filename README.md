@@ -114,6 +114,12 @@ flutter analyze
 flutter test
 ```
 
+To update committed golden images after an intentional UI change:
+
+```bash
+flutter test --update-goldens
+```
+
 If Freezed or JSON-serializable source files change, run code generation before
 analysis and tests:
 
