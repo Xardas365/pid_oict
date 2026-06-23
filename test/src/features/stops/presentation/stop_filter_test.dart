@@ -34,6 +34,11 @@ void main() {
         Stop(id: '5', name: 'Odb Balabenka'),
         Stop(id: '6', name: 'Kmetineves'),
         Stop(id: '7', name: 'Odboraru'),
+        Stop(id: '8', name: 'vl. v km 12,4'),
+        Stop(id: '9', name: 'Kolín výh.č.1'),
+        Stop(id: '10', name: 'vjezd.náv Praha'),
+        Stop(id: '11', name: 'odj.náv Praha'),
+        Stop(id: '12', name: 'Praha náv. 1'),
       ];
 
       final result = filterStopsByName(mixedStops, '');
@@ -43,6 +48,19 @@ void main() {
         'Kmetineves',
         'Odboraru',
       ]);
+    });
+
+    test('hides non-passenger GTFS location types when available', () {
+      const mixedStops = [
+        Stop(id: '1', name: 'Flora', locationType: 0),
+        Stop(id: '2', name: 'Flora station', locationType: 1),
+        Stop(id: '3', name: 'Flora entrance', locationType: 2),
+        Stop(id: '4', name: 'Andel'),
+      ];
+
+      final result = filterStopsByName(mixedStops, '');
+
+      expect(result.map((stop) => stop.name), ['Flora', 'Andel']);
     });
 
     test('does not reveal technical records during search', () {

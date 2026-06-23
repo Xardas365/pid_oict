@@ -1,11 +1,17 @@
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 
 const andelStop = Stop(
   id: 'U123Z1',
   name: 'Andel',
   platformCode: 'A',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U123S1',
+  wheelchairBoarding: 2,
+  levelId: 'U123L2',
   latitude: 50.07128,
   longitude: 14.40312,
 );
@@ -14,11 +20,19 @@ const staromestskaStop = Stop(
   id: 'U456Z2',
   name: 'Staromestska',
   platformCode: 'B',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U456S1',
+  wheelchairBoarding: 2,
+  levelId: 'U456L2',
   latitude: 50.08708,
   longitude: 14.42078,
 );
 
 const technicalStop = Stop(id: 'TECH1', name: 'hr.VUSC Praha');
+
+final andelStopGroup = StopGroup.single(andelStop);
+final staromestskaStopGroup = StopGroup.single(staromestskaStop);
 
 Departure repyDeparture({String? gtfsTripId = 'trip-10-repy'}) {
   return Departure(

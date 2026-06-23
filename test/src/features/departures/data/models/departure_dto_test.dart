@@ -8,10 +8,11 @@ void main() {
         'route': {'short_name': '22'},
         'trip': {'headsign': 'Nadrazi Hostivar', 'id': 'trip-22-123'},
         'departure': {
+          'timestamp_scheduled': '2026-06-22T10:14:00+02:00',
           'predicted': '2026-06-22T10:15:30+02:00',
           'delay_seconds': '120',
         },
-        'platform': '3',
+        'stop': {'id': 'U123Z1', 'platform_code': '3'},
       });
 
       expect(dto, isNotNull);
@@ -20,6 +21,7 @@ void main() {
       expect(dto.departureTime, DateTime.parse('2026-06-22T10:15:30+02:00'));
       expect(dto.delaySeconds, 120);
       expect(dto.platform, '3');
+      expect(dto.stopId, 'U123Z1');
       expect(dto.gtfsTripId, 'trip-22-123');
 
       final departure = dto.toDomain();
@@ -27,6 +29,20 @@ void main() {
       expect(departure.routeShortName, dto.routeShortName);
       expect(departure.headsign, dto.headsign);
       expect(departure.departureTime, dto.departureTime);
+    });
+
+    test('prefers predicted departure time over scheduled time', () {
+      final dto = DepartureDto.fromJson({
+        'route': {'short_name': '22'},
+        'trip': {'headsign': 'Nadrazi Hostivar'},
+        'departure': {
+          'timestamp_scheduled': '2026-06-22T10:15:00+02:00',
+          'timestamp_predicted': '2026-06-22T10:17:00+02:00',
+        },
+      });
+
+      expect(dto, isNotNull);
+      expect(dto!.departureTime, DateTime.parse('2026-06-22T10:17:00+02:00'));
     });
 
     test('tolerates missing optional fields', () {
@@ -109,6 +125,30 @@ void main() {
 
         expect(dto?.gtfsTripId, startsWith('trip-from-'));
       }
+    });
+
+    test('parses public departure board groups from nested list response', () {
+      final result = DepartureDto.parseWithDiagnostics([
+        [
+          {
+            'route': {'short_name': '10'},
+            'trip': {'headsign': 'Sidliste Repy', 'id': 'trip-10-repy'},
+            'departure': {
+              'timestamp_predicted': '2026-06-22T10:15:30+02:00',
+              'delay_seconds': 60,
+            },
+            'stop': {'platform_code': '3'},
+          },
+        ],
+      ]);
+
+      expect(result.diagnostics.rawCount, 1);
+      expect(result.diagnostics.parsedCount, 1);
+      expect(result.diagnostics.skippedCount, 0);
+      expect(result.items.single.routeShortName, '10');
+      expect(result.items.single.headsign, 'Sidliste Repy');
+      expect(result.items.single.platform, '3');
+      expect(result.items.single.gtfsTripId, 'trip-10-repy');
     });
 
     test('rejects records with invalid required data', () {

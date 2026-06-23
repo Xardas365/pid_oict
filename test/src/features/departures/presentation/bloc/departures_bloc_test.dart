@@ -9,10 +9,11 @@ import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bl
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_state.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 
 void main() {
   group('DeparturesBloc', () {
-    const stop = Stop(id: 'U1', name: 'Andel');
+    final stop = StopGroup.single(const Stop(id: 'U1', name: 'Andel'));
 
     test('loads departures successfully', () async {
       final repository = _QueueDeparturesRepository([
@@ -21,7 +22,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const DeparturesStarted(stop));
+      bloc.add(DeparturesStarted(stop));
       await _waitForStatus(bloc, DeparturesStatus.loaded);
 
       expect(bloc.state.departures.single.headsign, 'Nadrazi Hostivar');
@@ -40,7 +41,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const DeparturesStarted(stop));
+      bloc.add(DeparturesStarted(stop));
       await _waitForStatus(bloc, DeparturesStatus.error);
 
       expect(bloc.state.error, same(expectedError));
@@ -54,7 +55,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const DeparturesStarted(stop));
+      bloc.add(DeparturesStarted(stop));
       await _waitForStatus(bloc, DeparturesStatus.empty);
 
       expect(bloc.state.departures, isEmpty);
@@ -70,7 +71,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const DeparturesStarted(stop));
+      bloc.add(DeparturesStarted(stop));
       await _waitForStatus(bloc, DeparturesStatus.error);
 
       bloc.add(const DeparturesRetried());
@@ -88,7 +89,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const DeparturesStarted(stop));
+      bloc.add(DeparturesStarted(stop));
       await _waitForDeparture(bloc, 'Nadrazi Hostivar');
 
       bloc.add(const DeparturesRefreshed());
@@ -110,7 +111,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const DeparturesStarted(stop));
+      bloc.add(DeparturesStarted(stop));
       await _waitForDeparture(bloc, 'Nadrazi Hostivar');
 
       bloc.add(const DeparturesRefreshed());
@@ -133,7 +134,7 @@ void main() {
         final bloc = _createBloc(repository);
         addTearDown(bloc.close);
 
-        bloc.add(const DeparturesStarted(stop));
+        bloc.add(DeparturesStarted(stop));
         await _waitForDeparture(bloc, 'Nadrazi Hostivar');
 
         final emitted = <DeparturesState>[];
@@ -154,11 +155,86 @@ void main() {
         await _waitForDeparture(bloc, 'Vypich');
       },
     );
+
+    test('ignores duplicate simultaneous refresh requests', () async {
+      final refreshCompleter = Completer<List<Departure>>();
+      final firstCompletion = Completer<void>();
+      final secondCompletion = Completer<void>();
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([_departure('Nadrazi Hostivar')]),
+        _DeparturesPending(refreshCompleter),
+      ]);
+      final bloc = _createBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForDeparture(bloc, 'Nadrazi Hostivar');
+
+      bloc
+        ..add(DeparturesRefreshed(completion: firstCompletion))
+        ..add(DeparturesRefreshed(completion: secondCompletion));
+      await bloc.stream.firstWhere((state) => state.isRefreshing);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.callCount, 2);
+      expect(secondCompletion.isCompleted, isTrue);
+
+      refreshCompleter.complete([_departure('Vypich')]);
+      await firstCompletion.future;
+
+      expect(bloc.state.departures.single.headsign, 'Vypich');
+    });
+
+    test('periodic refresh reloads while the bloc is open', () async {
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([_departure('Nadrazi Hostivar')]),
+        _DeparturesSuccess([_departure('Vypich')]),
+      ]);
+      final bloc = _createBloc(
+        repository,
+        refreshInterval: const Duration(milliseconds: 10),
+      );
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForDeparture(bloc, 'Nadrazi Hostivar');
+      await _waitForDeparture(bloc, 'Vypich');
+
+      expect(repository.callCount, 2);
+    });
+
+    test('close cancels periodic refresh timer', () async {
+      final periodicCompleter = Completer<List<Departure>>();
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([_departure('Nadrazi Hostivar')]),
+        _DeparturesPending(periodicCompleter),
+      ]);
+      final bloc = _createBloc(
+        repository,
+        refreshInterval: const Duration(milliseconds: 10),
+      );
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForDeparture(bloc, 'Nadrazi Hostivar');
+      await _waitForCallCount(repository, 2);
+
+      await bloc.close();
+      periodicCompleter.complete([_departure('Vypich')]);
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      expect(repository.callCount, 2);
+    });
   });
 }
 
-DeparturesBloc _createBloc(_QueueDeparturesRepository repository) {
-  return DeparturesBloc(GetDeparturesForStopUseCase(repository));
+DeparturesBloc _createBloc(
+  _QueueDeparturesRepository repository, {
+  Duration refreshInterval = Duration.zero,
+}) {
+  return DeparturesBloc(
+    GetDeparturesForStopUseCase(repository),
+    refreshInterval: refreshInterval,
+  );
 }
 
 Future<void> _waitForStatus(
@@ -187,6 +263,15 @@ Future<void> _waitForDeparture(DeparturesBloc bloc, String headsign) async {
   );
 }
 
+Future<void> _waitForCallCount(
+  _QueueDeparturesRepository repository,
+  int callCount,
+) async {
+  while (repository.callCount < callCount) {
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+  }
+}
+
 Departure _departure(String headsign) {
   return Departure(
     routeShortName: '22',
@@ -200,11 +285,11 @@ class _QueueDeparturesRepository implements DeparturesRepository {
   _QueueDeparturesRepository(this._responses);
 
   final List<_DeparturesResponse> _responses;
-  final receivedStops = <Stop>[];
+  final receivedStops = <StopGroup>[];
   var callCount = 0;
 
   @override
-  Future<List<Departure>> fetchDeparturesForStop(Stop stop) async {
+  Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) async {
     receivedStops.add(stop);
     final response = _responses[callCount];
     callCount++;

@@ -187,12 +187,12 @@ Widget _departuresScreen(
   return BlocProvider(
     create: (_) {
       final bloc = DeparturesBloc(GetDeparturesForStopUseCase(repository))
-        ..add(const DeparturesStarted(andelStop));
+        ..add(DeparturesStarted(andelStopGroup));
       onBlocCreated?.call(bloc);
 
       return bloc;
     },
-    child: const DeparturesScreen(stop: andelStop),
+    child: DeparturesScreen(stop: andelStopGroup),
   );
 }
 

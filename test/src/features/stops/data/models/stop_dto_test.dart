@@ -14,6 +14,11 @@ void main() {
           'stop_id': 'U123Z1',
           'stop_name': 'Staromestska',
           'platform_code': 'A',
+          'zone_id': 'P',
+          'location_type': 0,
+          'parent_station': 'U123S1',
+          'wheelchair_boarding': 2,
+          'level_id': 'U123L2',
         },
       });
 
@@ -21,6 +26,11 @@ void main() {
       expect(dto!.id, 'U123Z1');
       expect(dto.name, 'Staromestska');
       expect(dto.platformCode, 'A');
+      expect(dto.zoneId, 'P');
+      expect(dto.locationType, 0);
+      expect(dto.parentStationId, 'U123S1');
+      expect(dto.wheelchairBoarding, 2);
+      expect(dto.levelId, 'U123L2');
       expect(dto.latitude, 50.08804);
       expect(dto.longitude, 14.42076);
 
@@ -28,6 +38,11 @@ void main() {
 
       expect(stop.id, dto.id);
       expect(stop.name, dto.name);
+      expect(stop.zoneId, dto.zoneId);
+      expect(stop.locationType, dto.locationType);
+      expect(stop.parentStationId, dto.parentStationId);
+      expect(stop.wheelchairBoarding, dto.wheelchairBoarding);
+      expect(stop.levelId, dto.levelId);
       expect(stop.latitude, dto.latitude);
       expect(stop.longitude, dto.longitude);
     });

@@ -3,10 +3,11 @@ import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
 import 'package:pid_oict/src/features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 
 void main() {
   test('GetDeparturesForStopUseCase delegates selected stop', () async {
-    const stop = Stop(id: 'U1', name: 'Andel');
+    final stop = StopGroup.single(const Stop(id: 'U1', name: 'Andel'));
     final departures = [
       Departure(
         routeShortName: '9',
@@ -28,10 +29,10 @@ class _FakeDeparturesRepository implements DeparturesRepository {
   _FakeDeparturesRepository(this._departures);
 
   final List<Departure> _departures;
-  Stop? receivedStop;
+  StopGroup? receivedStop;
 
   @override
-  Future<List<Departure>> fetchDeparturesForStop(Stop stop) async {
+  Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) async {
     receivedStop = stop;
     return _departures;
   }

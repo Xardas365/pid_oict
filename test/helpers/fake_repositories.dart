@@ -4,6 +4,7 @@ import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/repositories/stops_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 
@@ -56,11 +57,11 @@ class QueueDeparturesRepository implements DeparturesRepository {
   QueueDeparturesRepository(this._responses);
 
   final List<RepositoryResponse<List<Departure>>> _responses;
-  final receivedStops = <Stop>[];
+  final receivedStops = <StopGroup>[];
   var callCount = 0;
 
   @override
-  Future<List<Departure>> fetchDeparturesForStop(Stop stop) {
+  Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) {
     receivedStops.add(stop);
     return _next(_responses);
   }

@@ -11,8 +11,13 @@ import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bl
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
 import 'package:pid_oict/src/features/departures/presentation/departures_screen.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 
 import '../../../test_localized_app.dart';
+
+final _testStopGroup = StopGroup.single(
+  const Stop(id: 'U123Z1', name: 'Staromestska'),
+);
 
 void main() {
   group('DeparturesScreen', () {
@@ -221,6 +226,13 @@ void main() {
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
       expect(
         find.text(
+          'Nepodařilo se aktualizovat odjezdy. '
+          'Zobrazujeme poslední dostupná data.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
           'Nepodařilo se připojit ke Golemio API. '
           'Zkontrolujte připojení k internetu.',
         ),
@@ -263,12 +275,12 @@ Future<void> _pumpDeparturesScreen(
   await tester.pumpWidget(
     localizedTestApp(
       home: BlocProvider(
-        create: (_) => DeparturesBloc(GetDeparturesForStopUseCase(repository))
-          ..add(
-            const DeparturesStarted(Stop(id: 'U123Z1', name: 'Staromestska')),
-          ),
+        create: (_) => DeparturesBloc(
+          GetDeparturesForStopUseCase(repository),
+          refreshInterval: Duration.zero,
+        )..add(DeparturesStarted(_testStopGroup)),
         child: DeparturesScreen(
-          stop: const Stop(id: 'U123Z1', name: 'Staromestska'),
+          stop: _testStopGroup,
           onTripSelected: onTripSelected,
         ),
       ),
@@ -291,7 +303,7 @@ class _FutureDeparturesRepository implements DeparturesRepository {
   final Future<List<Departure>> _future;
 
   @override
-  Future<List<Departure>> fetchDeparturesForStop(Stop stop) {
+  Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) {
     return _future;
   }
 }
@@ -303,7 +315,7 @@ class _QueueDeparturesRepository implements DeparturesRepository {
   var callCount = 0;
 
   @override
-  Future<List<Departure>> fetchDeparturesForStop(Stop stop) async {
+  Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) async {
     final response = _responses[callCount];
     callCount++;
 
