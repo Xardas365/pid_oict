@@ -178,6 +178,18 @@ class Translations$stops$cs {
 	/// cs: 'Nástupiště $platform • ID $id'
 	String platformWithId({required Object platform, required Object id}) => 'Nástupiště ${platform} • ID ${id}';
 
+	/// cs: 'Nástupiště $platforms • zóna $zone'
+	String platformsWithZone({required Object platforms, required Object zone}) => 'Nástupiště ${platforms} • zóna ${zone}';
+
+	/// cs: 'Nástupiště $platforms'
+	String platforms({required Object platforms}) => 'Nástupiště ${platforms}';
+
+	/// cs: '$count označníky • zóna $zone'
+	String stopPointsWithZone({required Object count, required Object zone}) => '${count} označníky • zóna ${zone}';
+
+	/// cs: '$count označníky'
+	String stopPoints({required Object count}) => '${count} označníky';
+
 	/// cs: 'ID $id • $latitude, $longitude'
 	String coordinatesWithId({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}';
 
@@ -207,6 +219,12 @@ class Translations$departures$cs {
 
 	/// cs: 'Pro tuto zastávku nejsou dostupné žádné odjezdy.'
 	String get empty => 'Pro tuto zastávku nejsou dostupné žádné odjezdy.';
+
+	/// cs: 'Aktualizuji odjezdy...'
+	String get refreshing => 'Aktualizuji odjezdy...';
+
+	/// cs: 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.'
+	String get staleWarning => 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.';
 
 	/// cs: 'Odjezd $time'
 	String departureTime({required Object time}) => 'Odjezd ${time}';
@@ -302,6 +320,10 @@ extension on Translations {
 			'stops.stopSemantic' => ({required Object name}) => 'Zastávka ${name}',
 			'stops.stopId' => ({required Object id}) => 'ID ${id}',
 			'stops.platformWithId' => ({required Object platform, required Object id}) => 'Nástupiště ${platform} • ID ${id}',
+			'stops.platformsWithZone' => ({required Object platforms, required Object zone}) => 'Nástupiště ${platforms} • zóna ${zone}',
+			'stops.platforms' => ({required Object platforms}) => 'Nástupiště ${platforms}',
+			'stops.stopPointsWithZone' => ({required Object count, required Object zone}) => '${count} označníky • zóna ${zone}',
+			'stops.stopPoints' => ({required Object count}) => '${count} označníky',
 			'stops.coordinatesWithId' => ({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}',
 			'stops.legacyPlatformWithId' => ({required Object platform, required Object id}) => 'Nástupiště ${platform} - ID ${id}',
 			'departures.emptyTabMessage' => 'Nejdříve vyberte zastávku ze seznamu.',
@@ -309,6 +331,8 @@ extension on Translations {
 			'departures.loadFailed' => 'Odjezdy se nepodařilo načíst. Zkuste to prosím znovu.',
 			'departures.invalidData' => 'Golemio API nevrátilo žádné použitelné odjezdy.',
 			'departures.empty' => 'Pro tuto zastávku nejsou dostupné žádné odjezdy.',
+			'departures.refreshing' => 'Aktualizuji odjezdy...',
+			'departures.staleWarning' => 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',

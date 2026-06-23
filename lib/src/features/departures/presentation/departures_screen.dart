@@ -9,7 +9,7 @@ import '../../../shared/widgets/centered_scroll_view.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
-import '../../stops/domain/stop.dart';
+import '../../stops/domain/stop_group.dart';
 import '../../vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -22,7 +22,7 @@ import 'widgets/departure_tile.dart';
 class DeparturesScreen extends StatelessWidget {
   const DeparturesScreen({required this.stop, super.key, this.onTripSelected});
 
-  final Stop stop;
+  final StopGroup stop;
   final ValueChanged<String>? onTripSelected;
 
   void _openVehicleMap(BuildContext context, String gtfsTripId) {
@@ -127,7 +127,10 @@ class _DeparturesList extends StatelessWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         if (state.isRefreshing && index == 0) {
-          return const LinearProgressIndicator();
+          return Semantics(
+            label: context.t.departures.refreshing,
+            child: const LinearProgressIndicator(),
+          );
         }
 
         final warningIndex = state.isRefreshing ? 1 : 0;
@@ -159,6 +162,7 @@ class _RefreshWarning extends StatelessWidget {
       error,
       fallbackMessage: context.t.errors.refreshFailed,
     );
+    final strings = context.t;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -175,11 +179,24 @@ class _RefreshWarning extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                message,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    strings.departures.staleWarning,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

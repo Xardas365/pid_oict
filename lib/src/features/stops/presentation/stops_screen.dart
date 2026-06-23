@@ -7,15 +7,18 @@ import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
+import '../../departures/domain/usecases/get_departures_for_stop_use_case.dart';
+import '../../departures/presentation/bloc/departures_bloc.dart';
+import '../../departures/presentation/bloc/departures_event.dart';
 import '../../departures/presentation/departures_screen.dart';
-import '../domain/stop.dart';
+import '../domain/stop_group.dart';
 import 'cubit/stops_cubit.dart';
 import 'cubit/stops_state.dart';
 
 class StopsScreen extends StatefulWidget {
   const StopsScreen({super.key, this.onStopSelected});
 
-  final ValueChanged<Stop>? onStopSelected;
+  final ValueChanged<StopGroup>? onStopSelected;
 
   @override
   State<StopsScreen> createState() => _StopsScreenState();
@@ -23,17 +26,22 @@ class StopsScreen extends StatefulWidget {
 
 class _StopsScreenState extends State<StopsScreen> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _searchController
       ..removeListener(_onSearchChanged)
+      ..dispose();
+    _scrollController
+      ..removeListener(_onScroll)
       ..dispose();
     super.dispose();
   }
@@ -45,7 +53,19 @@ class _StopsScreenState extends State<StopsScreen> {
     }
   }
 
-  void _openDepartures(Stop stop) {
+  void _onScroll() {
+    if (!_scrollController.hasClients) {
+      return;
+    }
+
+    final position = _scrollController.position;
+    final remainingExtent = position.maxScrollExtent - position.pixels;
+    if (remainingExtent < 480) {
+      context.read<StopsCubit>().loadMore();
+    }
+  }
+
+  void _openDepartures(StopGroup stop) {
     final onStopSelected = widget.onStopSelected;
     if (onStopSelected != null) {
       onStopSelected(stop);
@@ -53,7 +73,14 @@ class _StopsScreenState extends State<StopsScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => DeparturesScreen(stop: stop)),
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider(
+          create: (context) =>
+              DeparturesBloc(context.read<GetDeparturesForStopUseCase>())
+                ..add(DeparturesStarted(stop)),
+          child: DeparturesScreen(stop: stop),
+        ),
+      ),
     );
   }
 
@@ -90,6 +117,18 @@ class _StopsScreenState extends State<StopsScreen> {
                     );
                   },
                 ),
+                BlocSelector<StopsCubit, StopsState, bool>(
+                  selector: (state) => state.isSearching,
+                  builder: (context, isSearching) => AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 150),
+                    child: isSearching
+                        ? const Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: LinearProgressIndicator(minHeight: 2),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: BlocBuilder<StopsCubit, StopsState>(
@@ -124,7 +163,9 @@ class _StopsScreenState extends State<StopsScreen> {
         icon: Icons.location_off_outlined,
       ),
       StopsStatus.loaded => _StopsList(
-        stops: state.filteredStops,
+        stops: state.filteredGroups,
+        isLoadingMore: state.isLoadingMore,
+        controller: _scrollController,
         onOpenDepartures: _openDepartures,
       ),
     };
@@ -132,20 +173,35 @@ class _StopsScreenState extends State<StopsScreen> {
 }
 
 class _StopsList extends StatelessWidget {
-  const _StopsList({required this.stops, required this.onOpenDepartures});
+  const _StopsList({
+    required this.stops,
+    required this.isLoadingMore,
+    required this.controller,
+    required this.onOpenDepartures,
+  });
 
-  final List<Stop> stops;
-  final ValueChanged<Stop> onOpenDepartures;
+  final List<StopGroup> stops;
+  final bool isLoadingMore;
+  final ScrollController controller;
+  final ValueChanged<StopGroup> onOpenDepartures;
 
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
 
     return ListView.separated(
+      controller: controller,
       padding: const EdgeInsets.only(bottom: 16),
-      itemCount: stops.length,
+      itemCount: stops.length + (isLoadingMore ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
+        if (index >= stops.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         final stop = stops[index];
 
         return PidStopCard(
@@ -158,27 +214,27 @@ class _StopsList extends StatelessWidget {
   }
 }
 
-extension on Stop {
+extension on StopGroup {
   PidStopData toPidStopData(Translations strings) {
     return PidStopData(id: id, name: name, subtitle: _subtitle(strings));
   }
 
   String _subtitle(Translations strings) {
-    final platform = platformCode?.trim();
-    if (platform != null && platform.isNotEmpty) {
-      return strings.stops.platformWithId(platform: platform, id: id);
+    final platforms = platformCodes.join(', ');
+    final zone = zoneId?.trim();
+
+    if (platforms.isNotEmpty && zone != null && zone.isNotEmpty) {
+      return strings.stops.platformsWithZone(platforms: platforms, zone: zone);
     }
 
-    final latitude = this.latitude;
-    final longitude = this.longitude;
-    if (latitude != null && longitude != null) {
-      return strings.stops.coordinatesWithId(
-        id: id,
-        latitude: latitude.toStringAsFixed(5),
-        longitude: longitude.toStringAsFixed(5),
-      );
+    if (platforms.isNotEmpty) {
+      return strings.stops.platforms(platforms: platforms);
     }
 
-    return strings.stops.stopId(id: id);
+    if (zone != null && zone.isNotEmpty) {
+      return strings.stops.stopPointsWithZone(count: stopCount, zone: zone);
+    }
+
+    return strings.stops.stopPoints(count: stopCount);
   }
 }

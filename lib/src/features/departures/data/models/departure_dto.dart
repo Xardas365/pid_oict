@@ -9,6 +9,7 @@ class DepartureDto {
     required this.departureTime,
     this.delaySeconds,
     this.platform,
+    this.stopId,
     this.gtfsTripId,
   });
 
@@ -17,6 +18,7 @@ class DepartureDto {
   final DateTime departureTime;
   final int? delaySeconds;
   final String? platform;
+  final String? stopId;
   final String? gtfsTripId;
 
   static DepartureDto? fromJson(JsonMap json) {
@@ -34,6 +36,7 @@ class DepartureDto {
       departureTime: departureTime,
       delaySeconds: readInt(json, _delayPaths),
       platform: readString(json, _platformPaths),
+      stopId: readString(json, _stopIdPaths),
       gtfsTripId: readString(json, _gtfsTripIdPaths),
     );
   }
@@ -69,6 +72,7 @@ class DepartureDto {
       departureTime: departureTime,
       delaySeconds: delaySeconds,
       platform: platform,
+      stopId: stopId,
       gtfsTripId: gtfsTripId,
     );
   }
@@ -103,28 +107,28 @@ const _headsignPaths = [
 const _departureTimePaths = [
   ['departure_time'],
   ['departureTime'],
-  ['scheduled_departure'],
-  ['scheduledDeparture'],
   ['predicted_departure'],
   ['predictedDeparture'],
+  ['scheduled_departure'],
+  ['scheduledDeparture'],
   ['departure_timestamp'],
   ['properties', 'departure_time'],
   ['properties', 'departureTime'],
-  ['properties', 'scheduled_departure'],
-  ['properties', 'scheduledDeparture'],
   ['properties', 'predicted_departure'],
   ['properties', 'predictedDeparture'],
+  ['properties', 'scheduled_departure'],
+  ['properties', 'scheduledDeparture'],
   ['properties', 'departure_timestamp'],
   ['departure', 'time'],
-  ['departure', 'scheduled'],
   ['departure', 'predicted'],
-  ['departure', 'timestamp_scheduled'],
   ['departure', 'timestamp_predicted'],
+  ['departure', 'scheduled'],
+  ['departure', 'timestamp_scheduled'],
   ['properties', 'departure', 'time'],
-  ['properties', 'departure', 'scheduled'],
   ['properties', 'departure', 'predicted'],
-  ['properties', 'departure', 'timestamp_scheduled'],
   ['properties', 'departure', 'timestamp_predicted'],
+  ['properties', 'departure', 'scheduled'],
+  ['properties', 'departure', 'timestamp_scheduled'],
 ];
 
 const _delayPaths = [
@@ -145,8 +149,21 @@ const _delayPaths = [
 const _platformPaths = [
   ['platform'],
   ['platform_code'],
+  ['stop', 'platform_code'],
   ['properties', 'platform'],
   ['properties', 'platform_code'],
+  ['properties', 'stop', 'platform_code'],
+];
+
+const _stopIdPaths = [
+  ['stop_id'],
+  ['stopId'],
+  ['stop', 'id'],
+  ['stop', 'stop_id'],
+  ['properties', 'stop_id'],
+  ['properties', 'stopId'],
+  ['properties', 'stop', 'id'],
+  ['properties', 'stop', 'stop_id'],
 ];
 
 const _gtfsTripIdPaths = [

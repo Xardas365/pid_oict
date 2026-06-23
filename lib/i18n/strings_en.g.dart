@@ -120,6 +120,10 @@ class _Translations$stops$en extends Translations$stops$cs {
 	@override String stopSemantic({required Object name}) => 'Stop ${name}';
 	@override String stopId({required Object id}) => 'ID ${id}';
 	@override String platformWithId({required Object platform, required Object id}) => 'Platform ${platform} • ID ${id}';
+	@override String platformsWithZone({required Object platforms, required Object zone}) => 'Platforms ${platforms} • zone ${zone}';
+	@override String platforms({required Object platforms}) => 'Platforms ${platforms}';
+	@override String stopPointsWithZone({required Object count, required Object zone}) => '${count} stop points • zone ${zone}';
+	@override String stopPoints({required Object count}) => '${count} stop points';
 	@override String coordinatesWithId({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}';
 	@override String legacyPlatformWithId({required Object platform, required Object id}) => 'Platform ${platform} - ID ${id}';
 }
@@ -136,6 +140,8 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String get loadFailed => 'Could not load departures. Please try again.';
 	@override String get invalidData => 'The Golemio API did not return any usable departures.';
 	@override String get empty => 'No departures are available for this stop.';
+	@override String get refreshing => 'Refreshing departures...';
+	@override String get staleWarning => 'Could not refresh departures. Showing the last available data.';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
 	@override String get showVehicleTooltip => 'Show vehicle position';
@@ -205,6 +211,10 @@ extension on TranslationsEn {
 			'stops.stopSemantic' => ({required Object name}) => 'Stop ${name}',
 			'stops.stopId' => ({required Object id}) => 'ID ${id}',
 			'stops.platformWithId' => ({required Object platform, required Object id}) => 'Platform ${platform} • ID ${id}',
+			'stops.platformsWithZone' => ({required Object platforms, required Object zone}) => 'Platforms ${platforms} • zone ${zone}',
+			'stops.platforms' => ({required Object platforms}) => 'Platforms ${platforms}',
+			'stops.stopPointsWithZone' => ({required Object count, required Object zone}) => '${count} stop points • zone ${zone}',
+			'stops.stopPoints' => ({required Object count}) => '${count} stop points',
 			'stops.coordinatesWithId' => ({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}',
 			'stops.legacyPlatformWithId' => ({required Object platform, required Object id}) => 'Platform ${platform} - ID ${id}',
 			'departures.emptyTabMessage' => 'Select a stop from the list first.',
@@ -212,6 +222,8 @@ extension on TranslationsEn {
 			'departures.loadFailed' => 'Could not load departures. Please try again.',
 			'departures.invalidData' => 'The Golemio API did not return any usable departures.',
 			'departures.empty' => 'No departures are available for this stop.',
+			'departures.refreshing' => 'Refreshing departures...',
+			'departures.staleWarning' => 'Could not refresh departures. Showing the last available data.',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',
 			'departures.showVehicleTooltip' => 'Show vehicle position',

@@ -36,6 +36,10 @@
     "stopSemantic": "Stop $name",
     "stopId": "ID $id",
     "platformWithId": "Platform $platform • ID $id",
+    "platformsWithZone": "Platforms $platforms • zone $zone",
+    "platforms": "Platforms $platforms",
+    "stopPointsWithZone": "$count stop points • zone $zone",
+    "stopPoints": "$count stop points",
     "coordinatesWithId": "ID $id • $latitude, $longitude",
     "legacyPlatformWithId": "Platform $platform - ID $id"
   },
@@ -45,6 +49,8 @@
     "loadFailed": "Could not load departures. Please try again.",
     "invalidData": "The Golemio API did not return any usable departures.",
     "empty": "No departures are available for this stop.",
+    "refreshing": "Refreshing departures...",
+    "staleWarning": "Could not refresh departures. Showing the last available data.",
     "departureTime": "Departure $time",
     "platform": "Platform $platform",
     "showVehicleTooltip": "Show vehicle position"

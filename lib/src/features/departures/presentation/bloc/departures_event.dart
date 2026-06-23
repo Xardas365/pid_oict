@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../../stops/domain/stop.dart';
+import '../../../stops/domain/stop_group.dart';
 
 sealed class DeparturesEvent {
   const DeparturesEvent();
@@ -9,7 +9,7 @@ sealed class DeparturesEvent {
 class DeparturesStarted extends DeparturesEvent {
   const DeparturesStarted(this.stop);
 
-  final Stop stop;
+  final StopGroup stop;
 }
 
 class DeparturesRetried extends DeparturesEvent {

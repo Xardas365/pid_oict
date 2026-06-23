@@ -36,6 +36,10 @@
     "stopSemantic": "Zastávka $name",
     "stopId": "ID $id",
     "platformWithId": "Nástupiště $platform • ID $id",
+    "platformsWithZone": "Nástupiště $platforms • zóna $zone",
+    "platforms": "Nástupiště $platforms",
+    "stopPointsWithZone": "$count označníky • zóna $zone",
+    "stopPoints": "$count označníky",
     "coordinatesWithId": "ID $id • $latitude, $longitude",
     "legacyPlatformWithId": "Nástupiště $platform - ID $id"
   },
@@ -45,6 +49,8 @@
     "loadFailed": "Odjezdy se nepodařilo načíst. Zkuste to prosím znovu.",
     "invalidData": "Golemio API nevrátilo žádné použitelné odjezdy.",
     "empty": "Pro tuto zastávku nejsou dostupné žádné odjezdy.",
+    "refreshing": "Aktualizuji odjezdy...",
+    "staleWarning": "Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.",
     "departureTime": "Odjezd $time",
     "platform": "Nástupiště $platform",
     "showVehicleTooltip": "Zobrazit polohu vozidla"

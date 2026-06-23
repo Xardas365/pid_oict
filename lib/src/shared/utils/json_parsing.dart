@@ -30,7 +30,7 @@ JsonMap? asJsonMap(Object? value) {
 
 List<JsonMap> readJsonRecords(Object? value) {
   if (value is List) {
-    return value.map(asJsonMap).whereType<JsonMap>().toList();
+    return _readJsonRecordsFromList(value);
   }
 
   final json = asJsonMap(value);
@@ -50,7 +50,7 @@ List<JsonMap> readJsonRecords(Object? value) {
     final nestedValue = readJsonValue(json, [path]);
 
     if (nestedValue is List) {
-      return nestedValue.map(asJsonMap).whereType<JsonMap>().toList();
+      return _readJsonRecordsFromList(nestedValue);
     }
 
     final nestedJson = asJsonMap(nestedValue);
@@ -60,6 +60,24 @@ List<JsonMap> readJsonRecords(Object? value) {
   }
 
   return [json];
+}
+
+List<JsonMap> _readJsonRecordsFromList(List<Object?> values) {
+  final records = <JsonMap>[];
+
+  for (final value in values) {
+    final json = asJsonMap(value);
+    if (json != null) {
+      records.add(json);
+      continue;
+    }
+
+    if (value is List) {
+      records.addAll(_readJsonRecordsFromList(value));
+    }
+  }
+
+  return records;
 }
 
 Object? readJsonValue(JsonMap json, List<List<String>> paths) {

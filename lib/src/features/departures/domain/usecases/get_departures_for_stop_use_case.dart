@@ -1,4 +1,4 @@
-import '../../../stops/domain/stop.dart';
+import '../../../stops/domain/stop_group.dart';
 import '../departure.dart';
 import '../repositories/departures_repository.dart';
 
@@ -7,7 +7,7 @@ class GetDeparturesForStopUseCase {
 
   final DeparturesRepository _repository;
 
-  Future<List<Departure>> call(Stop stop) {
+  Future<List<Departure>> call(StopGroup stop) {
     return _repository.fetchDeparturesForStop(stop);
   }
 }

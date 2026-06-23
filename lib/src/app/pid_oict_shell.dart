@@ -11,6 +11,7 @@ import '../features/departures/presentation/bloc/departures_event.dart';
 import '../features/departures/presentation/departures_screen.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/stop.dart';
+import '../features/stops/domain/stop_group.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/stops/presentation/cubit/stops_cubit.dart';
 import '../features/stops/presentation/stops_screen.dart';
@@ -28,6 +29,7 @@ class PidOictShell extends StatefulWidget {
     this.loadStops,
     this.loadDepartures,
     this.loadVehiclePosition,
+    this.departureRefreshInterval = departureBoardRefreshInterval,
     this.vehicleMapRefreshInterval = const Duration(seconds: 15),
     this.showMapTiles = true,
   });
@@ -36,6 +38,7 @@ class PidOictShell extends StatefulWidget {
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
   final Future<VehiclePosition> Function(String gtfsTripId)?
   loadVehiclePosition;
+  final Duration departureRefreshInterval;
   final Duration vehicleMapRefreshInterval;
   final bool showMapTiles;
 
@@ -45,10 +48,10 @@ class PidOictShell extends StatefulWidget {
 
 class _PidOictShellState extends State<PidOictShell> {
   var _selectedTab = PidNavigationTab.stops;
-  Stop? _selectedStop;
+  StopGroup? _selectedStop;
   String? _selectedGtfsTripId;
 
-  void _selectStop(Stop stop) {
+  void _selectStop(StopGroup stop) {
     setState(() {
       _selectedStop = stop;
       _selectedTab = PidNavigationTab.departures;
@@ -74,7 +77,9 @@ class _PidOictShellState extends State<PidOictShell> {
           _DeparturesTab(
             selectedStop: _selectedStop,
             loadDepartures: widget.loadDepartures,
+            refreshInterval: widget.departureRefreshInterval,
             onTripSelected: _selectTrip,
+            isActive: _selectedTab == PidNavigationTab.departures,
           ),
           _MapTab(
             selectedGtfsTripId: _selectedGtfsTripId,
@@ -106,7 +111,7 @@ class _StopsTab extends StatelessWidget {
   const _StopsTab({required this.loadStops, required this.onStopSelected});
 
   final Future<List<Stop>> Function()? loadStops;
-  final ValueChanged<Stop> onStopSelected;
+  final ValueChanged<StopGroup> onStopSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -130,15 +135,23 @@ class _DeparturesTab extends StatelessWidget {
   const _DeparturesTab({
     required this.selectedStop,
     required this.loadDepartures,
+    required this.refreshInterval,
     required this.onTripSelected,
+    required this.isActive,
   });
 
-  final Stop? selectedStop;
+  final StopGroup? selectedStop;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
+  final Duration refreshInterval;
   final ValueChanged<String> onTripSelected;
+  final bool isActive;
 
   @override
   Widget build(BuildContext context) {
+    if (!isActive) {
+      return const SizedBox.shrink();
+    }
+
     final stop = selectedStop;
     if (stop == null) {
       final strings = context.t;
@@ -152,9 +165,10 @@ class _DeparturesTab extends StatelessWidget {
 
     return BlocProvider(
       key: ValueKey(stop.id),
-      create: (context) =>
-          DeparturesBloc(_getDeparturesUseCase(context))
-            ..add(DeparturesStarted(stop)),
+      create: (context) => DeparturesBloc(
+        _getDeparturesUseCase(context),
+        refreshInterval: refreshInterval,
+      )..add(DeparturesStarted(stop)),
       child: DeparturesScreen(stop: stop, onTripSelected: onTripSelected),
     );
   }
@@ -188,8 +202,8 @@ class _CallbackDeparturesRepository implements DeparturesRepository {
   final Future<List<Departure>> Function(Stop stop) _loadDepartures;
 
   @override
-  Future<List<Departure>> fetchDeparturesForStop(Stop stop) {
-    return _loadDepartures(stop);
+  Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) {
+    return _loadDepartures(stop.representativeStop);
   }
 }
 

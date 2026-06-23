@@ -1,4 +1,4 @@
-import '../../../stops/domain/stop.dart';
+import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 
 enum DeparturesStatus { loading, loaded, empty, error }
@@ -13,11 +13,11 @@ class DeparturesState {
     this.isRefreshing = false,
   });
 
-  const DeparturesState.loading({Stop? stop})
+  const DeparturesState.loading({StopGroup? stop})
     : this(status: DeparturesStatus.loading, stop: stop);
 
   final DeparturesStatus status;
-  final Stop? stop;
+  final StopGroup? stop;
   final List<Departure> departures;
   final Object? error;
   final Object? refreshError;
@@ -27,7 +27,7 @@ class DeparturesState {
 
   DeparturesState copyWith({
     DeparturesStatus? status,
-    Stop? stop,
+    StopGroup? stop,
     List<Departure>? departures,
     Object? error,
     Object? refreshError,

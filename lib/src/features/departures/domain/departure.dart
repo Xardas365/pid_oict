@@ -5,6 +5,7 @@ class Departure {
     required this.departureTime,
     this.delaySeconds,
     this.platform,
+    this.stopId,
     this.gtfsTripId,
   });
 
@@ -13,5 +14,6 @@ class Departure {
   final DateTime departureTime;
   final int? delaySeconds;
   final String? platform;
+  final String? stopId;
   final String? gtfsTripId;
 }
