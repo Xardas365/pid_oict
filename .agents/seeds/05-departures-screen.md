@@ -29,8 +29,8 @@ Requirements:
    - platform if available.
 5. Show loading, error, empty, and success states.
 6. Add `RefreshIndicator` for pull-to-refresh.
-7. If a departure has a reliable `vehicleId`, show an action to open `VehicleMapScreen`.
-8. If a departure has no reliable `vehicleId`, hide the map action or disable it with a clear explanation.
+7. If a departure has a reliable `gtfsTripId`, show an action to open `VehicleMapScreen`.
+8. If a departure has no reliable `gtfsTripId`, hide the map action or disable it with a clear explanation.
 9. Do not add periodic map refresh in this step.
 
 Run:

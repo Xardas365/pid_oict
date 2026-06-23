@@ -9,17 +9,22 @@ class VehiclePositionRepository {
 
   final GolemioApiClient _apiClient;
 
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
-    final trimmedVehicleId = vehicleId.trim();
-    if (trimmedVehicleId.isEmpty) {
+  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) async {
+    final trimmedGtfsTripId = gtfsTripId.trim();
+    if (trimmedGtfsTripId.isEmpty) {
       throw const AppException(
         type: AppExceptionType.invalidData,
-        message: 'Vehicle ID is required to load vehicle position.',
+        message: 'GTFS trip ID is required to load vehicle position.',
       );
     }
 
     final response = await _apiClient.getJson(
-      '/v2/public/vehiclepositions/${Uri.encodeComponent(trimmedVehicleId)}',
+      '/v2/vehiclepositions/${Uri.encodeComponent(trimmedGtfsTripId)}',
+      queryParameters: const {
+        'includeNotTracking': 'true',
+        'includePositions': 'true',
+        'preferredTimezone': 'Europe_Prague',
+      },
     );
     VehiclePosition? position;
     for (final record in readJsonRecords(response)) {

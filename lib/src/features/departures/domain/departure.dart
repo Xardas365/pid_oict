@@ -5,7 +5,7 @@ class Departure {
     required this.departureTime,
     this.delaySeconds,
     this.platform,
-    this.vehicleId,
+    this.gtfsTripId,
   });
 
   final String routeShortName;
@@ -13,5 +13,5 @@ class Departure {
   final DateTime departureTime;
   final int? delaySeconds;
   final String? platform;
-  final String? vehicleId;
+  final String? gtfsTripId;
 }

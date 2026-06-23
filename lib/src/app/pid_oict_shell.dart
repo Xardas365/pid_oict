@@ -22,7 +22,8 @@ class PidOictShell extends StatefulWidget {
 
   final Future<List<Stop>> Function()? loadStops;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
-  final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
+  final Future<VehiclePosition> Function(String gtfsTripId)?
+  loadVehiclePosition;
   final Duration vehicleMapRefreshInterval;
   final bool showMapTiles;
 
@@ -33,7 +34,7 @@ class PidOictShell extends StatefulWidget {
 class _PidOictShellState extends State<PidOictShell> {
   var _selectedTab = PidNavigationTab.stops;
   Stop? _selectedStop;
-  String? _selectedVehicleId;
+  String? _selectedGtfsTripId;
 
   void _selectStop(Stop stop) {
     setState(() {
@@ -42,9 +43,9 @@ class _PidOictShellState extends State<PidOictShell> {
     });
   }
 
-  void _selectVehicle(String vehicleId) {
+  void _selectTrip(String gtfsTripId) {
     setState(() {
-      _selectedVehicleId = vehicleId;
+      _selectedGtfsTripId = gtfsTripId;
       _selectedTab = PidNavigationTab.map;
     });
   }
@@ -61,10 +62,10 @@ class _PidOictShellState extends State<PidOictShell> {
           _DeparturesTab(
             selectedStop: _selectedStop,
             loadDepartures: widget.loadDepartures,
-            onVehicleSelected: _selectVehicle,
+            onTripSelected: _selectTrip,
           ),
           _MapTab(
-            selectedVehicleId: _selectedVehicleId,
+            selectedGtfsTripId: _selectedGtfsTripId,
             loadVehiclePosition: widget.loadVehiclePosition,
             refreshInterval: widget.vehicleMapRefreshInterval,
             showMapTiles: widget.showMapTiles,
@@ -93,12 +94,12 @@ class _DeparturesTab extends StatelessWidget {
   const _DeparturesTab({
     required this.selectedStop,
     required this.loadDepartures,
-    required this.onVehicleSelected,
+    required this.onTripSelected,
   });
 
   final Stop? selectedStop;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
-  final ValueChanged<String> onVehicleSelected;
+  final ValueChanged<String> onTripSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -117,30 +118,31 @@ class _DeparturesTab extends StatelessWidget {
       key: ValueKey(stop.id),
       stop: stop,
       loadDepartures: loadDepartures,
-      onVehicleSelected: onVehicleSelected,
+      onTripSelected: onTripSelected,
     );
   }
 }
 
 class _MapTab extends StatelessWidget {
   const _MapTab({
-    required this.selectedVehicleId,
+    required this.selectedGtfsTripId,
     required this.loadVehiclePosition,
     required this.refreshInterval,
     required this.showMapTiles,
     required this.isActive,
   });
 
-  final String? selectedVehicleId;
-  final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
+  final String? selectedGtfsTripId;
+  final Future<VehiclePosition> Function(String gtfsTripId)?
+  loadVehiclePosition;
   final Duration refreshInterval;
   final bool showMapTiles;
   final bool isActive;
 
   @override
   Widget build(BuildContext context) {
-    final vehicleId = selectedVehicleId;
-    if (vehicleId == null) {
+    final gtfsTripId = selectedGtfsTripId;
+    if (gtfsTripId == null) {
       final strings = context.t;
 
       return _ShellEmptyTab(
@@ -155,8 +157,8 @@ class _MapTab extends StatelessWidget {
     }
 
     return VehicleMapScreen(
-      key: ValueKey(vehicleId),
-      vehicleId: vehicleId,
+      key: ValueKey(gtfsTripId),
+      gtfsTripId: gtfsTripId,
       loadVehiclePosition: loadVehiclePosition,
       refreshInterval: refreshInterval,
       showMapTiles: showMapTiles,

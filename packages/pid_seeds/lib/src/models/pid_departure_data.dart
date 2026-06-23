@@ -10,7 +10,7 @@ class PidDepartureData {
     required this.destination,
     required this.remainingTimeText,
     this.platformText,
-    this.vehicleId,
+    this.gtfsTripId,
     this.delayText,
     this.transportType = PidTransportType.unknown,
   });
@@ -20,7 +20,7 @@ class PidDepartureData {
   final String destination;
   final String remainingTimeText;
   final String? platformText;
-  final String? vehicleId;
+  final String? gtfsTripId;
   final String? delayText;
   final PidTransportType transportType;
 
@@ -32,7 +32,7 @@ class PidDepartureData {
     String? destination,
     String? remainingTimeText,
     String? platformText,
-    String? vehicleId,
+    String? gtfsTripId,
     String? delayText,
     PidTransportType? transportType,
   }) {
@@ -42,7 +42,7 @@ class PidDepartureData {
       destination: destination ?? this.destination,
       remainingTimeText: remainingTimeText ?? this.remainingTimeText,
       platformText: platformText ?? this.platformText,
-      vehicleId: vehicleId ?? this.vehicleId,
+      gtfsTripId: gtfsTripId ?? this.gtfsTripId,
       delayText: delayText ?? this.delayText,
       transportType: transportType ?? this.transportType,
     );

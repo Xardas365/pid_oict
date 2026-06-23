@@ -25,7 +25,7 @@ void main() {
                 departureTime: DateTime(2026, 6, 22, 10, 15),
                 delaySeconds: 120,
                 platform: '3',
-                vehicleId: 'vehicle-123',
+                gtfsTripId: 'trip-22-123',
               ),
               Departure(
                 routeShortName: 'A',
@@ -49,17 +49,24 @@ void main() {
       expect(find.byTooltip('Zobrazit polohu vozidla'), findsOneWidget);
     });
 
-    testWidgets('opens vehicle map screen', (WidgetTester tester) async {
+    testWidgets('opens vehicle map screen with gtfsTripId', (
+      WidgetTester tester,
+    ) async {
+      String? selectedTripId;
+
       await tester.pumpWidget(
         localizedTestApp(
           home: DeparturesScreen(
             stop: stop,
+            onTripSelected: (gtfsTripId) {
+              selectedTripId = gtfsTripId;
+            },
             loadDepartures: (_) async => [
               Departure(
                 routeShortName: '22',
                 headsign: 'Nadrazi Hostivar',
                 departureTime: DateTime(2026, 6, 22, 10, 15),
-                vehicleId: 'vehicle-123',
+                gtfsTripId: 'trip-22-123',
               ),
             ],
           ),
@@ -70,16 +77,31 @@ void main() {
       await tester.tap(find.byTooltip('Zobrazit polohu vozidla'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Poloha vozidla'), findsOneWidget);
-      expect(
-        find.text(
-          'Chybí Golemio API token. Spusťte aplikaci s '
-          '--dart-define=GOLEMIO_API_TOKEN=vas_token.',
+      expect(selectedTripId, 'trip-22-123');
+    });
+
+    testWidgets('hides vehicle map action when gtfsTripId is missing', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: DeparturesScreen(
+            stop: stop,
+            loadDepartures: (_) async => [
+              Departure(
+                routeShortName: 'A',
+                headsign: 'Nemocnice Motol',
+                departureTime: DateTime(2026, 6, 22, 10, 15),
+              ),
+            ],
+          ),
         ),
-        findsOneWidget,
       );
 
-      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nemocnice Motol'), findsOneWidget);
+      expect(find.byTooltip('Zobrazit polohu vozidla'), findsNothing);
     });
 
     testWidgets('shows error and retries loading departures', (

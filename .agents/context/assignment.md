@@ -30,12 +30,13 @@ The app must include three main screens.
 * Use the selected stop to filter the departure board. Verify the exact query parameter in the current Golemio documentation before implementation.
 * Display basic departure data, such as route/line, destination/headsign, scheduled or predicted departure time, platform when available, and delay when available.
 * Add pull-to-refresh.
-* For departures with a usable vehicle ID, show an action that opens the vehicle map screen.
-* For departures without a usable vehicle ID, hide the map action or show a disabled action with a clear explanation.
+* For departures with a usable GTFS trip ID, show an action that opens the vehicle map screen.
+* For departures without a usable GTFS trip ID, hide the map action or show a disabled action with a clear explanation.
 
 ### 3. Vehicle map screen
 
-* Load vehicle position from `GET https://api.golemio.cz/v2/public/vehiclepositions/{vehicleId}`.
+* Load vehicle position from `GET https://api.golemio.cz/v2/vehiclepositions/{gtfsTripId}`.
+* Include query parameters `includeNotTracking=true`, `includePositions=true`, and `preferredTimezone=Europe_Prague`.
 * Display a map with a marker for the current vehicle position.
 * Refresh the vehicle position periodically.
 * Cancel timers/subscriptions when leaving the screen.
@@ -77,6 +78,6 @@ Suggested routes if using a router:
 
 * `/` or `/stops`
 * `/stops/:stopId/departures`
-* `/vehicles/:vehicleId/map`
+* `/trips/:gtfsTripId/map`
 
 Do not introduce complex nested navigation.

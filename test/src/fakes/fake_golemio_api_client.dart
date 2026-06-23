@@ -1,8 +1,11 @@
 import 'package:pid_oict/src/core/config/app_config.dart';
 import 'package:pid_oict/src/core/network/golemio_api_client.dart';
 
-class ApiClientCall {
-  const ApiClientCall({required this.path, required this.queryParameters});
+class GolemioApiClientCall {
+  const GolemioApiClientCall({
+    required this.path,
+    required this.queryParameters,
+  });
 
   final String path;
   final Map<String, String?> queryParameters;
@@ -13,7 +16,7 @@ class FakeGolemioApiClient implements GolemioApiClient {
 
   final Object? response;
   final Object? error;
-  final calls = <ApiClientCall>[];
+  final calls = <GolemioApiClientCall>[];
 
   @override
   AppConfig get config => const AppConfig(apiToken: 'test-token');
@@ -27,7 +30,7 @@ class FakeGolemioApiClient implements GolemioApiClient {
     Map<String, String?> queryParameters = const {},
   }) async {
     calls.add(
-      ApiClientCall(
+      GolemioApiClientCall(
         path: path,
         queryParameters: Map<String, String?>.from(queryParameters),
       ),

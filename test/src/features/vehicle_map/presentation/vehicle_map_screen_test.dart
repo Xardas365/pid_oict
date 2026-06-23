@@ -14,7 +14,7 @@ void main() {
       await tester.pumpWidget(
         localizedTestApp(
           home: VehicleMapScreen(
-            vehicleId: 'vehicle-123',
+            gtfsTripId: 'trip-22-123',
             refreshInterval: Duration.zero,
             showMapTiles: false,
             loadVehiclePosition: (_) async => VehiclePosition(
@@ -47,7 +47,7 @@ void main() {
       await tester.pumpWidget(
         localizedTestApp(
           home: VehicleMapScreen(
-            vehicleId: 'vehicle-123',
+            gtfsTripId: 'trip-22-123',
             refreshInterval: Duration.zero,
             showMapTiles: false,
             loadVehiclePosition: (_) async => throw const AppException(
@@ -74,7 +74,7 @@ void main() {
       await tester.pumpWidget(
         localizedTestApp(
           home: VehicleMapScreen(
-            vehicleId: 'vehicle-123',
+            gtfsTripId: 'trip-22-123',
             refreshInterval: Duration.zero,
             showMapTiles: false,
             loadVehiclePosition: (_) async {
@@ -121,7 +121,7 @@ void main() {
       await tester.pumpWidget(
         localizedTestApp(
           home: VehicleMapScreen(
-            vehicleId: 'vehicle-123',
+            gtfsTripId: 'trip-22-123',
             refreshInterval: const Duration(seconds: 1),
             showMapTiles: false,
             loadVehiclePosition: (_) async {

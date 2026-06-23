@@ -8,7 +8,7 @@ class DepartureDto {
     required this.departureTime,
     this.delaySeconds,
     this.platform,
-    this.vehicleId,
+    this.gtfsTripId,
   });
 
   final String routeShortName;
@@ -16,7 +16,7 @@ class DepartureDto {
   final DateTime departureTime;
   final int? delaySeconds;
   final String? platform;
-  final String? vehicleId;
+  final String? gtfsTripId;
 
   static DepartureDto? fromJson(JsonMap json) {
     final routeShortName = readString(json, [
@@ -98,13 +98,23 @@ class DepartureDto {
         ['properties', 'platform'],
         ['properties', 'platform_code'],
       ]),
-      vehicleId: readString(json, [
-        ['vehicle_id'],
-        ['vehicleId'],
-        ['properties', 'vehicle_id'],
-        ['properties', 'vehicleId'],
-        ['vehicle', 'id'],
-        ['properties', 'vehicle', 'id'],
+      gtfsTripId: readString(json, [
+        ['departure', 'trip', 'id'],
+        ['departure', 'trip', 'gtfs_trip_id'],
+        ['departure', 'trip', 'gtfsTripId'],
+        ['trip', 'id'],
+        ['trip', 'gtfs_trip_id'],
+        ['trip', 'gtfsTripId'],
+        ['gtfs_trip_id'],
+        ['gtfsTripId'],
+        ['properties', 'departure', 'trip', 'id'],
+        ['properties', 'departure', 'trip', 'gtfs_trip_id'],
+        ['properties', 'departure', 'trip', 'gtfsTripId'],
+        ['properties', 'trip', 'id'],
+        ['properties', 'trip', 'gtfs_trip_id'],
+        ['properties', 'trip', 'gtfsTripId'],
+        ['properties', 'gtfs_trip_id'],
+        ['properties', 'gtfsTripId'],
       ]),
     );
   }
@@ -116,7 +126,7 @@ class DepartureDto {
       departureTime: departureTime,
       delaySeconds: delaySeconds,
       platform: platform,
-      vehicleId: vehicleId,
+      gtfsTripId: gtfsTripId,
     );
   }
 }

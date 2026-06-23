@@ -17,15 +17,16 @@ import '../domain/vehicle_position.dart';
 
 class VehicleMapScreen extends StatefulWidget {
   const VehicleMapScreen({
-    required this.vehicleId,
+    required this.gtfsTripId,
     super.key,
     this.loadVehiclePosition,
     this.refreshInterval = const Duration(seconds: 15),
     this.showMapTiles = true,
   });
 
-  final String vehicleId;
-  final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
+  final String gtfsTripId;
+  final Future<VehiclePosition> Function(String gtfsTripId)?
+  loadVehiclePosition;
   final Duration refreshInterval;
   final bool showMapTiles;
 
@@ -112,14 +113,14 @@ class _VehicleMapScreenState extends State<VehicleMapScreen> {
   Future<VehiclePosition> _defaultLoadVehiclePosition() {
     final loadVehiclePosition = widget.loadVehiclePosition;
     if (loadVehiclePosition != null) {
-      return loadVehiclePosition(widget.vehicleId);
+      return loadVehiclePosition(widget.gtfsTripId);
     }
 
     final apiClient = GolemioApiClient();
     final repository = VehiclePositionRepository(apiClient);
 
     return repository
-        .fetchVehiclePosition(widget.vehicleId)
+        .fetchVehiclePosition(widget.gtfsTripId)
         .whenComplete(apiClient.close);
   }
 

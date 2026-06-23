@@ -101,7 +101,7 @@ Použitie pre odjazdy zo zvolenej zastávky. Podporuje:
 - stav aktualizácie,
 - filtre smerov alebo nástupíšť,
 - zoznam odjazdov,
-- callback `onShowVehicle`, ktorý otvorí mapu pre konkrétne `vehicleId`.
+- callback `onShowVehicle`, ktorý otvorí mapu pre konkrétne `gtfsTripId`.
 
 ### `PidVehicleMapTemplate`
 

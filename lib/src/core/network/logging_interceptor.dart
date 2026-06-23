@@ -21,8 +21,9 @@ class DebugLoggingInterceptor extends Interceptor {
     Response<dynamic> response,
     ResponseInterceptorHandler handler,
   ) {
+    final bodySize = _responseBodySize(response.data);
     _logger(
-      'HTTP ${response.statusCode ?? '-'} ${_durationLabel(response.requestOptions)}',
+      'HTTP ${response.statusCode ?? '-'} ${_durationLabel(response.requestOptions)} bytes=$bodySize',
     );
     handler.next(response);
   }
@@ -43,7 +44,23 @@ String _safeUrl(RequestOptions options) {
     host: uri.host,
     port: uri.hasPort ? uri.port : null,
     path: uri.path,
+    queryParameters: _safeQueryParameters(uri.queryParameters),
   ).toString();
+}
+
+Map<String, String>? _safeQueryParameters(Map<String, String> parameters) {
+  final safeParameters = <String, String>{};
+
+  for (final entry in parameters.entries) {
+    final key = entry.key.toLowerCase();
+    if (key.contains('token') || key.contains('access')) {
+      safeParameters[entry.key] = '<redacted>';
+    } else {
+      safeParameters[entry.key] = entry.value;
+    }
+  }
+
+  return safeParameters.isEmpty ? null : safeParameters;
 }
 
 String _durationLabel(RequestOptions options) {
@@ -54,6 +71,22 @@ String _durationLabel(RequestOptions options) {
 
   stopwatch.stop();
   return 'duration=${stopwatch.elapsedMilliseconds}ms';
+}
+
+int _responseBodySize(Object? data) {
+  if (data == null) {
+    return 0;
+  }
+
+  if (data is String) {
+    return data.length;
+  }
+
+  if (data is List<int>) {
+    return data.length;
+  }
+
+  return data.toString().length;
 }
 
 void _debugLogger(String message) {

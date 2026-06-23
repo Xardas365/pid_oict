@@ -24,7 +24,7 @@ class PidDepartureTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasVehicle =
-        departure.vehicleId != null && departure.vehicleId!.trim().isNotEmpty;
+        departure.gtfsTripId != null && departure.gtfsTripId!.trim().isNotEmpty;
 
     return Semantics(
       button: hasVehicle,

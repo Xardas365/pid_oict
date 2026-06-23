@@ -1,23 +1,33 @@
-import 'dart:async';
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import '../errors/app_exception.dart';
+import 'dio_provider.dart';
 
 class GolemioApiClient {
   GolemioApiClient({
     this.config = const AppConfig(),
-    http.Client? httpClient,
+    Dio? dio,
     this.timeout = const Duration(seconds: 20),
-  }) : _httpClient = httpClient ?? http.Client(),
-       _ownsHttpClient = httpClient == null;
+    bool enableLogging = kDebugMode,
+    void Function(String message)? logger,
+  }) : _dio =
+           dio ??
+           createGolemioDio(
+             baseUrl: config.baseUrl,
+             timeout: timeout,
+             enableLogging: enableLogging,
+             logger: logger,
+           ),
+       _ownsDio = dio == null;
 
   final AppConfig config;
   final Duration timeout;
-  final http.Client _httpClient;
-  final bool _ownsHttpClient;
+  final Dio _dio;
+  final bool _ownsDio;
 
   Future<Object?> getJson(
     String path, {
@@ -34,33 +44,24 @@ class GolemioApiClient {
       );
     }
 
-    final uri = _buildUri(path, queryParameters);
-
-    late http.Response response;
+    late Response<String> response;
     try {
-      response = await _httpClient
-          .get(
-            uri,
-            headers: {'accept': 'application/json', 'x-access-token': token},
-          )
-          .timeout(timeout);
-    } on TimeoutException catch (error) {
-      throw AppException(
-        type: AppExceptionType.timeout,
-        message: 'The Golemio API request timed out.',
-        cause: error,
+      response = await _dio.get<String>(
+        path,
+        queryParameters: _filterQueryParameters(queryParameters),
+        options: Options(
+          headers: {'accept': 'application/json', 'x-access-token': token},
+          responseType: ResponseType.plain,
+          validateStatus: (_) => true,
+        ),
       );
-    } on http.ClientException catch (error) {
-      throw AppException(
-        type: AppExceptionType.network,
-        message: 'The Golemio API request failed due to a network error.',
-        cause: error,
-      );
+    } on DioException catch (error) {
+      throw _exceptionForDioError(error);
     }
 
     _throwForStatus(response.statusCode);
 
-    final body = response.body.trim();
+    final body = response.data?.trim() ?? '';
     if (body.isEmpty) {
       throw AppException(
         type: AppExceptionType.emptyResponse,
@@ -82,69 +83,112 @@ class GolemioApiClient {
   }
 
   void close() {
-    if (_ownsHttpClient) {
-      _httpClient.close();
+    if (_ownsDio) {
+      _dio.close(force: true);
     }
   }
 
-  Uri _buildUri(String path, Map<String, String?> queryParameters) {
-    final baseUri = Uri.parse(config.baseUrl);
-    final uri = baseUri.resolve(path);
-    final filteredQueryParameters = <String, String>{
+  Map<String, String> _filterQueryParameters(
+    Map<String, String?> queryParameters,
+  ) {
+    return <String, String>{
       for (final entry in queryParameters.entries)
         if (entry.value != null) entry.key: entry.value!,
     };
-
-    if (filteredQueryParameters.isEmpty) {
-      return uri;
-    }
-
-    return uri.replace(
-      queryParameters: {...uri.queryParameters, ...filteredQueryParameters},
-    );
   }
 
-  void _throwForStatus(int statusCode) {
+  AppException _exceptionForDioError(DioException error) {
+    final statusCode = error.response?.statusCode;
+
+    if (statusCode != null) {
+      return _exceptionForStatus(statusCode, cause: error);
+    }
+
+    return switch (error.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.sendTimeout ||
+      DioExceptionType.receiveTimeout => AppException(
+        type: AppExceptionType.timeout,
+        message: 'The Golemio API request timed out.',
+        cause: error,
+      ),
+      DioExceptionType.connectionError ||
+      DioExceptionType.badCertificate ||
+      DioExceptionType.cancel ||
+      DioExceptionType.unknown => AppException(
+        type: AppExceptionType.network,
+        message: 'The Golemio API request failed due to a network error.',
+        cause: error,
+      ),
+      DioExceptionType.badResponse => _exceptionForStatus(
+        error.response?.statusCode,
+        cause: error,
+      ),
+    };
+  }
+
+  void _throwForStatus(int? statusCode) {
+    if (statusCode == null) {
+      throw _exceptionForStatus(null);
+    }
+
     if (statusCode >= 200 && statusCode < 300) {
       return;
     }
 
+    throw _exceptionForStatus(statusCode);
+  }
+
+  AppException _exceptionForStatus(int? statusCode, {Object? cause}) {
+    if (statusCode == null) {
+      return AppException(
+        type: AppExceptionType.unexpectedStatus,
+        message: 'The Golemio API returned an unexpected status.',
+        cause: cause,
+      );
+    }
+
     if (statusCode == 400) {
-      throw AppException(
+      return AppException(
         type: AppExceptionType.badRequest,
         message: 'The Golemio API rejected the request.',
         statusCode: statusCode,
+        cause: cause,
       );
     }
 
     if (statusCode == 401 || statusCode == 403) {
-      throw AppException(
+      return AppException(
         type: AppExceptionType.unauthorized,
         message: 'The Golemio API token is invalid or unauthorized.',
         statusCode: statusCode,
+        cause: cause,
       );
     }
 
     if (statusCode == 404) {
-      throw AppException(
+      return AppException(
         type: AppExceptionType.notFound,
         message: 'The requested Golemio API resource was not found.',
         statusCode: statusCode,
+        cause: cause,
       );
     }
 
     if (statusCode >= 500) {
-      throw AppException(
+      return AppException(
         type: AppExceptionType.server,
         message: 'The Golemio API is currently unavailable.',
         statusCode: statusCode,
+        cause: cause,
       );
     }
 
-    throw AppException(
+    return AppException(
       type: AppExceptionType.unexpectedStatus,
       message: 'The Golemio API returned an unexpected status.',
       statusCode: statusCode,
+      cause: cause,
     );
   }
 }

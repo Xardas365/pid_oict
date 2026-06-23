@@ -113,7 +113,7 @@ const _departures = [
     destination: 'Nádraží Hostivař',
     remainingTimeText: '3',
     platformText: 'st. A',
-    vehicleId: 'vehicle-26-1',
+    gtfsTripId: 'trip-26-1',
     transportType: PidTransportType.tram,
   ),
   PidDepartureData(
@@ -122,7 +122,7 @@ const _departures = [
     destination: 'Starý Hloubětín',
     remainingTimeText: '5',
     platformText: 'st. B',
-    vehicleId: 'vehicle-8-1',
+    gtfsTripId: 'trip-8-1',
     delayText: '+2',
     transportType: PidTransportType.tram,
   ),
@@ -132,7 +132,7 @@ const _departures = [
     destination: 'Bořislavka',
     remainingTimeText: '9',
     platformText: 'st. D',
-    vehicleId: 'vehicle-131-1',
+    gtfsTripId: 'trip-131-1',
     transportType: PidTransportType.bus,
   ),
 ];

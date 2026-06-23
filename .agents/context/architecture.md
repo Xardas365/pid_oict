@@ -28,8 +28,6 @@ Allowed or preferred dependencies:
 
 * `dio` for the target Golemio REST client, interceptors, timeout handling, and
   safe debug logging.
-* `http` may remain during the incremental migration if existing code still
-  uses it. Do not keep two active API clients long term.
 * `flutter_bloc` for state management.
 * `flutter_map` for map rendering without a Google Maps key.
 * `latlong2` for map coordinates when using `flutter_map`.

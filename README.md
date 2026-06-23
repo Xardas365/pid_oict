@@ -12,7 +12,7 @@ Tested with Flutter 3.44.1 and Dart 3.12.1.
 - Local stop search by stop name.
 - Departures for the selected stop.
 - Pull-to-refresh on the departures screen.
-- Vehicle map for departures that include a vehicle ID.
+- Vehicle map for departures that include a usable GTFS trip ID.
 - Periodic vehicle position refresh every 15 seconds.
 - Loading, error, and empty states on the main screens.
 - Offline unit and widget tests using local maps, fakes, and mocked HTTP.
@@ -142,9 +142,8 @@ The tests are offline. They do not call the real Golemio API and do not require
 
 ## Dependencies
 
-- `dio`: approved target HTTP client for the next API-layer migration and safe
-  request/response diagnostics.
-- `http`: REST HTTP requests to the Golemio API.
+- `dio`: REST HTTP requests to the Golemio API, timeout handling, and safe
+  debug request/response diagnostics.
 - `flutter_map`: OpenStreetMap-based map rendering without a Google Maps key.
 - `latlong2`: latitude/longitude value type used by `flutter_map`.
 - `pid_seeds`: local PID UI seed package used for theme and reusable UI
@@ -162,7 +161,7 @@ mapping migration.
 ## Architecture
 
 - `lib/src/core/config`: base URL and token configuration.
-- `lib/src/core/network`: Golemio API client, JSON decoding, HTTP status,
+- `lib/src/core/network`: Dio-based Golemio API client, JSON decoding, HTTP status,
   timeout, and network error handling.
 - `lib/src/core/errors`: shared application exception types.
 - `lib/src/features/stops`: stop DTO/domain model, repository, filtering, and
@@ -190,7 +189,8 @@ controlled `AppException` errors.
   be live-verified against the current Golemio documentation before final
   submission if documentation access is available.
 - The vehicle map action is available only for departures with a usable
-  `vehicleId`.
+  `gtfsTripId`. The selected trip is requested through
+  `/v2/vehiclepositions/{gtfsTripId}` with vehicle-position query options.
 - Map tiles require network access.
 - Vehicle polling preserves the last known position after a refresh failure,
   but it does not implement background updates or push updates.
@@ -207,7 +207,7 @@ controlled `AppException` errors.
 - Empty departures: the selected stop may have no current departures, the stop
   filter parameter may need live verification, or the API response may contain
   no usable records.
-- No vehicle map action: the departure did not include a usable vehicle ID.
+- No vehicle map action: the departure did not include a usable GTFS trip ID.
 - Vehicle position unavailable: the vehicle may not have a current public
   position, or the API returned no usable coordinates.
 - Map tiles do not load: verify network access to OpenStreetMap tile servers.

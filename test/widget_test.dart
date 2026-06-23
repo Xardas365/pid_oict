@@ -101,7 +101,7 @@ void main() {
     expect(find.text('Odjezd 10:15'), findsOneWidget);
   });
 
-  testWidgets('selecting a vehicle switches to map tab', (
+  testWidgets('selecting a departure trip switches to map tab', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -114,14 +114,18 @@ void main() {
             routeShortName: '22',
             headsign: 'Nadrazi Hostivar',
             departureTime: DateTime(2026, 6, 22, 10, 15),
-            vehicleId: 'vehicle-123',
+            gtfsTripId: 'trip-22-123',
           ),
         ],
-        loadVehiclePosition: (_) async => const VehiclePosition(
-          vehicleId: 'vehicle-123',
-          latitude: 50.0755,
-          longitude: 14.4378,
-        ),
+        loadVehiclePosition: (gtfsTripId) async {
+          expect(gtfsTripId, 'trip-22-123');
+
+          return const VehiclePosition(
+            vehicleId: 'vehicle-123',
+            latitude: 50.0755,
+            longitude: 14.4378,
+          );
+        },
       ),
     );
 

@@ -18,12 +18,12 @@ class DeparturesScreen extends StatefulWidget {
     required this.stop,
     super.key,
     this.loadDepartures,
-    this.onVehicleSelected,
+    this.onTripSelected,
   });
 
   final Stop stop;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
-  final ValueChanged<String>? onVehicleSelected;
+  final ValueChanged<String>? onTripSelected;
 
   @override
   State<DeparturesScreen> createState() => _DeparturesScreenState();
@@ -86,16 +86,16 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
         .whenComplete(apiClient.close);
   }
 
-  void _openVehicleMap(String vehicleId) {
-    final onVehicleSelected = widget.onVehicleSelected;
-    if (onVehicleSelected != null) {
-      onVehicleSelected(vehicleId);
+  void _openVehicleMap(String gtfsTripId) {
+    final onTripSelected = widget.onTripSelected;
+    if (onTripSelected != null) {
+      onTripSelected(gtfsTripId);
       return;
     }
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => VehicleMapScreen(vehicleId: vehicleId),
+        builder: (_) => VehicleMapScreen(gtfsTripId: gtfsTripId),
       ),
     );
   }
@@ -155,9 +155,9 @@ class _DeparturesScreenState extends State<DeparturesScreen> {
 
         return DepartureTile(
           departure: departure,
-          onOpenVehicleMap: departure.vehicleId == null
+          onOpenVehicleMap: departure.gtfsTripId == null
               ? null
-              : () => _openVehicleMap(departure.vehicleId!),
+              : () => _openVehicleMap(departure.gtfsTripId!),
         );
       },
     );

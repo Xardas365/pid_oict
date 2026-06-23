@@ -20,7 +20,7 @@ Requirements:
 
 1. Add a map dependency only if not already present. Prefer a map solution that does not require committing an extra API key.
 2. Create `VehicleMapScreen`.
-3. Accept `vehicleId`.
+3. Accept `gtfsTripId`.
 4. Load `VehiclePosition` through `VehiclePositionRepository`.
 5. Show a map with a marker at the vehicle position.
 6. Convert coordinates correctly: API/GeoJSON `[longitude, latitude]` to map `latitude, longitude`.

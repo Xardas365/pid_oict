@@ -29,20 +29,22 @@ void main() {
       );
       final repository = VehiclePositionRepository(apiClient);
 
-      final position = await repository.fetchVehiclePosition('tram-22-123');
+      final position = await repository.fetchVehiclePosition('trip-22-123');
 
       expect(apiClient.calls, hasLength(1));
-      expect(
-        apiClient.calls.single.path,
-        '/v2/public/vehiclepositions/tram-22-123',
-      );
+      expect(apiClient.calls.single.path, '/v2/vehiclepositions/trip-22-123');
+      expect(apiClient.calls.single.queryParameters, {
+        'includeNotTracking': 'true',
+        'includePositions': 'true',
+        'preferredTimezone': 'Europe_Prague',
+      });
       expect(position.vehicleId, 'tram-22-123');
       expect(position.latitude, 50.0755);
       expect(position.longitude, 14.4378);
       expect(position.bearing, 87.5);
     });
 
-    test('encodes vehicle ID as one path segment', () async {
+    test('encodes gtfsTripId as one path segment', () async {
       final apiClient = FakeGolemioApiClient(
         response: {
           'geometry': {
@@ -54,15 +56,15 @@ void main() {
       );
       final repository = VehiclePositionRepository(apiClient);
 
-      await repository.fetchVehiclePosition('vehicle/with slash');
+      await repository.fetchVehiclePosition('trip/with slash');
 
       expect(
         apiClient.calls.single.path,
-        '/v2/public/vehiclepositions/vehicle%2Fwith%20slash',
+        '/v2/vehiclepositions/trip%2Fwith%20slash',
       );
     });
 
-    test('throws controlled error when vehicle ID is blank', () async {
+    test('throws controlled error when gtfsTripId is blank', () async {
       final repository = VehiclePositionRepository(
         FakeGolemioApiClient(response: null),
       );
@@ -95,7 +97,7 @@ void main() {
         );
 
         await expectLater(
-          repository.fetchVehiclePosition('tram-22-123'),
+          repository.fetchVehiclePosition('trip-22-123'),
           throwsA(
             isA<AppException>().having(
               (error) => error.type,
@@ -113,7 +115,7 @@ void main() {
       );
 
       await expectLater(
-        repository.fetchVehiclePosition('tram-22-123'),
+        repository.fetchVehiclePosition('trip-22-123'),
         throwsA(
           isA<AppException>().having(
             (error) => error.type,
@@ -134,7 +136,7 @@ void main() {
       );
 
       await expectLater(
-        repository.fetchVehiclePosition('tram-22-123'),
+        repository.fetchVehiclePosition('trip-22-123'),
         throwsA(same(expectedError)),
       );
     });

@@ -17,13 +17,12 @@ void main() {
             'departures': [
               {
                 'route': {'short_name': '22'},
-                'trip': {'headsign': 'Nadrazi Hostivar'},
+                'trip': {'headsign': 'Nadrazi Hostivar', 'id': 'trip-22-123'},
                 'departure': {
                   'predicted': '2026-06-22T10:15:30+02:00',
                   'delay_seconds': 60,
                 },
                 'platform': '3',
-                'vehicle': {'id': 'vehicle-123'},
               },
               {'line': 'A'},
             ],
@@ -43,7 +42,7 @@ void main() {
         expect(departures.single.headsign, 'Nadrazi Hostivar');
         expect(departures.single.delaySeconds, 60);
         expect(departures.single.platform, '3');
-        expect(departures.single.vehicleId, 'vehicle-123');
+        expect(departures.single.gtfsTripId, 'trip-22-123');
       },
     );
 

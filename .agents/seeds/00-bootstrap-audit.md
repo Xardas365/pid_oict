@@ -22,7 +22,7 @@ Mandatory app scope:
 - stops list from `GET https://api.golemio.cz/v2/gtfs/stops`
 - local stop search by name
 - departures from `GET https://api.golemio.cz/v2/public/departureboards`
-- vehicle map from `GET https://api.golemio.cz/v2/public/vehiclepositions/{vehicleId}`
+- vehicle map from `GET https://api.golemio.cz/v2/vehiclepositions/{gtfsTripId}`
 - API token through `--dart-define=GOLEMIO_API_TOKEN=...`
 - `x-access-token` header
 - no hardcoded or committed real token
