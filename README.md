@@ -140,6 +140,32 @@ cd ../..
 The tests are offline. They do not call the real Golemio API and do not require
 `GOLEMIO_API_TOKEN`.
 
+## Parser diagnostics and API samples
+
+DTO parsers expose developer-facing diagnostics with raw, parsed, and skipped
+record counts plus a capped list of representative skip reasons. These
+diagnostics are used by tests and data-layer tooling only; they are not shown in
+the production UI.
+
+To capture local Golemio response samples for debugging, set your token in the
+shell environment and run:
+
+PowerShell:
+
+```powershell
+$env:GOLEMIO_API_TOKEN="your_token_here"
+dart run tool/fetch_golemio_samples.dart --stop-id=U123Z1 --gtfs-trip-id=your_gtfs_trip_id
+```
+
+Bash/macOS/Linux/Git Bash:
+
+```bash
+GOLEMIO_API_TOKEN=your_token_here dart run tool/fetch_golemio_samples.dart --stop-id=U123Z1 --gtfs-trip-id=your_gtfs_trip_id
+```
+
+The tool writes timestamped JSON samples under `.debug/golemio_samples/`, which
+is ignored by Git. Do not commit real tokens or generated sample JSON files.
+
 ## Dependencies
 
 - `dio`: REST HTTP requests to the Golemio API, timeout handling, and safe

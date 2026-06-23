@@ -1,4 +1,5 @@
 import '../../../../shared/utils/json_parsing.dart';
+import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../domain/stop.dart';
 
 class StopDto {
@@ -17,20 +18,8 @@ class StopDto {
   final double? longitude;
 
   static StopDto? fromJson(JsonMap json) {
-    final id = readString(json, [
-      ['stop_id'],
-      ['id'],
-      ['gtfs_id'],
-      ['properties', 'stop_id'],
-      ['properties', 'id'],
-      ['properties', 'gtfs_id'],
-    ]);
-    final name = readString(json, [
-      ['stop_name'],
-      ['name'],
-      ['properties', 'stop_name'],
-      ['properties', 'name'],
-    ]);
+    final id = readString(json, _idPaths);
+    final name = readString(json, _namePaths);
 
     if (id == null || name == null) {
       return null;
@@ -41,17 +30,30 @@ class StopDto {
     return StopDto(
       id: id,
       name: name,
-      platformCode: readString(json, [
-        ['platform_code'],
-        ['platform'],
-        ['code'],
-        ['properties', 'platform_code'],
-        ['properties', 'platform'],
-        ['properties', 'code'],
-      ]),
+      platformCode: readString(json, _platformPaths),
       latitude: coordinates?.latitude,
       longitude: coordinates?.longitude,
     );
+  }
+
+  static ParsedResult<StopDto> parseWithDiagnostics(Object? response) {
+    return parseJsonRecordsWithDiagnostics<StopDto>(
+      response: response,
+      parse: StopDto.fromJson,
+      skipReason: invalidReason,
+    );
+  }
+
+  static String invalidReason(JsonMap json) {
+    if (readString(json, _idPaths) == null) {
+      return 'missing required stop id';
+    }
+
+    if (readString(json, _namePaths) == null) {
+      return 'missing display name';
+    }
+
+    return 'invalid stop record';
   }
 
   Stop toDomain() {
@@ -64,3 +66,28 @@ class StopDto {
     );
   }
 }
+
+const _idPaths = [
+  ['stop_id'],
+  ['id'],
+  ['gtfs_id'],
+  ['properties', 'stop_id'],
+  ['properties', 'id'],
+  ['properties', 'gtfs_id'],
+];
+
+const _namePaths = [
+  ['stop_name'],
+  ['name'],
+  ['properties', 'stop_name'],
+  ['properties', 'name'],
+];
+
+const _platformPaths = [
+  ['platform_code'],
+  ['platform'],
+  ['code'],
+  ['properties', 'platform_code'],
+  ['properties', 'platform'],
+  ['properties', 'code'],
+];

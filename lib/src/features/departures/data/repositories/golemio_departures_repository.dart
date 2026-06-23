@@ -1,6 +1,6 @@
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/network/golemio_api_client.dart';
-import '../../../../shared/utils/json_parsing.dart';
+import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../../stops/domain/stop.dart';
 import '../../domain/departure.dart';
 import '../../domain/repositories/departures_repository.dart';
@@ -17,23 +17,31 @@ class GolemioDeparturesRepository implements DeparturesRepository {
 
   @override
   Future<List<Departure>> fetchDeparturesForStop(Stop stop) async {
-    final response = await _apiClient.getJson(
-      '/v2/public/departureboards',
-      queryParameters: {departureBoardsStopFilterParameter: stop.id},
-    );
-    final departures = readJsonRecords(response)
-        .map(DepartureDto.fromJson)
-        .whereType<DepartureDto>()
-        .map((dto) => dto.toDomain())
-        .toList();
+    final result = await fetchDeparturesForStopWithDiagnostics(stop);
 
-    if (departures.isEmpty) {
+    if (result.items.isEmpty) {
       throw const AppException(
         type: AppExceptionType.invalidData,
         message: 'The Golemio API did not return any valid departures.',
       );
     }
 
-    return departures;
+    return result.items;
+  }
+
+  Future<ParsedResult<Departure>> fetchDeparturesForStopWithDiagnostics(
+    Stop stop,
+  ) async {
+    final response = await _apiClient.getJson(
+      '/v2/public/departureboards',
+      queryParameters: {departureBoardsStopFilterParameter: stop.id},
+    );
+    final parsed = DepartureDto.parseWithDiagnostics(response);
+    final departures = parsed.items.map((dto) => dto.toDomain()).toList();
+
+    return ParsedResult<Departure>(
+      items: List<Departure>.unmodifiable(departures),
+      diagnostics: parsed.diagnostics,
+    );
   }
 }

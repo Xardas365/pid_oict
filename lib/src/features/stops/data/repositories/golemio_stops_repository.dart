@@ -1,6 +1,6 @@
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/network/golemio_api_client.dart';
-import '../../../../shared/utils/json_parsing.dart';
+import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../domain/repositories/stops_repository.dart';
 import '../../domain/stop.dart';
 import '../models/stop_dto.dart';
@@ -12,20 +12,26 @@ class GolemioStopsRepository implements StopsRepository {
 
   @override
   Future<List<Stop>> fetchStops() async {
-    final response = await _apiClient.getJson('/v2/gtfs/stops');
-    final stops = readJsonRecords(response)
-        .map(StopDto.fromJson)
-        .whereType<StopDto>()
-        .map((dto) => dto.toDomain())
-        .toList();
+    final result = await fetchStopsWithDiagnostics();
 
-    if (stops.isEmpty) {
+    if (result.items.isEmpty) {
       throw const AppException(
         type: AppExceptionType.invalidData,
         message: 'The Golemio API did not return any valid stops.',
       );
     }
 
-    return stops;
+    return result.items;
+  }
+
+  Future<ParsedResult<Stop>> fetchStopsWithDiagnostics() async {
+    final response = await _apiClient.getJson('/v2/gtfs/stops');
+    final parsed = StopDto.parseWithDiagnostics(response);
+    final stops = parsed.items.map((dto) => dto.toDomain()).toList();
+
+    return ParsedResult<Stop>(
+      items: List<Stop>.unmodifiable(stops),
+      diagnostics: parsed.diagnostics,
+    );
   }
 }
