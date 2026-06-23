@@ -1,178 +1,252 @@
 # Architecture Context — OICT PID Flutter
 
-## General approach
+## Current Direction
 
-Keep the app small and reviewable. Prefer simple, explicit code over heavy architecture.
+The MVP is functionally complete. The post-MVP direction is a more senior but
+still pragmatic Flutter implementation using:
 
-Use a feature-first structure, with shared network/config/widgets kept under `core` or `shared`.
+* `flutter_bloc` as the single state-management package,
+* Cubit for simple state/actions,
+* Bloc where events make flows clearer, especially loading, retry, refresh,
+  search, and polling,
+* pragmatic Clean Architecture with feature-first folders,
+* constructor injection through Flutter Bloc `RepositoryProvider` and
+  `BlocProvider`.
 
-## Dependencies
+Do not rewrite the app in one large pass. Migrate feature by feature and keep
+every step reviewable.
+
+## Dependency Rules
 
 Keep dependencies minimal and justify each addition.
 
 Allowed or preferred dependencies:
 
-* `http` or `dio` for REST calls. Choose one, not both.
+* `http` for REST calls. Do not add `dio` unless there is a separate justified
+  migration.
+* `flutter_bloc` for state management.
 * `flutter_map` for map rendering without a Google Maps key.
 * `latlong2` for map coordinates when using `flutter_map`.
-* `flutter_lints` or `very_good_analysis` for linting.
-
-Optional dependencies when justified:
-
-* `flutter_riverpod` for state management if the app grows beyond simple local widget state.
-* `freezed_annotation` and `json_annotation` for immutable models and JSON mapping when they reduce meaningful boilerplate.
-* `go_router` only if route names and deep links improve the code without adding complexity.
-* `mocktail` for tests.
+* `flutter_lints` or a stricter analyzer package for linting.
 
 Allowed dev dependencies:
 
-* Flutter test tooling,
-* `build_runner` if code generation is used,
-* `freezed` if Freezed is used,
-* `json_serializable` if generated JSON parsing is used.
+* Flutter test tooling.
+* `bloc_test` only if it materially improves Bloc/Cubit tests.
+* `mocktail` only if handwritten fakes become too costly.
+* Code generation tooling only if a later task explicitly justifies it.
 
 Do not add:
 
-* Bloc,
+* Riverpod,
+* Provider,
 * GetX,
-* Provider when Riverpod is already used,
 * service locator packages,
 * generated or third-party Golemio Dart API clients,
-* map SDKs that require extra API keys unless explicitly justified.
+* map SDKs that require extra API keys,
+* code generation by default.
 
-## State management
+## State Management
 
-Use exactly one state-management approach.
+Use exactly one application state-management approach: Flutter Bloc.
 
-Acceptable options:
+Use Cubit when:
 
-* simple `StatefulWidget`/`FutureBuilder`/`ValueNotifier` for a small solution,
-* Riverpod if it improves readability and testability.
+* the state is mostly loaded directly by method calls,
+* events would only mirror method names,
+* the flow is narrow and easy to inspect.
 
-Do not mix multiple state-management systems.
+Use Bloc when:
 
-State should be easy to inspect and should explicitly represent:
+* separate user/system events improve clarity,
+* the feature has loading, retry, refresh, search, polling, or cancellation
+  paths,
+* tests benefit from event-to-state assertions.
 
-* loading,
+State objects should explicitly represent:
+
+* initial/loading,
 * data,
 * empty,
 * error,
-* refreshing where useful.
+* refreshing or stale data where useful.
 
-Avoid unnecessary rebuilds:
+Do not mix Bloc with Riverpod, Provider, GetX, or a service locator.
 
-* keep widgets small,
-* pass only the data each widget needs,
-* split large UI files into focused components.
+## Clean Architecture Shape
 
-## Code generation
+Use pragmatic Clean Architecture per feature. Do not add layers that do not
+remove complexity.
 
-Use Freezed and json_serializable only where they improve correctness or readability.
+Recommended feature structure:
+
+```text
+lib/
+  main.dart
+  src/
+    app/
+      pid_oict_app.dart
+      pid_oict_shell.dart
+      app_providers.dart
+      app_theme.dart
+    core/
+      config/
+      errors/
+      network/
+      logging/
+    features/
+      stops/
+        data/
+          datasources/
+          dto/
+          repositories/
+        domain/
+          entities/
+          repositories/
+          usecases/
+        presentation/
+          bloc/
+          widgets/
+          stops_screen.dart
+      departures/
+        data/
+          datasources/
+          dto/
+          repositories/
+        domain/
+          entities/
+          repositories/
+          usecases/
+        presentation/
+          bloc/
+          widgets/
+          departures_screen.dart
+      vehicle_map/
+        data/
+          datasources/
+          dto/
+          repositories/
+        domain/
+          entities/
+          repositories/
+          usecases/
+        presentation/
+          bloc/
+          widgets/
+          vehicle_map_screen.dart
+    shared/
+      widgets/
+      utils/
+test/
+```
+
+This is a target structure. Prefer incremental moves over mechanical churn.
+
+## Layer Responsibilities
+
+Domain:
+
+* entities used by app logic and UI,
+* repository interfaces,
+* use cases for meaningful operations,
+* no Flutter widgets,
+* no HTTP package dependency,
+* no DTO leakage.
+
+Data:
+
+* Golemio datasources using the API client,
+* DTO parsing,
+* DTO-to-domain mapping,
+* repository implementations that satisfy domain interfaces,
+* safe skipping or reporting of invalid records.
+
+Presentation:
+
+* Bloc/Cubit state and events,
+* screens and widgets,
+* local UI-only filtering/search state where appropriate,
+* friendly loading/error/empty/stale states.
+
+App composition:
+
+* construct shared API client,
+* provide repositories/use cases through `RepositoryProvider`,
+* provide feature Bloc/Cubit instances through `BlocProvider`,
+* keep creation explicit and reviewable.
+
+## API and Observability
+
+The app owns its Golemio API layer. Token handling remains:
+
+* `String.fromEnvironment('GOLEMIO_API_TOKEN')`,
+* `x-access-token` header,
+* no hardcoded token,
+* no committed real token.
+
+Debug logging should be safe:
+
+* enabled only in debug mode and/or explicit dart define,
+* never log `x-access-token`,
+* log method/path/query/status/duration/response-size,
+* use bounded response previews,
+* provide parser/repository diagnostics for skipped records where useful.
+
+## Code Generation
+
+Do not introduce code generation by default.
 
 Generated files must not be edited manually:
 
 * `*.freezed.dart`
 * `*.g.dart`
 
-If generated model files or annotations change, run:
+If a later task explicitly adds generated models, run:
 
 ```bash
 dart run build_runner build
 ```
 
-Do not introduce code generation for every trivial class.
+Then run formatting, analysis, and tests.
 
-## Recommended structure
+## Testing Rules
 
-```text
-lib/
-  main.dart
-  app/
-    pid_departures_app.dart
-    router.dart
-    theme.dart
-  core/
-    config/
-      api_config.dart
-    network/
-      golemio_api_client.dart
-      api_exception.dart
-      logging_interceptor.dart
-    utils/
-      date_time_formatters.dart
-  features/
-    stops/
-      data/
-        stops_repository.dart
-        models/
-          stop_dto.dart
-      domain/
-        stop.dart
-      presentation/
-        stops_screen.dart
-        widgets/
-          stop_list_tile.dart
-    departures/
-      data/
-        departures_repository.dart
-        models/
-          departure_dto.dart
-      domain/
-        departure.dart
-      presentation/
-        departures_screen.dart
-        widgets/
-          departure_tile.dart
-    vehicle_map/
-      data/
-        vehicle_position_repository.dart
-        models/
-          vehicle_position_dto.dart
-      domain/
-        vehicle_position.dart
-      presentation/
-        vehicle_map_screen.dart
-  shared/
-    widgets/
-      loading_view.dart
-      error_view.dart
-      empty_view.dart
-test/
+Tests must be offline by default:
+
+* no real Golemio API calls,
+* no real `GOLEMIO_API_TOKEN`,
+* no real map tile loading in widget tests,
+* use fakes or mocked HTTP clients,
+* test DTO parsing, use cases, repository implementations, and Bloc/Cubit
+  state transitions.
+
+Run for code changes:
+
+```bash
+dart format .
+flutter analyze
+flutter test
 ```
 
-This structure is a guide, not a strict requirement. Prefer the existing project layout if one already exists.
+## UI Rules
 
-## Data modeling
+Screens should keep:
 
-Separate raw API DTOs from domain/UI models when it improves clarity.
+* loading state,
+* success state,
+* empty state,
+* user-friendly error with retry where useful,
+* readable PID/public-transport presentation,
+* no fake production data.
 
-Recommended model types:
+Shared reusable widgets are encouraged, but do not create a broad design system
+unless it removes real duplication.
 
-* `StopDto` for raw stop API data,
-* `Stop` for app/domain usage,
-* `DepartureDto` for raw departure board data,
-* `Departure` for app/domain usage,
-* `VehiclePositionDto` for raw vehicle position data,
-* `VehiclePosition` for app/domain usage.
+## Map Rules
 
-Prefer explicit mapping from DTO to domain model instead of leaking raw API responses into widgets.
-
-## UI rules
-
-Each screen should handle:
-
-* initial loading,
-* success,
-* empty data,
-* user-friendly error,
-* retry where useful.
-
-Shared reusable widgets are encouraged for loading/error/empty states, but do not create a component library larger than the assignment needs.
-
-## Map rules
-
-* Use `flutter_map` unless the project already has a justified map solution.
-* Convert coordinates from API order to map order explicitly.
+* Use `flutter_map`.
+* Convert GeoJSON `[longitude, latitude]` into map `[latitude, longitude]`.
 * Center the map on the first valid vehicle position.
 * Keep the last known marker on refresh failure.
-* Cancel polling timers when leaving the screen.
+* Cancel polling timers/subscriptions when leaving the screen or closing Bloc.
+* Avoid overlapping refresh requests.

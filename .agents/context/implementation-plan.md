@@ -2,13 +2,30 @@
 
 Use this only for planning. Implement one phase at a time.
 
-## Phase 1 - Skeleton and Configuration
+## Completed MVP Baseline
 
-* Create or validate Flutter project.
-* Add feature-first folders.
-* Add dependencies with justification.
-* Add API token configuration through `GOLEMIO_API_TOKEN`.
-* Add central Golemio API client and error model.
+Seeds `00` through `10` produced the functional MVP:
+
+* Flutter project bootstrap and OICT/Golemio rule cleanup.
+* Golemio API token configuration and API client.
+* Stop, Departure, and VehiclePosition DTO/domain models.
+* Repositories for stops, departure boards, and vehicle positions.
+* Stops, departures, and vehicle map screens.
+* Loading/error/empty states.
+* Offline parser/repository/widget tests.
+* README and final readiness checks.
+
+The current app may still contain simple `StatefulWidget` state from the MVP.
+Future work should migrate incrementally to Flutter Bloc and pragmatic Clean
+Architecture.
+
+## Post-MVP Phase 8 - Bloc/Clean Foundation
+
+* Add `flutter_bloc` as the single state-management package.
+* Add explicit app composition using `RepositoryProvider` and `BlocProvider`.
+* Introduce domain repository interfaces and use case folders without changing
+  behavior.
+* Keep constructor injection. Do not add service locators.
 
 Checks:
 
@@ -18,48 +35,33 @@ flutter analyze
 flutter test
 ```
 
-## Phase 2 - Models and Repositories
+## Post-MVP Phase 9 - Feature Bloc Migrations
 
-* Add Stop, Departure, and VehiclePosition DTO/domain models.
-* Add robust JSON parsing.
-* Implement repositories for stops, departure boards, and vehicle positions.
-* Add parser/repository tests with fixtures or mocked client.
+Migrate one feature at a time:
 
-Run code generation first if generated models are used.
+1. Stops loading/search/selection.
+2. Departures loading/retry/pull-to-refresh/vehicle selection.
+3. Vehicle map loading/polling/stale-position behavior.
 
-## Phase 3 - Stop List Screen
+Each migration must preserve existing behavior and tests must remain offline.
 
-* Load stops.
-* Show loading/error/empty/success states.
-* Add local search/filter by stop name.
-* Navigate to departures for selected stop.
+## Post-MVP Phase 10 - Developer Observability
 
-## Phase 4 - Departures Screen
+* Add safe debug HTTP logging.
+* Add local API sample tooling that writes only ignored debug artifacts.
+* Add parser/repository diagnostics for skipped records.
+* Never log or commit real tokens.
 
-* Load departures for selected stop.
-* Show line, destination, time, delay, and map action.
-* Add pull-to-refresh.
-* Hide or disable map action when vehicle ID is missing.
+## Post-MVP Phase 11 - UI Seed Package and Hardening
 
-## Phase 5 - Vehicle Map Screen
+* Add reusable UI/polish prompts for future focused work.
+* Keep no fake production data.
+* Add CI/final hardening only after the Bloc migration and diagnostics are
+  stable.
 
-* Load first vehicle position.
-* Show map and marker.
-* Center map on first valid position.
-* Refresh periodically.
-* Cancel polling in `dispose`.
-* Keep last valid position on refresh failure.
+## Non-Goals Unless Separately Requested
 
-## Phase 6 - UX Polish and Tests
-
-* Reuse loading/error/empty widgets.
-* Improve user-facing messages.
-* Add tests for parsing/filtering/error handling.
-* Check no real API calls are used in tests.
-
-## Phase 7 - README and Final Check
-
-* Complete README.
-* Remove debug prints, dead code, and irrelevant TODOs.
-* Verify no token is committed.
-* Run final checks.
+* No Riverpod, Provider, GetX, Bloc alternatives, or service locator packages.
+* No generated Golemio client.
+* No code generation unless separately justified.
+* No endpoint parameter changes without proof from Golemio docs/API.

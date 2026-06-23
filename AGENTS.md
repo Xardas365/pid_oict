@@ -22,7 +22,10 @@ Then read only the context files relevant to the request:
 * Mandatory requirements come before optional polish.
 * Implement only the requested step.
 * Prefer existing project patterns over introducing a new architecture.
-* Use exactly one state-management approach. Simple Flutter state is acceptable for this assignment; Riverpod is acceptable only if it is already used or clearly justified.
+* Post-MVP architecture direction is Flutter Bloc with pragmatic Clean Architecture.
+* Use `flutter_bloc` as the single state-management approach for new migration work. Use Cubit for simple state/actions and Bloc where explicit events help loading, retry, refresh, search, or polling flows.
+* Existing simple `StatefulWidget` state may remain until the relevant migration seed is executed. Do not introduce Riverpod, Provider, GetX, service locators, or mixed state-management.
+* Use constructor injection with Flutter Bloc `RepositoryProvider` and `BlocProvider`. Do not add service locator packages.
 * Keep dependencies minimal and justify each addition.
 * Create the app's own API layer. Do not use a generated or third-party Dart client for Golemio.
 * Never hardcode or commit a real Golemio API token.
@@ -40,7 +43,10 @@ Recommended first seed:
 
 * `.agents/seeds/00-bootstrap-audit.md`
 
-Then continue with the next numbered seed only after the previous step is stable.
+Seeds `00` through `10` are the completed MVP baseline. Seeds `11` and later
+are post-MVP senior hardening and Bloc/Clean Architecture migration steps. Run
+exactly one seed at a time and continue with the next numbered seed only after
+the previous step is stable.
 
 ## Recommended workflow for non-trivial changes
 
