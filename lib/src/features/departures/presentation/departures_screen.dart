@@ -10,6 +10,9 @@ import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
 import '../../stops/domain/stop.dart';
+import '../../vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
+import '../../vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import '../../vehicle_map/presentation/vehicle_map_screen.dart';
 import 'bloc/departures_bloc.dart';
 import 'bloc/departures_event.dart';
@@ -31,7 +34,12 @@ class DeparturesScreen extends StatelessWidget {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => VehicleMapScreen(gtfsTripId: gtfsTripId),
+        builder: (_) => BlocProvider(
+          create: (context) =>
+              VehicleMapBloc(context.read<GetVehiclePositionForTripUseCase>())
+                ..add(VehicleMapStarted(gtfsTripId)),
+          child: VehicleMapScreen(gtfsTripId: gtfsTripId),
+        ),
       ),
     );
   }

@@ -1,33 +1,52 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
+import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
+import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_screen.dart';
 
 import '../../../test_localized_app.dart';
 
 void main() {
   group('VehicleMapScreen', () {
+    testWidgets('shows loading state while position is loading', (
+      WidgetTester tester,
+    ) async {
+      final completer = Completer<VehiclePosition>();
+
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _FutureVehiclePositionRepository(completer.future),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Načítání polohy vozidla...'), findsOneWidget);
+
+      completer.complete(_position('vehicle-123'));
+    });
+
     testWidgets('shows map marker and last update after position loads', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        localizedTestApp(
-          home: VehicleMapScreen(
-            gtfsTripId: 'trip-22-123',
-            refreshInterval: Duration.zero,
-            showMapTiles: false,
-            loadVehiclePosition: (_) async => VehiclePosition(
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _QueueVehiclePositionRepository([
+          _VehiclePositionSuccess(
+            VehiclePosition(
               vehicleId: 'vehicle-123',
               latitude: 50.0755,
               longitude: 14.4378,
               lastUpdated: DateTime(2026, 6, 22, 10, 20),
             ),
           ),
-        ),
+        ]),
       );
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       await tester.pumpAndSettle();
 
@@ -44,18 +63,16 @@ void main() {
     testWidgets('shows no-position state for invalid data', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        localizedTestApp(
-          home: VehicleMapScreen(
-            gtfsTripId: 'trip-22-123',
-            refreshInterval: Duration.zero,
-            showMapTiles: false,
-            loadVehiclePosition: (_) async => throw const AppException(
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _QueueVehiclePositionRepository([
+          const _VehiclePositionFailure(
+            AppException(
               type: AppExceptionType.invalidData,
-              message: 'No position.',
+              message: 'No data.',
             ),
           ),
-        ),
+        ]),
       );
 
       await tester.pumpAndSettle();
@@ -69,33 +86,17 @@ void main() {
     testWidgets('shows initial error and retries loading', (
       WidgetTester tester,
     ) async {
-      var attempts = 0;
-
-      await tester.pumpWidget(
-        localizedTestApp(
-          home: VehicleMapScreen(
-            gtfsTripId: 'trip-22-123',
-            refreshInterval: Duration.zero,
-            showMapTiles: false,
-            loadVehiclePosition: (_) async {
-              attempts += 1;
-              if (attempts == 1) {
-                throw const AppException(
-                  type: AppExceptionType.network,
-                  message: 'Network error.',
-                );
-              }
-
-              return const VehiclePosition(
-                vehicleId: 'vehicle-123',
-                latitude: 50.0755,
-                longitude: 14.4378,
-              );
-            },
+      final repository = _QueueVehiclePositionRepository([
+        const _VehiclePositionFailure(
+          AppException(
+            type: AppExceptionType.network,
+            message: 'Network error.',
           ),
         ),
-      );
+        _VehiclePositionSuccess(_position('vehicle-123')),
+      ]);
 
+      await _pumpVehicleMapScreen(tester, repository: repository);
       await tester.pumpAndSettle();
 
       expect(
@@ -110,48 +111,69 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
-      expect(attempts, 2);
+      expect(repository.callCount, 2);
     });
 
-    testWidgets('keeps last known position when periodic refresh fails', (
+    testWidgets('shows refreshing indicator while preserving marker', (
       WidgetTester tester,
     ) async {
-      var attempts = 0;
+      final refreshCompleter = Completer<VehiclePosition>();
+      late VehicleMapBloc bloc;
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _QueueVehiclePositionRepository([
+          _VehiclePositionSuccess(_position('vehicle-123')),
+          _VehiclePositionPending(refreshCompleter),
+        ]),
+        onBlocCreated: (createdBloc) {
+          bloc = createdBloc;
+        },
+      );
+      await tester.pumpAndSettle();
 
-      await tester.pumpWidget(
-        localizedTestApp(
-          home: VehicleMapScreen(
-            gtfsTripId: 'trip-22-123',
-            refreshInterval: const Duration(seconds: 1),
-            showMapTiles: false,
-            loadVehiclePosition: (_) async {
-              attempts += 1;
-              if (attempts > 1) {
-                throw const AppException(
-                  type: AppExceptionType.timeout,
-                  message: 'Timeout.',
-                );
-              }
+      bloc.add(const VehicleMapRefreshTicked());
+      await bloc.stream.firstWhere((state) => state.isRefreshing);
+      await tester.pump();
 
-              return const VehiclePosition(
-                vehicleId: 'vehicle-123',
-                latitude: 50.0755,
-                longitude: 14.4378,
-              );
-            },
-          ),
+      expect(find.byIcon(Icons.directions_bus), findsOneWidget);
+      expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+      refreshCompleter.complete(_position('vehicle-456', latitude: 50.08));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Vozidlo vehicle-456'), findsOneWidget);
+    });
+
+    testWidgets('keeps last known position when refresh fails', (
+      WidgetTester tester,
+    ) async {
+      late VehicleMapBloc bloc;
+      final repository = _QueueVehiclePositionRepository([
+        _VehiclePositionSuccess(_position('vehicle-123')),
+        const _VehiclePositionFailure(
+          AppException(type: AppExceptionType.timeout, message: 'Timeout.'),
         ),
+      ]);
+
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: repository,
+        onBlocCreated: (createdBloc) {
+          bloc = createdBloc;
+        },
       );
 
       await tester.pumpAndSettle();
 
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
-      expect(attempts, 1);
+      expect(repository.callCount, 1);
 
-      await tester.pump(const Duration(seconds: 1));
-      await tester.pump();
+      bloc.add(const VehicleMapRefreshTicked());
+      await tester.pumpAndSettle();
 
-      expect(attempts, 2);
+      expect(repository.callCount, 2);
+      expect(find.byIcon(Icons.directions_bus), findsOneWidget);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
       expect(
         find.text(
@@ -160,8 +182,93 @@ void main() {
         ),
         findsOneWidget,
       );
-
-      await tester.pumpWidget(const SizedBox.shrink());
     });
   });
+}
+
+Future<void> _pumpVehicleMapScreen(
+  WidgetTester tester, {
+  required VehiclePositionRepository repository,
+  void Function(VehicleMapBloc bloc)? onBlocCreated,
+}) async {
+  await tester.pumpWidget(
+    localizedTestApp(
+      home: BlocProvider(
+        create: (_) {
+          final bloc = VehicleMapBloc(
+            GetVehiclePositionForTripUseCase(repository),
+            pollingInterval: Duration.zero,
+          )..add(const VehicleMapStarted('trip-22-123'));
+          onBlocCreated?.call(bloc);
+
+          return bloc;
+        },
+        child: const VehicleMapScreen(
+          gtfsTripId: 'trip-22-123',
+          showMapTiles: false,
+        ),
+      ),
+    ),
+  );
+}
+
+VehiclePosition _position(String vehicleId, {double latitude = 50.0755}) {
+  return VehiclePosition(
+    vehicleId: vehicleId,
+    latitude: latitude,
+    longitude: 14.4378,
+    lastUpdated: DateTime(2026, 6, 22, 10, 20),
+  );
+}
+
+class _FutureVehiclePositionRepository implements VehiclePositionRepository {
+  const _FutureVehiclePositionRepository(this._future);
+
+  final Future<VehiclePosition> _future;
+
+  @override
+  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) {
+    return _future;
+  }
+}
+
+class _QueueVehiclePositionRepository implements VehiclePositionRepository {
+  _QueueVehiclePositionRepository(this._responses);
+
+  final List<_VehiclePositionResponse> _responses;
+  var callCount = 0;
+
+  @override
+  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) async {
+    final response = _responses[callCount];
+    callCount++;
+
+    return switch (response) {
+      _VehiclePositionSuccess(:final position) => position,
+      _VehiclePositionFailure(:final error) => throw error,
+      _VehiclePositionPending(:final completer) => completer.future,
+    };
+  }
+}
+
+sealed class _VehiclePositionResponse {
+  const _VehiclePositionResponse();
+}
+
+class _VehiclePositionSuccess extends _VehiclePositionResponse {
+  const _VehiclePositionSuccess(this.position);
+
+  final VehiclePosition position;
+}
+
+class _VehiclePositionFailure extends _VehiclePositionResponse {
+  const _VehiclePositionFailure(this.error);
+
+  final Object error;
+}
+
+class _VehiclePositionPending extends _VehiclePositionResponse {
+  const _VehiclePositionPending(this.completer);
+
+  final Completer<VehiclePosition> completer;
 }

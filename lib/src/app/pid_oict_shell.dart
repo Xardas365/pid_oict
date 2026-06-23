@@ -15,7 +15,10 @@ import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/stops/presentation/cubit/stops_cubit.dart';
 import '../features/stops/presentation/stops_screen.dart';
 import '../features/vehicle_map/domain/vehicle_position.dart';
+import '../features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import '../features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
+import '../features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import '../features/vehicle_map/presentation/vehicle_map_screen.dart';
 import '../shared/widgets/empty_state_view.dart';
 
@@ -62,10 +65,6 @@ class _PidOictShellState extends State<PidOictShell> {
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
-    final loadVehiclePosition =
-        widget.loadVehiclePosition ??
-        (gtfsTripId) =>
-            context.read<GetVehiclePositionForTripUseCase>()(gtfsTripId);
 
     return Scaffold(
       body: IndexedStack(
@@ -79,7 +78,7 @@ class _PidOictShellState extends State<PidOictShell> {
           ),
           _MapTab(
             selectedGtfsTripId: _selectedGtfsTripId,
-            loadVehiclePosition: loadVehiclePosition,
+            loadVehiclePosition: widget.loadVehiclePosition,
             refreshInterval: widget.vehicleMapRefreshInterval,
             showMapTiles: widget.showMapTiles,
             isActive: _selectedTab == PidNavigationTab.map,
@@ -227,13 +226,42 @@ class _MapTab extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return VehicleMapScreen(
+    return BlocProvider(
       key: ValueKey(gtfsTripId),
-      gtfsTripId: gtfsTripId,
-      loadVehiclePosition: loadVehiclePosition,
-      refreshInterval: refreshInterval,
-      showMapTiles: showMapTiles,
+      create: (context) => VehicleMapBloc(
+        _getVehiclePositionUseCase(context),
+        pollingInterval: refreshInterval,
+      )..add(VehicleMapStarted(gtfsTripId)),
+      child: VehicleMapScreen(
+        gtfsTripId: gtfsTripId,
+        showMapTiles: showMapTiles,
+      ),
     );
+  }
+
+  GetVehiclePositionForTripUseCase _getVehiclePositionUseCase(
+    BuildContext context,
+  ) {
+    final loadVehiclePosition = this.loadVehiclePosition;
+    if (loadVehiclePosition != null) {
+      return GetVehiclePositionForTripUseCase(
+        _CallbackVehiclePositionRepository(loadVehiclePosition),
+      );
+    }
+
+    return context.read<GetVehiclePositionForTripUseCase>();
+  }
+}
+
+class _CallbackVehiclePositionRepository implements VehiclePositionRepository {
+  const _CallbackVehiclePositionRepository(this._loadVehiclePosition);
+
+  final Future<VehiclePosition> Function(String gtfsTripId)
+  _loadVehiclePosition;
+
+  @override
+  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) {
+    return _loadVehiclePosition(gtfsTripId);
   }
 }
 
