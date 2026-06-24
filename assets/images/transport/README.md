@@ -1,30 +1,25 @@
 # PID Transport Images
 
-This folder is reserved for small transport type images used by
+This folder contains the final 24x24 SVG pictograms used by
 `pid_transport_visuals.dart`.
 
-Expected files:
+Asset mapping:
 
-- `metro.png`
-- `tram.png`
-- `bus.png`
-- `trolleybus.png`
-- `train.png`
-- `ferry.png`
-- `funicular.png`
-- `replacement.png`
-- `night.png`
-- `special.png`
+- `travel-metro.svg`: metro
+- `travel-tram.svg`: tram and special tram lines
+- `travel-bus.svg`: city, regional, and school bus lines
+- `travel-trolley.svg`: trolleybus
+- `travel-train.svg`: S/R/interregional/tourist trains
+- `travel-cableway.svg`: funicular / cableway
+- `travel-ferry.svg`: ferry
+- `travel-night.svg`: night tram and night bus services
 
-Image requirements:
+Replacement services currently reuse the icon of the affected transport mode:
 
-- square image,
-- recommended size: 64x64 px or 96x96 px,
-- transparent background,
-- PNG by default; WebP is acceptable only if the constants are updated in the
-  same change,
-- one image per transport mode or service type,
-- filenames must match the constants in `PidTransportAssetPaths`.
+- metro replacement uses `travel-metro.svg`
+- tram replacement uses `travel-tram.svg`
+- bus replacement uses `travel-bus.svg`
+- train replacement uses `travel-train.svg`
 
-The app currently uses Material Icon fallbacks by default, so these images can
-be added later without changing the domain classification logic.
+Unknown and special-only line types intentionally use the Material Icon
+fallback from `PidTransportIcon`.

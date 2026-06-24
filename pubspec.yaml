@@ -28,6 +28,7 @@ dependencies:
   slang: ^4.16.0
   slang_flutter: ^4.16.0
   flutter_bloc: ^9.1.1
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
