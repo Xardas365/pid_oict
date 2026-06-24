@@ -7,6 +7,7 @@ class DepartureDto {
     required this.routeShortName,
     required this.headsign,
     required this.departureTime,
+    this.routeType,
     this.delaySeconds,
     this.platform,
     this.stopId,
@@ -17,6 +18,7 @@ class DepartureDto {
   final String routeShortName;
   final String headsign;
   final DateTime departureTime;
+  final String? routeType;
   final int? delaySeconds;
   final String? platform;
   final String? stopId;
@@ -36,6 +38,7 @@ class DepartureDto {
       routeShortName: routeShortName,
       headsign: headsign,
       departureTime: departureTime,
+      routeType: readString(json, _routeTypePaths),
       delaySeconds: readInt(json, _delayPaths),
       platform: readString(json, _platformPaths),
       stopId: readString(json, _stopIdPaths),
@@ -73,6 +76,7 @@ class DepartureDto {
       routeShortName: routeShortName,
       headsign: headsign,
       departureTime: departureTime,
+      routeType: routeType,
       delaySeconds: delaySeconds,
       platform: platform,
       stopId: stopId,
@@ -93,6 +97,21 @@ const _routeShortNamePaths = [
   ['route', 'shortName'],
   ['properties', 'route', 'short_name'],
   ['properties', 'route', 'shortName'],
+];
+
+const _routeTypePaths = [
+  ['route_type'],
+  ['routeType'],
+  ['type'],
+  ['properties', 'route_type'],
+  ['properties', 'routeType'],
+  ['properties', 'type'],
+  ['route', 'type'],
+  ['route', 'route_type'],
+  ['route', 'routeType'],
+  ['properties', 'route', 'type'],
+  ['properties', 'route', 'route_type'],
+  ['properties', 'route', 'routeType'],
 ];
 
 const _headsignPaths = [

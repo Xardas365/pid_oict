@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/features/departures/data/models/departure_dto.dart';
 
 void main() {
   group('DepartureDto', () {
     test('parses basic departure fields from nested JSON', () {
       final dto = DepartureDto.fromJson({
-        'route': {'short_name': '22'},
+        'route': {'short_name': '22', 'type': 'tram'},
         'trip': {'headsign': 'Nadrazi Hostivar', 'id': 'trip-22-123'},
         'departure': {
           'timestamp_scheduled': '2026-06-22T10:14:00+02:00',
@@ -18,6 +19,7 @@ void main() {
 
       expect(dto, isNotNull);
       expect(dto!.routeShortName, '22');
+      expect(dto.routeType, 'tram');
       expect(dto.headsign, 'Nadrazi Hostivar');
       expect(dto.departureTime, DateTime.parse('2026-06-22T10:15:30+02:00'));
       expect(dto.delaySeconds, 120);
@@ -29,8 +31,21 @@ void main() {
       final departure = dto.toDomain();
 
       expect(departure.routeShortName, dto.routeShortName);
+      expect(departure.routeType, dto.routeType);
+      expect(departure.lineType, PidLineType.tram);
       expect(departure.headsign, dto.headsign);
       expect(departure.departureTime, dto.departureTime);
+    });
+
+    test('uses route type as PID line context when available', () {
+      final dto = DepartureDto.fromJson({
+        'route': {'short_name': 'P2', 'type': 'ferry'},
+        'trip': {'headsign': 'Císařská louka'},
+        'departure': {'timestamp_scheduled': '2026-06-22T10:14:00+02:00'},
+      });
+
+      expect(dto, isNotNull);
+      expect(dto!.toDomain().lineType, PidLineType.ferry);
     });
 
     test('prefers predicted departure time over scheduled time', () {
