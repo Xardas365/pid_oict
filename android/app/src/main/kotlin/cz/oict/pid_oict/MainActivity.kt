@@ -1,4 +1,4 @@
-package com.example.pid_oict
+package cz.oict.pid_oict
 
 import io.flutter.embedding.android.FlutterActivity
 
