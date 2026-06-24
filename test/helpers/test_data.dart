@@ -34,7 +34,10 @@ const technicalStop = Stop(id: 'TECH1', name: 'hr.VUSC Praha');
 final andelStopGroup = StopGroup.single(andelStop);
 final staromestskaStopGroup = StopGroup.single(staromestskaStop);
 
-Departure repyDeparture({String? gtfsTripId = 'trip-10-repy'}) {
+Departure repyDeparture({
+  String? gtfsTripId = 'trip-10-repy',
+  String? vehicleId = 'service-3-1001',
+}) {
   return Departure(
     routeShortName: '10',
     headsign: 'Sidliste Repy',
@@ -42,15 +45,17 @@ Departure repyDeparture({String? gtfsTripId = 'trip-10-repy'}) {
     delaySeconds: 60,
     platform: '3',
     gtfsTripId: gtfsTripId,
+    vehicleId: vehicleId,
   );
 }
 
-Departure motolDeparture({String? gtfsTripId}) {
+Departure motolDeparture({String? gtfsTripId, String? vehicleId}) {
   return Departure(
     routeShortName: 'A',
     headsign: 'Nemocnice Motol',
     departureTime: DateTime(2026, 6, 22, 10, 18),
     gtfsTripId: gtfsTripId,
+    vehicleId: vehicleId,
   );
 }
 

@@ -30,8 +30,7 @@ class PidOictApp extends StatefulWidget {
   final AppLocale locale;
   final Future<List<Stop>> Function()? loadStops;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
-  final Future<VehiclePosition> Function(String gtfsTripId)?
-  loadVehiclePosition;
+  final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
   final Duration departureRefreshInterval;
   final Duration vehicleMapRefreshInterval;
   final bool showMapTiles;

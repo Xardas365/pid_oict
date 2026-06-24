@@ -52,17 +52,13 @@ Future<void> main(List<String> args) async {
     );
   }
 
-  final gtfsTripId = options.gtfsTripId;
-  if (gtfsTripId != null && gtfsTripId.isNotEmpty) {
+  final vehicleId = options.vehicleId;
+  if (vehicleId != null && vehicleId.isNotEmpty) {
     writtenFiles.add(
       await _fetchAndWriteSample(
         token: token,
-        path: '/v2/vehiclepositions/${Uri.encodeComponent(gtfsTripId)}',
-        queryParameters: const {
-          'includeNotTracking': 'true',
-          'includePositions': 'true',
-          'preferredTimezone': 'Europe_Prague',
-        },
+        path: '/v2/public/vehiclepositions/${Uri.encodeComponent(vehicleId)}',
+        queryParameters: const {'scopes': 'info'},
         outputPath: '$_outputDirectory/${timestamp}_vehicle_position.json',
         recordLimit: options.recordLimit,
       ),
@@ -70,7 +66,7 @@ Future<void> main(List<String> args) async {
   } else {
     stdout.writeln(
       'Skipping vehicle position sample. '
-      'Pass --gtfs-trip-id=<gtfs_trip_id> to fetch it.',
+      'Pass --vehicle-id=<vehicle_id> to fetch it.',
     );
   }
 
@@ -166,16 +162,16 @@ class _SampleToolOptions {
   const _SampleToolOptions({
     required this.recordLimit,
     this.stopId,
-    this.gtfsTripId,
+    this.vehicleId,
   });
 
   final int recordLimit;
   final String? stopId;
-  final String? gtfsTripId;
+  final String? vehicleId;
 
   static _SampleToolOptions parse(List<String> args) {
     String? stopId;
-    String? gtfsTripId;
+    String? vehicleId;
     var recordLimit = _defaultRecordLimit;
 
     for (final arg in args) {
@@ -183,8 +179,8 @@ class _SampleToolOptions {
       switch (parsed.key) {
         case '--stop-id':
           stopId = parsed.value;
-        case '--gtfs-trip-id':
-          gtfsTripId = parsed.value;
+        case '--vehicle-id':
+          vehicleId = parsed.value;
         case '--limit':
           recordLimit = int.tryParse(parsed.value) ?? _defaultRecordLimit;
         default:
@@ -194,7 +190,7 @@ class _SampleToolOptions {
 
     return _SampleToolOptions(
       stopId: stopId,
-      gtfsTripId: gtfsTripId,
+      vehicleId: vehicleId,
       recordLimit: _clampLimit(recordLimit),
     );
   }

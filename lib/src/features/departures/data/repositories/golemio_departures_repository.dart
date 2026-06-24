@@ -95,7 +95,8 @@ String _sampleDepartures(List<Departure> departures) {
       .map(
         (departure) =>
             '${departure.routeShortName}->${departure.headsign}'
-            ':trip=${departure.gtfsTripId ?? '-'}',
+            ':trip=${departure.gtfsTripId ?? '-'}'
+            ':vehicle=${departure.vehicleId ?? '-'}',
       )
       .join(' | ');
 }

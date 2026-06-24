@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/app_exception.dart';
-import '../../domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import '../../domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import 'vehicle_map_event.dart';
 import 'vehicle_map_state.dart';
 
@@ -24,7 +24,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     on<VehicleMapRefreshTicked>(_onRefreshTicked);
   }
 
-  final GetVehiclePositionForTripUseCase _getVehiclePosition;
+  final GetVehiclePositionForVehicleUseCase _getVehiclePosition;
   final Duration pollingInterval;
   final VehicleMapTickerFactory _tickerFactory;
 
@@ -36,31 +36,31 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     Emitter<VehicleMapState> emit,
   ) async {
     await _restartPolling();
-    await _loadPosition(event.gtfsTripId, emit, showInitialLoading: true);
+    await _loadPosition(event.vehicleId, emit, showInitialLoading: true);
   }
 
   Future<void> _onRetried(
     VehicleMapRetried event,
     Emitter<VehicleMapState> emit,
   ) {
-    final gtfsTripId = state.gtfsTripId;
-    if (gtfsTripId == null) {
+    final vehicleId = state.vehicleId;
+    if (vehicleId == null) {
       return Future<void>.value();
     }
 
-    return _loadPosition(gtfsTripId, emit, showInitialLoading: true);
+    return _loadPosition(vehicleId, emit, showInitialLoading: true);
   }
 
   Future<void> _onRefreshTicked(
     VehicleMapRefreshTicked event,
     Emitter<VehicleMapState> emit,
   ) {
-    final gtfsTripId = state.gtfsTripId;
-    if (gtfsTripId == null) {
+    final vehicleId = state.vehicleId;
+    if (vehicleId == null) {
       return Future<void>.value();
     }
 
-    return _loadPosition(gtfsTripId, emit, showInitialLoading: false);
+    return _loadPosition(vehicleId, emit, showInitialLoading: false);
   }
 
   Future<void> _restartPolling() async {
@@ -77,7 +77,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
   }
 
   Future<void> _loadPosition(
-    String gtfsTripId,
+    String vehicleId,
     Emitter<VehicleMapState> emit, {
     required bool showInitialLoading,
   }) async {
@@ -89,12 +89,12 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     final previousPosition = state.position;
 
     if (showInitialLoading && previousPosition == null) {
-      emit(VehicleMapState.loading(gtfsTripId: gtfsTripId));
+      emit(VehicleMapState.loading(vehicleId: vehicleId));
     } else if (previousPosition != null) {
       emit(
         state.copyWith(
           status: VehicleMapStatus.loaded,
-          gtfsTripId: gtfsTripId,
+          vehicleId: vehicleId,
           position: previousPosition,
           isRefreshing: true,
           clearError: true,
@@ -104,11 +104,11 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     }
 
     try {
-      final position = await _getVehiclePosition(gtfsTripId);
+      final position = await _getVehiclePosition(vehicleId);
       emit(
         VehicleMapState(
           status: VehicleMapStatus.loaded,
-          gtfsTripId: gtfsTripId,
+          vehicleId: vehicleId,
           position: position,
         ),
       );
@@ -117,7 +117,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.loaded,
-            gtfsTripId: gtfsTripId,
+            vehicleId: vehicleId,
             position: previousPosition,
             staleError: error,
           ),
@@ -126,7 +126,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.noPosition,
-            gtfsTripId: gtfsTripId,
+            vehicleId: vehicleId,
             error: error,
           ),
         );
@@ -134,7 +134,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.error,
-            gtfsTripId: gtfsTripId,
+            vehicleId: vehicleId,
             error: error,
           ),
         );

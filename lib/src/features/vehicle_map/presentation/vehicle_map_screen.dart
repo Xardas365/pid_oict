@@ -16,12 +16,12 @@ import 'bloc/vehicle_map_state.dart';
 
 class VehicleMapScreen extends StatelessWidget {
   const VehicleMapScreen({
-    required this.gtfsTripId,
+    required this.vehicleId,
     super.key,
     this.showMapTiles = true,
   });
 
-  final String gtfsTripId;
+  final String vehicleId;
   final bool showMapTiles;
 
   @override

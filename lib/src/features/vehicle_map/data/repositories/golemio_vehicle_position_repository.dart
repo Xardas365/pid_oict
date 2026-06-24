@@ -11,8 +11,8 @@ class GolemioVehiclePositionRepository implements VehiclePositionRepository {
   final GolemioApiClient _apiClient;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) async {
-    final result = await fetchVehiclePositionsWithDiagnostics(gtfsTripId);
+  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
+    final result = await fetchVehiclePositionsWithDiagnostics(vehicleId);
     final position = result.items.isEmpty ? null : result.items.first;
 
     if (position == null) {
@@ -26,25 +26,24 @@ class GolemioVehiclePositionRepository implements VehiclePositionRepository {
   }
 
   Future<ParsedResult<VehiclePosition>> fetchVehiclePositionsWithDiagnostics(
-    String gtfsTripId,
+    String vehicleId,
   ) async {
-    final trimmedGtfsTripId = gtfsTripId.trim();
-    if (trimmedGtfsTripId.isEmpty) {
+    final trimmedVehicleId = vehicleId.trim();
+    if (trimmedVehicleId.isEmpty) {
       throw const AppException(
         type: AppExceptionType.invalidData,
-        message: 'GTFS trip ID is required to load vehicle position.',
+        message: 'Vehicle ID is required to load vehicle position.',
       );
     }
 
     final response = await _apiClient.getJson(
-      '/v2/vehiclepositions/${Uri.encodeComponent(trimmedGtfsTripId)}',
-      queryParameters: const {
-        'includeNotTracking': 'true',
-        'includePositions': 'true',
-        'preferredTimezone': 'Europe_Prague',
-      },
+      '/v2/public/vehiclepositions/${Uri.encodeComponent(trimmedVehicleId)}',
+      queryParameters: const {'scopes': 'info'},
     );
-    final parsed = VehiclePositionDto.parseWithDiagnostics(response);
+    final parsed = VehiclePositionDto.parseWithDiagnostics(
+      response,
+      fallbackVehicleId: trimmedVehicleId,
+    );
     final positions = parsed.items.map((dto) => dto.toDomain()).toList();
 
     return ParsedResult<VehiclePosition>(

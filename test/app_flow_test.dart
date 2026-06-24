@@ -9,10 +9,10 @@ import 'helpers/test_data.dart';
 void main() {
   group('PID app flow', () {
     testWidgets(
-      'loads stops, opens departures, and tracks a selected trip on the map',
+      'loads stops, opens departures, and tracks a selected vehicle on the map',
       (tester) async {
         final receivedStops = <Stop>[];
-        final receivedGtfsTripIds = <String>[];
+        final receivedVehicleIds = <String>[];
 
         await tester.pumpWidget(
           PidOictApp(
@@ -28,8 +28,8 @@ void main() {
 
               return [repyDeparture(), motolDeparture()];
             },
-            loadVehiclePosition: (gtfsTripId) async {
-              receivedGtfsTripIds.add(gtfsTripId);
+            loadVehiclePosition: (vehicleId) async {
+              receivedVehicleIds.add(vehicleId);
 
               return andelVehiclePosition(vehicleId: 'vehicle-from-api');
             },
@@ -55,14 +55,14 @@ void main() {
         await tester.tap(find.byTooltip('Zobrazit polohu vozidla'));
         await tester.pumpAndSettle();
 
-        expect(receivedGtfsTripIds, ['trip-10-repy']);
+        expect(receivedVehicleIds, ['service-3-1001']);
         expect(find.text('Poloha vozidla'), findsOneWidget);
         expect(find.text('Vozidlo vehicle-from-api'), findsOneWidget);
         expect(find.byIcon(Icons.directions_bus), findsOneWidget);
       },
     );
 
-    testWidgets('does not expose tracking when a departure has no gtfsTripId', (
+    testWidgets('does not expose tracking when a departure has no vehicleId', (
       tester,
     ) async {
       var vehiclePositionWasRequested = false;
@@ -71,7 +71,9 @@ void main() {
         PidOictApp(
           showMapTiles: false,
           loadStops: () async => const [andelStop],
-          loadDepartures: (_) async => [motolDeparture()],
+          loadDepartures: (_) async => [
+            motolDeparture(gtfsTripId: 'trip-without-vehicle'),
+          ],
           loadVehiclePosition: (_) async {
             vehiclePositionWasRequested = true;
 

@@ -26,8 +26,8 @@ Repositories:
    - verifies or isolates the exact stop filtering query parameter,
    - returns `List<Departure>`.
 3. `VehiclePositionRepository`
-   - calls `GET /v2/vehiclepositions/{gtfsTripId}`,
-   - includes `includeNotTracking=true`, `includePositions=true`, and `preferredTimezone=Europe_Prague`,
+   - calls `GET /v2/public/vehiclepositions/{vehicleId}`,
+   - includes `scopes=info`,
    - returns `VehiclePosition` or a controlled no-position error/state.
 
 Rules:

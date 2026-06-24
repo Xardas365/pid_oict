@@ -82,12 +82,12 @@ class QueueVehiclePositionRepository implements VehiclePositionRepository {
   QueueVehiclePositionRepository(this._responses);
 
   final List<RepositoryResponse<VehiclePosition>> _responses;
-  final receivedGtfsTripIds = <String>[];
+  final receivedVehicleIds = <String>[];
   var callCount = 0;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) {
-    receivedGtfsTripIds.add(gtfsTripId);
+  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) {
+    receivedVehicleIds.add(vehicleId);
     return _next(_responses);
   }
 

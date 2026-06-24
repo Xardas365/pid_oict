@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
-import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -196,15 +196,15 @@ Future<void> _pumpVehicleMapScreen(
       home: BlocProvider(
         create: (_) {
           final bloc = VehicleMapBloc(
-            GetVehiclePositionForTripUseCase(repository),
+            GetVehiclePositionForVehicleUseCase(repository),
             pollingInterval: Duration.zero,
-          )..add(const VehicleMapStarted('trip-22-123'));
+          )..add(const VehicleMapStarted('service-3-1001'));
           onBlocCreated?.call(bloc);
 
           return bloc;
         },
         child: const VehicleMapScreen(
-          gtfsTripId: 'trip-22-123',
+          vehicleId: 'service-3-1001',
           showMapTiles: false,
         ),
       ),
@@ -227,7 +227,7 @@ class _FutureVehiclePositionRepository implements VehiclePositionRepository {
   final Future<VehiclePosition> _future;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) {
+  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) {
     return _future;
   }
 }
@@ -239,7 +239,7 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
   var callCount = 0;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) async {
+  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
     final response = _responses[callCount];
     callCount++;
 

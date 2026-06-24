@@ -21,7 +21,7 @@ with Flutter 3.44.1 and Dart 3.12.1.
 - Departure boards for grouped stop IDs.
 - Departure deduplication, sorting, pull-to-refresh, periodic refresh, and
   stale-data warning.
-- Vehicle tracking by `gtfsTripId` on an OpenStreetMap-based map.
+- Vehicle tracking by departure `vehicleId` on an OpenStreetMap-based map.
 - Last known vehicle position stays visible when a refresh fails.
 - Public stops cache with 24-hour TTL and app-specific storage via
   `path_provider`.
@@ -142,10 +142,8 @@ Used endpoints:
 - `GET /v2/public/departureboards`
   - grouped `stopIds`, for example
     `stopIds={"0":["U118Z101P","U118Z102P"]}`
-- `GET /v2/vehiclepositions/{gtfsTripId}`
-  - `includeNotTracking=true`
-  - `includePositions=true`
-  - `preferredTimezone=Europe_Prague`
+- `GET /v2/public/vehiclepositions/{vehicleId}`
+  - `scopes=info`
 
 GTFS stops are filtered before they reach the public list because the raw feed
 also contains infrastructure and technical records. Public stop points are then
@@ -213,14 +211,14 @@ headers are redacted.
 To fetch local sample responses for manual inspection:
 
 ```bash
-GOLEMIO_API_TOKEN=your_token_here dart run tool/fetch_golemio_samples.dart --stop-id=U118Z101P --gtfs-trip-id=your_gtfs_trip_id
+GOLEMIO_API_TOKEN=your_token_here dart run tool/fetch_golemio_samples.dart --stop-id=U118Z101P --vehicle-id=service-3-1001
 ```
 
 On PowerShell:
 
 ```powershell
 $env:GOLEMIO_API_TOKEN="your_token_here"
-dart run tool/fetch_golemio_samples.dart --stop-id=U118Z101P --gtfs-trip-id=your_gtfs_trip_id
+dart run tool/fetch_golemio_samples.dart --stop-id=U118Z101P --vehicle-id=service-3-1001
 ```
 
 The tool writes only under `.debug/golemio_samples/`, which is ignored by Git.
@@ -230,7 +228,7 @@ The tool writes only under `.debug/golemio_samples/`, which is ignored by Git.
 - `names[]` is not guaranteed to behave as true full-text search, so the app
   keeps a local fallback over loaded/cached groups.
 - Manual runtime verification requires a valid Golemio token.
-- Vehicle tracking depends on a departure containing a usable `gtfsTripId`.
+- Vehicle tracking depends on a departure containing a usable `vehicleId`.
 - Map tiles require network access.
 - The stop cache TTL is fixed at 24 hours.
 - Favorites and recent stops store group IDs; if a saved group is not present in

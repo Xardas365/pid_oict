@@ -50,6 +50,7 @@ void main() {
               delaySeconds: 120,
               platform: '3',
               gtfsTripId: 'trip-22-123',
+              vehicleId: 'service-3-1001',
             ),
             Departure(
               routeShortName: 'A',
@@ -72,15 +73,15 @@ void main() {
       expect(find.byTooltip('Zobrazit polohu vozidla'), findsOneWidget);
     });
 
-    testWidgets('opens vehicle map screen with gtfsTripId', (
+    testWidgets('opens vehicle map screen with vehicleId', (
       WidgetTester tester,
     ) async {
-      String? selectedTripId;
+      String? selectedVehicleId;
 
       await _pumpDeparturesScreen(
         tester,
-        onTripSelected: (gtfsTripId) {
-          selectedTripId = gtfsTripId;
+        onVehicleSelected: (vehicleId) {
+          selectedVehicleId = vehicleId;
         },
         repository: _QueueDeparturesRepository([
           _DeparturesSuccess([
@@ -89,6 +90,7 @@ void main() {
               headsign: 'Nadrazi Hostivar',
               departureTime: DateTime(2026, 6, 22, 10, 15),
               gtfsTripId: 'trip-22-123',
+              vehicleId: 'service-3-1001',
             ),
           ]),
         ]),
@@ -98,10 +100,10 @@ void main() {
       await tester.tap(find.byTooltip('Zobrazit polohu vozidla'));
       await tester.pumpAndSettle();
 
-      expect(selectedTripId, 'trip-22-123');
+      expect(selectedVehicleId, 'service-3-1001');
     });
 
-    testWidgets('hides vehicle map action when gtfsTripId is missing', (
+    testWidgets('hides vehicle map action when vehicleId is missing', (
       WidgetTester tester,
     ) async {
       await _pumpDeparturesScreen(
@@ -112,6 +114,7 @@ void main() {
               routeShortName: 'A',
               headsign: 'Nemocnice Motol',
               departureTime: DateTime(2026, 6, 22, 10, 15),
+              gtfsTripId: 'trip-without-vehicle',
             ),
           ]),
         ]),
@@ -270,7 +273,7 @@ void main() {
 Future<void> _pumpDeparturesScreen(
   WidgetTester tester, {
   required DeparturesRepository repository,
-  ValueChanged<String>? onTripSelected,
+  ValueChanged<String>? onVehicleSelected,
 }) async {
   await tester.pumpWidget(
     localizedTestApp(
@@ -281,7 +284,7 @@ Future<void> _pumpDeparturesScreen(
         )..add(DeparturesStarted(_testStopGroup)),
         child: DeparturesScreen(
           stop: _testStopGroup,
-          onTripSelected: onTripSelected,
+          onVehicleSelected: onVehicleSelected,
         ),
       ),
     ),
@@ -294,6 +297,7 @@ Departure _departure(String headsign) {
     headsign: headsign,
     departureTime: DateTime(2026, 6, 22, 10, 15),
     gtfsTripId: 'trip-22-123',
+    vehicleId: 'service-3-1001',
   );
 }
 

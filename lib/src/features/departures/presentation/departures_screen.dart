@@ -10,7 +10,7 @@ import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
 import '../../stops/domain/stop_group.dart';
-import '../../vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import '../../vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import '../../vehicle_map/presentation/vehicle_map_screen.dart';
@@ -20,25 +20,29 @@ import 'bloc/departures_state.dart';
 import 'widgets/departure_tile.dart';
 
 class DeparturesScreen extends StatelessWidget {
-  const DeparturesScreen({required this.stop, super.key, this.onTripSelected});
+  const DeparturesScreen({
+    required this.stop,
+    super.key,
+    this.onVehicleSelected,
+  });
 
   final StopGroup stop;
-  final ValueChanged<String>? onTripSelected;
+  final ValueChanged<String>? onVehicleSelected;
 
-  void _openVehicleMap(BuildContext context, String gtfsTripId) {
-    final onTripSelected = this.onTripSelected;
-    if (onTripSelected != null) {
-      onTripSelected(gtfsTripId);
+  void _openVehicleMap(BuildContext context, String vehicleId) {
+    final onVehicleSelected = this.onVehicleSelected;
+    if (onVehicleSelected != null) {
+      onVehicleSelected(vehicleId);
       return;
     }
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
-          create: (context) =>
-              VehicleMapBloc(context.read<GetVehiclePositionForTripUseCase>())
-                ..add(VehicleMapStarted(gtfsTripId)),
-          child: VehicleMapScreen(gtfsTripId: gtfsTripId),
+          create: (context) => VehicleMapBloc(
+            context.read<GetVehiclePositionForVehicleUseCase>(),
+          )..add(VehicleMapStarted(vehicleId)),
+          child: VehicleMapScreen(vehicleId: vehicleId),
         ),
       ),
     );
@@ -103,7 +107,7 @@ class DeparturesScreen extends StatelessWidget {
 
     return _DeparturesList(
       state: state,
-      onOpenVehicleMap: (gtfsTripId) => _openVehicleMap(context, gtfsTripId),
+      onOpenVehicleMap: (vehicleId) => _openVehicleMap(context, vehicleId),
     );
   }
 }
@@ -139,12 +143,14 @@ class _DeparturesList extends StatelessWidget {
         }
 
         final departure = state.departures[index - headerCount];
+        // Departure boards can omit vehicle.id. A separate lookup would be
+        // needed; do not fake vehicle tracking from gtfsTripId.
 
         return DepartureTile(
           departure: departure,
-          onOpenVehicleMap: departure.gtfsTripId == null
+          onOpenVehicleMap: departure.vehicleId == null
               ? null
-              : () => onOpenVehicleMap(departure.gtfsTripId!),
+              : () => onOpenVehicleMap(departure.vehicleId!),
         );
       },
     );

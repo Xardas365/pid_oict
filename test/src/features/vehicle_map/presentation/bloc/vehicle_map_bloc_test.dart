@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
-import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -18,11 +18,11 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       expect(bloc.state.position?.vehicleId, 'vehicle-1');
-      expect(repository.receivedGtfsTripIds, ['trip-1']);
+      expect(repository.receivedVehicleIds, ['service-1']);
     });
 
     test('maps initial invalid data to no-position state', () async {
@@ -34,7 +34,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.noPosition);
 
       expect(bloc.state.position, isNull);
@@ -52,7 +52,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.error);
 
       expect(bloc.state.error, same(expectedError));
@@ -69,7 +69,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.error);
 
       bloc.add(const VehicleMapRetried());
@@ -87,7 +87,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForLatitude(bloc, 50.0755);
 
       bloc.add(const VehicleMapRefreshTicked());
@@ -109,7 +109,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForLatitude(bloc, 50.0755);
 
       bloc.add(const VehicleMapRefreshTicked());
@@ -132,7 +132,7 @@ void main() {
         final bloc = _createBloc(repository);
         addTearDown(bloc.close);
 
-        bloc.add(const VehicleMapStarted('trip-1'));
+        bloc.add(const VehicleMapStarted('service-1'));
         await _waitForLatitude(bloc, 50.0755);
 
         final emitted = <VehicleMapState>[];
@@ -165,12 +165,12 @@ void main() {
         _VehiclePositionSuccess(_position('vehicle-1')),
       ]);
       final bloc = VehicleMapBloc(
-        GetVehiclePositionForTripUseCase(repository),
+        GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
         tickerFactory: (_) => tickerController.stream,
       );
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       await bloc.close();
@@ -179,34 +179,34 @@ void main() {
       await tickerController.close();
     });
 
-    test('ticker triggers refresh with same gtfsTripId', () async {
+    test('ticker triggers refresh with same vehicleId', () async {
       final tickerController = StreamController<void>();
       final repository = _QueueVehiclePositionRepository([
         _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.0755)),
         _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.08)),
       ]);
       final bloc = VehicleMapBloc(
-        GetVehiclePositionForTripUseCase(repository),
+        GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
         tickerFactory: (_) => tickerController.stream,
       );
       addTearDown(bloc.close);
       addTearDown(tickerController.close);
 
-      bloc.add(const VehicleMapStarted('trip-1'));
+      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForLatitude(bloc, 50.0755);
 
       tickerController.add(null);
       await _waitForLatitude(bloc, 50.08);
 
-      expect(repository.receivedGtfsTripIds, ['trip-1', 'trip-1']);
+      expect(repository.receivedVehicleIds, ['service-1', 'service-1']);
     });
   });
 }
 
 VehicleMapBloc _createBloc(_QueueVehiclePositionRepository repository) {
   return VehicleMapBloc(
-    GetVehiclePositionForTripUseCase(repository),
+    GetVehiclePositionForVehicleUseCase(repository),
     pollingInterval: Duration.zero,
   );
 }
@@ -247,12 +247,12 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
   _QueueVehiclePositionRepository(this._responses);
 
   final List<_VehiclePositionResponse> _responses;
-  final receivedGtfsTripIds = <String>[];
+  final receivedVehicleIds = <String>[];
   var callCount = 0;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String gtfsTripId) async {
-    receivedGtfsTripIds.add(gtfsTripId);
+  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
+    receivedVehicleIds.add(vehicleId);
     final response = _responses[callCount];
     callCount++;
 

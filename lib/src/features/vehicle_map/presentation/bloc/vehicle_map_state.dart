@@ -5,18 +5,18 @@ enum VehicleMapStatus { loading, loaded, noPosition, error }
 class VehicleMapState {
   const VehicleMapState({
     required this.status,
-    this.gtfsTripId,
+    this.vehicleId,
     this.position,
     this.error,
     this.staleError,
     this.isRefreshing = false,
   });
 
-  const VehicleMapState.loading({String? gtfsTripId})
-    : this(status: VehicleMapStatus.loading, gtfsTripId: gtfsTripId);
+  const VehicleMapState.loading({String? vehicleId})
+    : this(status: VehicleMapStatus.loading, vehicleId: vehicleId);
 
   final VehicleMapStatus status;
-  final String? gtfsTripId;
+  final String? vehicleId;
   final VehiclePosition? position;
   final Object? error;
   final Object? staleError;
@@ -26,7 +26,7 @@ class VehicleMapState {
 
   VehicleMapState copyWith({
     VehicleMapStatus? status,
-    String? gtfsTripId,
+    String? vehicleId,
     VehiclePosition? position,
     Object? error,
     Object? staleError,
@@ -36,7 +36,7 @@ class VehicleMapState {
   }) {
     return VehicleMapState(
       status: status ?? this.status,
-      gtfsTripId: gtfsTripId ?? this.gtfsTripId,
+      vehicleId: vehicleId ?? this.vehicleId,
       position: position ?? this.position,
       error: clearError ? null : error ?? this.error,
       staleError: clearStaleError ? null : staleError ?? this.staleError,

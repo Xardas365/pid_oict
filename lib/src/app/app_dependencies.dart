@@ -14,7 +14,7 @@ import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
 import '../features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
-import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 
 class AppDependencies extends StatelessWidget {
   const AppDependencies({required this.child, super.key, this.apiClient});
@@ -62,8 +62,8 @@ class AppDependencies extends StatelessWidget {
           create: (context) =>
               GetDeparturesForStopUseCase(context.read<DeparturesRepository>()),
         ),
-        RepositoryProvider<GetVehiclePositionForTripUseCase>(
-          create: (context) => GetVehiclePositionForTripUseCase(
+        RepositoryProvider<GetVehiclePositionForVehicleUseCase>(
+          create: (context) => GetVehiclePositionForVehicleUseCase(
             context.read<VehiclePositionRepository>(),
           ),
         ),

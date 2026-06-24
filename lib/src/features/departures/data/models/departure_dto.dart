@@ -11,6 +11,7 @@ class DepartureDto {
     this.platform,
     this.stopId,
     this.gtfsTripId,
+    this.vehicleId,
   });
 
   final String routeShortName;
@@ -20,6 +21,7 @@ class DepartureDto {
   final String? platform;
   final String? stopId;
   final String? gtfsTripId;
+  final String? vehicleId;
 
   static DepartureDto? fromJson(JsonMap json) {
     final routeShortName = readString(json, _routeShortNamePaths);
@@ -38,6 +40,7 @@ class DepartureDto {
       platform: readString(json, _platformPaths),
       stopId: readString(json, _stopIdPaths),
       gtfsTripId: readString(json, _gtfsTripIdPaths),
+      vehicleId: readString(json, _vehicleIdPaths),
     );
   }
 
@@ -74,6 +77,7 @@ class DepartureDto {
       platform: platform,
       stopId: stopId,
       gtfsTripId: gtfsTripId,
+      vehicleId: vehicleId,
     );
   }
 }
@@ -183,4 +187,23 @@ const _gtfsTripIdPaths = [
   ['properties', 'trip', 'gtfsTripId'],
   ['properties', 'gtfs_trip_id'],
   ['properties', 'gtfsTripId'],
+];
+
+const _vehicleIdPaths = [
+  ['vehicle_id'],
+  ['vehicleId'],
+  ['vehicle', 'id'],
+  ['vehicle', 'vehicle_id'],
+  ['vehicle', 'vehicleId'],
+  ['properties', 'vehicle_id'],
+  ['properties', 'vehicleId'],
+  ['properties', 'vehicle', 'id'],
+  ['properties', 'vehicle', 'vehicle_id'],
+  ['properties', 'vehicle', 'vehicleId'],
+  ['departure', 'vehicle', 'id'],
+  ['departure', 'vehicle', 'vehicle_id'],
+  ['departure', 'vehicle', 'vehicleId'],
+  ['properties', 'departure', 'vehicle', 'id'],
+  ['properties', 'departure', 'vehicle', 'vehicle_id'],
+  ['properties', 'departure', 'vehicle', 'vehicleId'],
 ];

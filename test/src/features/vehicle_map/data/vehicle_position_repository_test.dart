@@ -29,22 +29,21 @@ void main() {
       );
       final repository = GolemioVehiclePositionRepository(apiClient);
 
-      final position = await repository.fetchVehiclePosition('trip-22-123');
+      final position = await repository.fetchVehiclePosition('service-3-1001');
 
       expect(apiClient.calls, hasLength(1));
-      expect(apiClient.calls.single.path, '/v2/vehiclepositions/trip-22-123');
-      expect(apiClient.calls.single.queryParameters, {
-        'includeNotTracking': 'true',
-        'includePositions': 'true',
-        'preferredTimezone': 'Europe_Prague',
-      });
+      expect(
+        apiClient.calls.single.path,
+        '/v2/public/vehiclepositions/service-3-1001',
+      );
+      expect(apiClient.calls.single.queryParameters, {'scopes': 'info'});
       expect(position.vehicleId, 'tram-22-123');
       expect(position.latitude, 50.0755);
       expect(position.longitude, 14.4378);
       expect(position.bearing, 87.5);
     });
 
-    test('encodes gtfsTripId as one path segment', () async {
+    test('encodes vehicleId as one path segment', () async {
       final apiClient = FakeGolemioApiClient(
         response: {
           'geometry': {
@@ -56,15 +55,51 @@ void main() {
       );
       final repository = GolemioVehiclePositionRepository(apiClient);
 
-      await repository.fetchVehiclePosition('trip/with slash');
+      await repository.fetchVehiclePosition('service/with slash');
 
       expect(
         apiClient.calls.single.path,
-        '/v2/vehiclepositions/trip%2Fwith%20slash',
+        '/v2/public/vehiclepositions/service%2Fwith%20slash',
       );
     });
 
-    test('throws controlled error when gtfsTripId is blank', () async {
+    test(
+      'uses request vehicleId when response body omits vehicle id',
+      () async {
+        final apiClient = FakeGolemioApiClient(
+          response: {
+            'gtfs_trip_id': '115_107_180501',
+            'route_type': 'bus',
+            'route_short_name': '22',
+            'trip_headsign': 'Bila Hora',
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [14.441252, 50.109318],
+            },
+            'bearing': 45,
+            'delay': 10,
+            'state_position': 'at_stop',
+            'origin_timestamp': '2023-12-06T12:00:00+01:00',
+          },
+        );
+        final repository = GolemioVehiclePositionRepository(apiClient);
+
+        final position = await repository.fetchVehiclePosition(
+          'service-3-1001',
+        );
+
+        expect(position.vehicleId, 'service-3-1001');
+        expect(position.latitude, 50.109318);
+        expect(position.longitude, 14.441252);
+        expect(position.bearing, 45);
+        expect(
+          position.lastUpdated,
+          DateTime.parse('2023-12-06T12:00:00+01:00'),
+        );
+      },
+    );
+
+    test('throws controlled error when vehicleId is blank', () async {
       final repository = GolemioVehiclePositionRepository(
         FakeGolemioApiClient(response: null),
       );
@@ -97,7 +132,7 @@ void main() {
         );
 
         await expectLater(
-          repository.fetchVehiclePosition('trip-22-123'),
+          repository.fetchVehiclePosition('service-3-1001'),
           throwsA(
             isA<AppException>().having(
               (error) => error.type,
@@ -115,7 +150,7 @@ void main() {
       );
 
       await expectLater(
-        repository.fetchVehiclePosition('trip-22-123'),
+        repository.fetchVehiclePosition('service-3-1001'),
         throwsA(
           isA<AppException>().having(
             (error) => error.type,
@@ -136,7 +171,7 @@ void main() {
       );
 
       await expectLater(
-        repository.fetchVehiclePosition('trip-22-123'),
+        repository.fetchVehiclePosition('service-3-1001'),
         throwsA(same(expectedError)),
       );
     });

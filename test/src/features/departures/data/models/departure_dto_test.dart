@@ -13,6 +13,7 @@ void main() {
           'delay_seconds': '120',
         },
         'stop': {'id': 'U123Z1', 'platform_code': '3'},
+        'vehicle': {'id': 'service-3-1001'},
       });
 
       expect(dto, isNotNull);
@@ -23,6 +24,7 @@ void main() {
       expect(dto.platform, '3');
       expect(dto.stopId, 'U123Z1');
       expect(dto.gtfsTripId, 'trip-22-123');
+      expect(dto.vehicleId, 'service-3-1001');
 
       final departure = dto.toDomain();
 
@@ -56,6 +58,7 @@ void main() {
       expect(dto!.delaySeconds, isNull);
       expect(dto.platform, isNull);
       expect(dto.gtfsTripId, isNull);
+      expect(dto.vehicleId, isNull);
     });
 
     test('parses numeric epoch departure timestamps', () {
@@ -127,6 +130,43 @@ void main() {
       }
     });
 
+    test('parses vehicleId from tolerant API paths', () {
+      for (final record in [
+        {
+          'line': '22',
+          'destination': 'Nadrazi Hostivar',
+          'departure_time': '2026-06-22T10:15:30Z',
+          'vehicle': {'id': 'service-from-vehicle'},
+        },
+        {
+          'line': '22',
+          'destination': 'Nadrazi Hostivar',
+          'departure_time': '2026-06-22T10:15:30Z',
+          'vehicle_id': 'service-from-root',
+        },
+        {
+          'properties': {
+            'line': '22',
+            'destination': 'Nadrazi Hostivar',
+            'departure_time': '2026-06-22T10:15:30Z',
+            'vehicle': {'id': 'service-from-properties'},
+          },
+        },
+        {
+          'line': '22',
+          'destination': 'Nadrazi Hostivar',
+          'departure_time': '2026-06-22T10:15:30Z',
+          'departure': {
+            'vehicle': {'id': 'service-from-departure'},
+          },
+        },
+      ]) {
+        final dto = DepartureDto.fromJson(record);
+
+        expect(dto?.vehicleId, startsWith('service-from-'));
+      }
+    });
+
     test('parses public departure board groups from nested list response', () {
       final result = DepartureDto.parseWithDiagnostics([
         [
@@ -137,6 +177,7 @@ void main() {
               'timestamp_predicted': '2026-06-22T10:15:30+02:00',
               'delay_seconds': 60,
             },
+            'vehicle': {'id': 'service-3-1001'},
             'stop': {'platform_code': '3'},
           },
         ],
@@ -149,6 +190,7 @@ void main() {
       expect(result.items.single.headsign, 'Sidliste Repy');
       expect(result.items.single.platform, '3');
       expect(result.items.single.gtfsTripId, 'trip-10-repy');
+      expect(result.items.single.vehicleId, 'service-3-1001');
     });
 
     test('rejects records with invalid required data', () {

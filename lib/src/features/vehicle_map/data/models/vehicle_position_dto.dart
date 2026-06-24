@@ -17,8 +17,11 @@ class VehiclePositionDto {
   final double? bearing;
   final DateTime? lastUpdated;
 
-  static VehiclePositionDto? fromJson(JsonMap json) {
-    final vehicleId = readString(json, _vehicleIdPaths);
+  static VehiclePositionDto? fromJson(
+    JsonMap json, {
+    String? fallbackVehicleId,
+  }) {
+    final vehicleId = readString(json, _vehicleIdPaths) ?? fallbackVehicleId;
     final coordinates = readGeoJsonPoint(json);
 
     if (vehicleId == null || coordinates == null) {
@@ -35,17 +38,23 @@ class VehiclePositionDto {
   }
 
   static ParsedResult<VehiclePositionDto> parseWithDiagnostics(
-    Object? response,
-  ) {
+    Object? response, {
+    String? fallbackVehicleId,
+  }) {
     return parseJsonRecordsWithDiagnostics<VehiclePositionDto>(
       response: response,
-      parse: VehiclePositionDto.fromJson,
-      skipReason: invalidReason,
+      parse: (json) => VehiclePositionDto.fromJson(
+        json,
+        fallbackVehicleId: fallbackVehicleId,
+      ),
+      skipReason: (json) =>
+          invalidReason(json, fallbackVehicleId: fallbackVehicleId),
     );
   }
 
-  static String invalidReason(JsonMap json) {
-    if (readString(json, _vehicleIdPaths) == null) {
+  static String invalidReason(JsonMap json, {String? fallbackVehicleId}) {
+    if (readString(json, _vehicleIdPaths) == null &&
+        (fallbackVehicleId == null || fallbackVehicleId.trim().isEmpty)) {
       return 'missing vehicle id';
     }
 
@@ -70,12 +79,16 @@ class VehiclePositionDto {
 const _vehicleIdPaths = [
   ['vehicle_id'],
   ['vehicleId'],
+  ['vehicle', 'id'],
+  ['vehicle', 'vehicle_id'],
+  ['vehicle', 'vehicleId'],
   ['id'],
   ['properties', 'vehicle_id'],
   ['properties', 'vehicleId'],
-  ['properties', 'id'],
-  ['vehicle', 'id'],
   ['properties', 'vehicle', 'id'],
+  ['properties', 'vehicle', 'vehicle_id'],
+  ['properties', 'vehicle', 'vehicleId'],
+  ['properties', 'id'],
 ];
 
 const _bearingPaths = [
@@ -92,11 +105,15 @@ const _lastUpdatedPaths = [
   ['lastUpdated'],
   ['updated_at'],
   ['updatedAt'],
+  ['origin_timestamp'],
+  ['originTimestamp'],
   ['timestamp'],
   ['properties', 'last_updated'],
   ['properties', 'lastUpdated'],
   ['properties', 'updated_at'],
   ['properties', 'updatedAt'],
+  ['properties', 'origin_timestamp'],
+  ['properties', 'originTimestamp'],
   ['properties', 'timestamp'],
 ];
 

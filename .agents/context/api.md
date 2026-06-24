@@ -9,7 +9,7 @@ Known assignment endpoints:
 * Base URL: `https://api.golemio.cz`
 * Stops: `GET /v2/gtfs/stops`
 * Departure boards: `GET /v2/public/departureboards`
-* Vehicle position: `GET /v2/vehiclepositions/{gtfsTripId}`
+* Vehicle position: `GET /v2/public/vehiclepositions/{vehicleId}`
 
 Before implementing endpoint-specific query parameters or field mappings, verify them against the current Golemio documentation or a sampled response.
 
@@ -105,23 +105,22 @@ For `GET /v2/public/departureboards`:
 * parse headsign/destination,
 * parse scheduled or predicted departure time,
 * parse delay if available,
-* parse GTFS trip ID only when a reliable field exists,
-* do not show the map action if GTFS trip ID is missing or unusable.
+* parse GTFS trip ID when a reliable field exists,
+* parse vehicle ID from `vehicle.id` or equivalent reliable fields,
+* do not show the map action if vehicle ID is missing or unusable.
 
 Do not invent query parameters or response paths. If the API shape is uncertain, add a small adapter/parser and document the assumption.
 
 ## Vehicle positions endpoint
 
-For `GET /v2/vehiclepositions/{gtfsTripId}`:
+For `GET /v2/public/vehiclepositions/{vehicleId}`:
 
 Required query parameters:
 
-* `includeNotTracking=true`,
-* `includePositions=true`,
-* `preferredTimezone=Europe_Prague`.
+* `scopes=info`.
 
-Use the selected departure's `gtfsTripId` as the path segment. Parse returned
-vehicle ID only as response metadata.
+Use the selected departure's `vehicle.id` as the path segment. Do not fake it
+from `gtfs_trip_id`. Keep GTFS trip ID only as optional metadata/display data.
 
 Also parse:
 

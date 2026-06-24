@@ -24,6 +24,24 @@ void main() {
       expect(result.diagnostics.skippedCount, 0);
     });
 
+    test('uses fallback vehicle ID for Swagger public response', () {
+      final result = VehiclePositionDto.parseWithDiagnostics({
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [14.441252, 50.109318],
+        },
+        'bearing': 45,
+        'origin_timestamp': '2023-12-06T12:00:00+01:00',
+      }, fallbackVehicleId: 'service-3-1001');
+
+      expect(result.items, hasLength(1));
+      expect(result.items.single.vehicleId, 'service-3-1001');
+      expect(result.items.single.latitude, 50.109318);
+      expect(result.items.single.longitude, 14.441252);
+      expect(result.diagnostics.parsedCount, 1);
+      expect(result.diagnostics.skippedCount, 0);
+    });
+
     test('reports no usable vehicle position', () {
       final result = VehiclePositionDto.parseWithDiagnostics({
         'features': [

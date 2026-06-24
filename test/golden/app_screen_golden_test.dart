@@ -14,7 +14,7 @@ import 'package:pid_oict/src/features/stops/domain/usecases/get_stops_use_case.d
 import 'package:pid_oict/src/features/stops/presentation/cubit/stops_cubit.dart';
 import 'package:pid_oict/src/features/stops/presentation/stops_screen.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
-import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_trip_use_case.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -203,15 +203,15 @@ Widget _vehicleMapScreen(
   return BlocProvider(
     create: (_) {
       final bloc = VehicleMapBloc(
-        GetVehiclePositionForTripUseCase(repository),
+        GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: Duration.zero,
-      )..add(const VehicleMapStarted('trip-10-repy'));
+      )..add(const VehicleMapStarted('service-3-1001'));
       onBlocCreated?.call(bloc);
 
       return bloc;
     },
     child: const VehicleMapScreen(
-      gtfsTripId: 'trip-10-repy',
+      vehicleId: 'service-3-1001',
       showMapTiles: false,
     ),
   );

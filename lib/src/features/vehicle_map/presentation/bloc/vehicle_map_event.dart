@@ -3,9 +3,9 @@ sealed class VehicleMapEvent {
 }
 
 class VehicleMapStarted extends VehicleMapEvent {
-  const VehicleMapStarted(this.gtfsTripId);
+  const VehicleMapStarted(this.vehicleId);
 
-  final String gtfsTripId;
+  final String vehicleId;
 }
 
 class VehicleMapRetried extends VehicleMapEvent {

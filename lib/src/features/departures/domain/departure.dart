@@ -7,6 +7,7 @@ class Departure {
     this.platform,
     this.stopId,
     this.gtfsTripId,
+    this.vehicleId,
   });
 
   final String routeShortName;
@@ -16,4 +17,5 @@ class Departure {
   final String? platform;
   final String? stopId;
   final String? gtfsTripId;
+  final String? vehicleId;
 }
