@@ -114,7 +114,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('22 – Nadrazi Hostivar'), findsWidgets);
-    expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
+    expect(find.textContaining('vehicle-123'), findsNothing);
     expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
 
     await tester.tap(find.byTooltip('Zpět na odjezdy'));

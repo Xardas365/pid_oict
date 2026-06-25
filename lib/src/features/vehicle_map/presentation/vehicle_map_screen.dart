@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,6 +10,7 @@ import '../../../../i18n/strings.g.dart';
 import '../../../core/domain/pid_line_classifier.dart';
 import '../../../core/domain/pid_line_type.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../core/presentation/pid_line_type_label_mapper.dart';
 import '../../../core/presentation/pid_transport_visuals.dart';
 import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/utils/date_time_formatters.dart';
@@ -88,9 +91,23 @@ class VehicleMapScreen extends StatelessWidget {
 }
 
 const _vehicleMapZoom = 15.0;
-const _vehicleMapFitMaxZoom = 16.0;
-const _vehicleMapFitPadding = EdgeInsets.fromLTRB(48, 48, 48, 220);
+const _vehicleMapFitMinZoom = 13.0;
+const _vehicleMapFitMaxZoom = 16.5;
+const _vehicleMapFitPadding = EdgeInsets.fromLTRB(56, 72, 56, 240);
+const _vehicleMapBackgroundColor = Color(0xFFE7EEF4);
+const _vehicleMapStaticBackgroundKey = Key('vehicle-map-static-background');
+const _vehicleMapLookBehindDistance = 900.0;
+const _vehicleMapLookAheadDistance = 2600.0;
+const _vehicleMapStopLookAheadDistance = 5000.0;
+const _vehicleMapRoutePointsBefore = 6;
+const _vehicleMapRoutePointsAfter = 12;
+const _vehicleMapNearbyStopLimit = 4;
+const _vehicleMapMarkerWidth = 50.0;
+const _vehicleMapMarkerHeight = 56.0;
+const _vehicleMapMarkerBodySize = 46.0;
 const _vehicleMapMarkerKey = Key('vehicle-map-marker');
+const Key _vehicleMapPanelKey = ValueKey('vehicle-map-info-panel');
+const Key _mapAttributionKey = ValueKey('vehicle-map-attribution');
 
 class _MapState extends StatefulWidget {
   const _MapState({
@@ -138,7 +155,11 @@ class _MapStateState extends State<_MapState> {
   void _handleMapReady() {
     _isMapReady = true;
     if (_autoFollow) {
-      _focusVehicleAndRoute();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _focusVehicleAndRoute();
+        }
+      });
     }
   }
 
@@ -174,6 +195,7 @@ class _MapStateState extends State<_MapState> {
       CameraFit.coordinates(
         coordinates: coordinates,
         padding: _vehicleMapFitPadding,
+        minZoom: _vehicleMapFitMinZoom,
         maxZoom: _vehicleMapFitMaxZoom,
       ),
     );
@@ -193,7 +215,7 @@ class _MapStateState extends State<_MapState> {
           options: MapOptions(
             initialCenter: point,
             initialZoom: _vehicleMapZoom,
-            initialCameraFit: _initialCameraFit(position),
+            backgroundColor: _vehicleMapBackgroundColor,
             onMapReady: _handleMapReady,
             onPositionChanged: _handlePositionChanged,
           ),
@@ -202,10 +224,16 @@ class _MapStateState extends State<_MapState> {
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'pid_oict',
+                tileDisplay: const TileDisplay.fadeIn(
+                  duration: Duration(milliseconds: 120),
+                ),
               )
             else
               const Positioned.fill(
-                child: ColoredBox(color: Color(0xFFE7EEF4)),
+                child: ColoredBox(
+                  key: _vehicleMapStaticBackgroundKey,
+                  color: _vehicleMapBackgroundColor,
+                ),
               ),
             if (routeSegments.hasRoute)
               _RoutePolylineLayer(
@@ -218,18 +246,15 @@ class _MapStateState extends State<_MapState> {
               markers: [
                 Marker(
                   point: point,
-                  width: 64,
-                  height: 64,
+                  width: _vehicleMapMarkerWidth,
+                  height: _vehicleMapMarkerHeight,
+                  alignment: Alignment.topCenter,
                   child: _VehicleMapMarker(
                     label: routeStyle.routeLabel,
                     style: routeStyle,
                   ),
                 ),
               ],
-            ),
-            const Align(
-              alignment: Alignment.bottomLeft,
-              child: _MapAttribution(),
             ),
           ],
         ),
@@ -250,14 +275,26 @@ class _MapStateState extends State<_MapState> {
           ),
         ),
         Positioned(
-          left: 16,
-          right: 16,
-          bottom: 16,
-          child: _VehiclePositionCard(
-            args: widget.args,
-            position: position,
-            staleError: widget.staleError,
-            style: routeStyle,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: SafeArea(
+            top: false,
+            minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _MapAttribution(),
+                const SizedBox(height: 8),
+                _VehiclePositionCard(
+                  args: widget.args,
+                  position: position,
+                  staleError: widget.staleError,
+                  style: routeStyle,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -280,9 +317,9 @@ class _RoutePolylineLayer extends StatelessWidget {
         Polyline(
           points: segments.traveled,
           color: style.traveledRouteColor,
-          strokeWidth: 5,
-          borderColor: Colors.white.withValues(alpha: 0.85),
-          borderStrokeWidth: 2,
+          strokeWidth: 3.5,
+          borderColor: Colors.white.withValues(alpha: 0.82),
+          borderStrokeWidth: 1.2,
         ),
       );
     }
@@ -292,9 +329,9 @@ class _RoutePolylineLayer extends StatelessWidget {
         Polyline(
           points: segments.remaining,
           color: style.remainingRouteColor,
-          strokeWidth: 6,
+          strokeWidth: 6.8,
           borderColor: Colors.white.withValues(alpha: 0.9),
-          borderStrokeWidth: 2,
+          borderStrokeWidth: 2.8,
         ),
       );
     }
@@ -304,7 +341,7 @@ class _RoutePolylineLayer extends StatelessWidget {
         Polyline(
           points: segments.fullRoute,
           color: style.remainingRouteColor,
-          strokeWidth: 5,
+          strokeWidth: 5.5,
           borderColor: Colors.white.withValues(alpha: 0.9),
           borderStrokeWidth: 2,
         ),
@@ -323,23 +360,241 @@ class _RouteStopLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final markerStyles = _RouteStopMarkerStyles.from(context, position, style);
+
     return CircleLayer(
       circles: [
         for (final stop in position.stopTimes)
-          CircleMarker(
-            point: LatLng(stop.latitude, stop.longitude),
-            radius: stop.stopSequence == position.lastStopSequence ? 6 : 4,
-            color: stop.stopSequence == position.lastStopSequence
-                ? style.remainingRouteColor
-                : Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-            borderColor: stop.stopSequence == position.lastStopSequence
-                ? Colors.white
-                : style.remainingRouteColor.withValues(alpha: 0.7),
-            borderStrokeWidth: 2,
+          _circleMarkerForStop(
+            stop: stop,
+            style: markerStyles.styleFor(stop),
           ),
       ],
     );
   }
+}
+
+CircleMarker<Object> _circleMarkerForStop({
+  required VehicleRouteStop stop,
+  required _RouteStopMarkerStyle style,
+}) {
+  final sequence = stop.stopSequence?.toString() ?? 'unknown';
+
+  return CircleMarker<Object>(
+    key: ValueKey('vehicle-route-stop-${style.kind.name}-$sequence'),
+    point: LatLng(stop.latitude, stop.longitude),
+    radius: style.radius,
+    color: style.fillColor,
+    borderColor: style.borderColor,
+    borderStrokeWidth: style.borderStrokeWidth,
+  );
+}
+
+enum _RouteStopMarkerKind { traveled, current, next, destination, upcoming }
+
+class _RouteStopMarkerStyles {
+  const _RouteStopMarkerStyles({
+    required this.position,
+    required this.routeStyle,
+    required this.colorScheme,
+    required this.nextStopSequence,
+    required this.destinationStopSequence,
+    required this.nextShapeDistance,
+    required this.destinationShapeDistance,
+  });
+
+  factory _RouteStopMarkerStyles.from(
+    BuildContext context,
+    VehiclePosition position,
+    _VehicleRouteStyle routeStyle,
+  ) {
+    return _RouteStopMarkerStyles(
+      position: position,
+      routeStyle: routeStyle,
+      colorScheme: Theme.of(context).colorScheme,
+      nextStopSequence: _nextStopSequence(position),
+      destinationStopSequence: _destinationStopSequence(position.stopTimes),
+      nextShapeDistance: _nextStopShapeDistance(position),
+      destinationShapeDistance: _destinationShapeDistance(position.stopTimes),
+    );
+  }
+
+  final VehiclePosition position;
+  final _VehicleRouteStyle routeStyle;
+  final ColorScheme colorScheme;
+  final int? nextStopSequence;
+  final int? destinationStopSequence;
+  final double? nextShapeDistance;
+  final double? destinationShapeDistance;
+
+  _RouteStopMarkerStyle styleFor(VehicleRouteStop stop) {
+    final kind = _kindFor(stop);
+    final activeColor = routeStyle.remainingRouteColor;
+
+    return switch (kind) {
+      _RouteStopMarkerKind.current => _RouteStopMarkerStyle(
+        kind: kind,
+        radius: 7,
+        fillColor: activeColor,
+        borderColor: Colors.white,
+        borderStrokeWidth: 3,
+      ),
+      _RouteStopMarkerKind.next => _RouteStopMarkerStyle(
+        kind: kind,
+        radius: 5.8,
+        fillColor: activeColor.withValues(alpha: 0.9),
+        borderColor: Colors.white,
+        borderStrokeWidth: 2,
+      ),
+      _RouteStopMarkerKind.destination => _RouteStopMarkerStyle(
+        kind: kind,
+        radius: 6.2,
+        fillColor: colorScheme.surface.withValues(alpha: 0.95),
+        borderColor: activeColor,
+        borderStrokeWidth: 3,
+      ),
+      _RouteStopMarkerKind.traveled => _RouteStopMarkerStyle(
+        kind: kind,
+        radius: 2.8,
+        fillColor: colorScheme.outline.withValues(alpha: 0.62),
+        borderColor: Colors.white.withValues(alpha: 0.8),
+        borderStrokeWidth: 1.4,
+      ),
+      _RouteStopMarkerKind.upcoming => _RouteStopMarkerStyle(
+        kind: kind,
+        radius: 3.6,
+        fillColor: colorScheme.surface.withValues(alpha: 0.9),
+        borderColor: activeColor.withValues(alpha: 0.72),
+        borderStrokeWidth: 1.6,
+      ),
+    };
+  }
+
+  _RouteStopMarkerKind _kindFor(VehicleRouteStop stop) {
+    final stopSequence = stop.stopSequence;
+    final shapeDistance = stop.shapeDistTraveled;
+    final lastStopSequence = position.lastStopSequence;
+    final traveledDistance = position.shapeDistTraveled;
+
+    if (lastStopSequence != null && stopSequence == lastStopSequence) {
+      return _RouteStopMarkerKind.current;
+    }
+
+    if (_matchesStop(
+      stopSequence,
+      shapeDistance,
+      nextStopSequence,
+      nextShapeDistance,
+    )) {
+      return _RouteStopMarkerKind.next;
+    }
+
+    if (_matchesStop(
+      stopSequence,
+      shapeDistance,
+      destinationStopSequence,
+      destinationShapeDistance,
+    )) {
+      return _RouteStopMarkerKind.destination;
+    }
+
+    if ((lastStopSequence != null &&
+            stopSequence != null &&
+            stopSequence < lastStopSequence) ||
+        (traveledDistance != null &&
+            shapeDistance != null &&
+            shapeDistance < traveledDistance)) {
+      return _RouteStopMarkerKind.traveled;
+    }
+
+    return _RouteStopMarkerKind.upcoming;
+  }
+}
+
+class _RouteStopMarkerStyle {
+  const _RouteStopMarkerStyle({
+    required this.kind,
+    required this.radius,
+    required this.fillColor,
+    required this.borderColor,
+    required this.borderStrokeWidth,
+  });
+
+  final _RouteStopMarkerKind kind;
+  final double radius;
+  final Color fillColor;
+  final Color borderColor;
+  final double borderStrokeWidth;
+}
+
+bool _matchesStop(
+  int? stopSequence,
+  double? shapeDistance,
+  int? targetSequence,
+  double? targetShapeDistance,
+) {
+  if (targetSequence != null && stopSequence == targetSequence) {
+    return true;
+  }
+
+  return targetSequence == null &&
+      targetShapeDistance != null &&
+      shapeDistance == targetShapeDistance;
+}
+
+int? _nextStopSequence(VehiclePosition position) {
+  final lastStopSequence = position.lastStopSequence;
+  final candidates =
+      position.stopTimes
+          .map((stop) => stop.stopSequence)
+          .whereType<int>()
+          .where(
+            (sequence) =>
+                lastStopSequence == null || sequence > lastStopSequence,
+          )
+          .toList(growable: false)
+        ..sort();
+
+  return candidates.isEmpty ? null : candidates.first;
+}
+
+double? _nextStopShapeDistance(VehiclePosition position) {
+  final traveledDistance = position.shapeDistTraveled;
+  if (traveledDistance == null) {
+    return null;
+  }
+
+  final candidates =
+      position.stopTimes
+          .map((stop) => stop.shapeDistTraveled)
+          .whereType<double>()
+          .where((distance) => distance > traveledDistance)
+          .toList(growable: false)
+        ..sort();
+
+  return candidates.isEmpty ? null : candidates.first;
+}
+
+int? _destinationStopSequence(List<VehicleRouteStop> stops) {
+  final sequences =
+      stops
+          .map((stop) => stop.stopSequence)
+          .whereType<int>()
+          .toList(growable: false)
+        ..sort();
+
+  return sequences.isEmpty ? null : sequences.last;
+}
+
+double? _destinationShapeDistance(List<VehicleRouteStop> stops) {
+  final distances =
+      stops
+          .map((stop) => stop.shapeDistTraveled)
+          .whereType<double>()
+          .toList(growable: false)
+        ..sort();
+
+  return distances.isEmpty ? null : distances.last;
 }
 
 class _VehicleMapMarker extends StatelessWidget {
@@ -358,38 +613,116 @@ class _VehicleMapMarker extends StatelessWidget {
     return Semantics(
       key: _vehicleMapMarkerKey,
       label: semanticLabel,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: style.markerBackgroundColor,
-          shape: BoxShape.circle,
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x33000000),
-              blurRadius: 10,
-              offset: Offset(0, 4),
+      child: SizedBox(
+        width: _vehicleMapMarkerWidth,
+        height: _vehicleMapMarkerHeight,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Positioned(
+              bottom: 0,
+              child: _VehicleMarkerPointer(style: style),
             ),
-          ],
-          border: Border.all(color: Colors.white, width: 3),
-        ),
-        child: Center(
-          child: label == null
-              ? Icon(
-                  style.fallbackIcon,
-                  color: style.markerForegroundColor,
-                  size: 28,
-                )
-              : Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: style.markerForegroundColor,
-                    fontWeight: FontWeight.w800,
+            Positioned(
+              top: 0,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: style.markerBackgroundColor,
+                  shape: BoxShape.circle,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x44000000),
+                      blurRadius: 14,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: SizedBox.square(
+                  dimension: _vehicleMapMarkerBodySize,
+                  child: Center(
+                    child: label == null
+                        ? Icon(
+                            style.fallbackIcon,
+                            color: style.markerForegroundColor,
+                            size: 22,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: style.markerForegroundColor,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0,
+                                    ),
+                              ),
+                            ),
+                          ),
                   ),
                 ),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+}
+
+class _VehicleMarkerPointer extends StatelessWidget {
+  const _VehicleMarkerPointer({required this.style});
+
+  final _VehicleRouteStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(18, 14),
+      painter: _VehicleMarkerPointerPainter(
+        fillColor: style.markerBackgroundColor,
+      ),
+    );
+  }
+}
+
+class _VehicleMarkerPointerPainter extends CustomPainter {
+  const _VehicleMarkerPointerPainter({required this.fillColor});
+
+  final Color fillColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = ui.Path()
+      ..moveTo(1, 1)
+      ..lineTo(size.width - 1, 1)
+      ..lineTo(size.width / 2, size.height - 1)
+      ..close();
+
+    canvas
+      ..drawPath(
+        path,
+        ui.Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..strokeJoin = ui.StrokeJoin.round,
+      )
+      ..drawPath(
+        path,
+        ui.Paint()
+          ..color = fillColor
+          ..style = PaintingStyle.fill,
+      );
+  }
+
+  @override
+  bool shouldRepaint(covariant _VehicleMarkerPointerPainter oldDelegate) {
+    return fillColor != oldDelegate.fillColor;
   }
 }
 
@@ -410,17 +743,22 @@ class _VehiclePositionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final lastUpdated = position.lastUpdated;
     final staleError = this.staleError;
-    final title = _routeTitle(args, position);
+    final title =
+        _routeTitle(args, position) ??
+        _headsign(args, position) ??
+        _routeLabel(args, position) ??
+        context.t.vehicleMap.title;
     final routeLabel = style.routeLabel;
-    final delay = formatDelaySeconds(position.delaySeconds);
-    final vehicleLabel = context.t.vehicleMap.vehicleLabel(
-      vehicleId: position.vehicleId,
-    );
+    final delay = formatRealtimeDelayLabel(position.delaySeconds);
+    final lastUpdatedText = _lastUpdatedText(context, lastUpdated);
+    final nextStopText = _nextStopText(context, position);
+    final metadata = _metadataPills(context, args, position, routeLabel);
 
     return DecoratedBox(
+      key: _vehicleMapPanelKey,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
-        borderRadius: const BorderRadius.all(Radius.circular(18)),
+        borderRadius: const BorderRadius.all(Radius.circular(16)),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: const [
           BoxShadow(
@@ -431,7 +769,7 @@ class _VehiclePositionCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -448,25 +786,21 @@ class _VehiclePositionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title ?? vehicleLabel,
+                        title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Wrap(
-                        spacing: 10,
+                        spacing: 8,
                         runSpacing: 4,
                         children: [
-                          if (delay != null) _InfoPill(text: delay),
-                          if (lastUpdated != null)
-                            _InfoPill(
-                              text: context.t.vehicleMap.lastUpdated(
-                                time: formatClockTimeWithSeconds(lastUpdated),
-                              ),
-                            ),
+                          _InfoPill(text: delay),
+                          if (lastUpdatedText != null)
+                            _InfoPill(text: lastUpdatedText),
                         ],
                       ),
                     ],
@@ -474,14 +808,16 @@ class _VehiclePositionCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (title != null) ...[
+            if (nextStopText != null) ...[
               const SizedBox(height: 8),
-              Text(
-                vehicleLabel,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              _InlineInfo(
+                icon: Icons.flag_outlined,
+                text: nextStopText,
               ),
+            ],
+            if (metadata.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(spacing: 8, runSpacing: 5, children: metadata),
             ],
             if (staleError != null) ...[
               const SizedBox(height: 10),
@@ -543,9 +879,11 @@ class _InfoPill extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(999)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
         child: Text(
           text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
@@ -554,6 +892,148 @@ class _InfoPill extends StatelessWidget {
       ),
     );
   }
+}
+
+class _InlineInfo extends StatelessWidget {
+  const _InlineInfo({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: colorScheme.primary),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String? _lastUpdatedText(BuildContext context, DateTime? lastUpdated) {
+  if (lastUpdated == null) {
+    return null;
+  }
+
+  final now = DateTime.now();
+  final localLastUpdated = lastUpdated.toLocal();
+  final localNow = now.toLocal();
+  final elapsedSeconds = elapsedSecondsSince(localLastUpdated, now: localNow);
+  final isToday =
+      localLastUpdated.year == localNow.year &&
+      localLastUpdated.month == localNow.month &&
+      localLastUpdated.day == localNow.day;
+
+  if (isToday && elapsedSeconds < 3600) {
+    return context.t.vehicleMap.lastUpdatedAgo(seconds: elapsedSeconds);
+  }
+
+  return context.t.vehicleMap.lastUpdated(
+    time: formatClockTimeWithSeconds(lastUpdated),
+  );
+}
+
+String? _nextStopText(BuildContext context, VehiclePosition position) {
+  final stop = _nextStop(position);
+  if (stop == null) {
+    return null;
+  }
+
+  final time =
+      stop.realtimeArrivalTime ??
+      stop.arrivalTime ??
+      stop.realtimeDepartureTime ??
+      stop.departureTime;
+  if (time != null) {
+    return context.t.vehicleMap.nextStopAt(
+      stop: stop.name,
+      time: formatClockTime(time),
+    );
+  }
+
+  return context.t.vehicleMap.nextStop(stop: stop.name);
+}
+
+VehicleRouteStop? _nextStop(VehiclePosition position) {
+  final lastStopSequence = position.lastStopSequence;
+  if (lastStopSequence != null) {
+    final candidates =
+        position.stopTimes
+            .where(
+              (stop) =>
+                  stop.stopSequence != null &&
+                  stop.stopSequence! > lastStopSequence,
+            )
+            .toList(growable: false)
+          ..sort((first, second) {
+            return first.stopSequence!.compareTo(second.stopSequence!);
+          });
+
+    if (candidates.isNotEmpty) {
+      return candidates.first;
+    }
+  }
+
+  final traveledDistance = position.shapeDistTraveled;
+  if (traveledDistance == null) {
+    return null;
+  }
+
+  final candidates =
+      position.stopTimes
+          .where(
+            (stop) =>
+                stop.shapeDistTraveled != null &&
+                stop.shapeDistTraveled! > traveledDistance,
+          )
+          .toList(growable: false)
+        ..sort((first, second) {
+          return first.shapeDistTraveled!.compareTo(second.shapeDistTraveled!);
+        });
+
+  return candidates.isEmpty ? null : candidates.first;
+}
+
+List<Widget> _metadataPills(
+  BuildContext context,
+  VehicleMapArgs args,
+  VehiclePosition position,
+  String? routeLabel,
+) {
+  final descriptor = position.vehicleDescriptor;
+  final lineType = _lineType(args, position, routeLabel);
+  final labels = <String>[
+    PidLineTypeLabelMapper(context.t).labelFor(lineType),
+  ];
+  final operator = _trimOrNull(descriptor?.operator);
+  if (operator != null) {
+    labels.add(context.t.vehicleMap.operatorName(name: operator));
+  }
+  if (descriptor?.isWheelchairAccessible == true) {
+    labels.add(context.t.vehicleMap.wheelchairAccessible);
+  }
+  if (descriptor?.isAirConditioned == true) {
+    labels.add(context.t.vehicleMap.airConditioned);
+  }
+  if (descriptor?.hasUsbChargers == true) {
+    labels.add(context.t.vehicleMap.usbChargers);
+  }
+
+  return labels.map((label) => _InfoPill(text: label)).toList(growable: false);
 }
 
 class _VehicleRouteStyle {
@@ -586,7 +1066,7 @@ class _VehicleRouteStyle {
 
     return _VehicleRouteStyle(
       remainingRouteColor: backgroundColor,
-      traveledRouteColor: colorScheme.outline.withValues(alpha: 0.7),
+      traveledRouteColor: const Color(0xFF64748B).withValues(alpha: 0.72),
       markerBackgroundColor: backgroundColor,
       markerForegroundColor: metroColors?.foregroundColor ?? Colors.white,
       badgeBorderColor: metroColors?.borderColor ?? backgroundColor,
@@ -639,22 +1119,27 @@ _VehicleRouteSegments _vehicleRouteSegments(VehiclePosition position) {
     );
   }
 
-  final splitIndex = routePoints.lastIndexWhere(
+  final previousRoutePointIndex = routePoints.lastIndexWhere(
     (point) => point.shapeDistTraveled! <= traveledDistance,
   );
+  final nextRoutePointIndex = routePoints.indexWhere(
+    (point) => point.shapeDistTraveled! > traveledDistance,
+  );
+  final vehiclePoint = _vehiclePoint(position);
 
-  final traveled = splitIndex >= 1
-      ? routePoints
-            .take(splitIndex + 1)
-            .map(_routePointToLatLng)
-            .toList(growable: false)
+  final traveled = previousRoutePointIndex >= 0
+      ? _uniqueCoordinates([
+          ...routePoints
+              .take(previousRoutePointIndex + 1)
+              .map(_routePointToLatLng),
+          vehiclePoint,
+        ])
       : const <LatLng>[];
-  final remainingStartIndex = splitIndex < 0 ? 0 : splitIndex;
-  final remaining = routePoints.length - remainingStartIndex >= 2
-      ? routePoints
-            .skip(remainingStartIndex)
-            .map(_routePointToLatLng)
-            .toList(growable: false)
+  final remaining = nextRoutePointIndex >= 0
+      ? _uniqueCoordinates([
+          vehiclePoint,
+          ...routePoints.skip(nextRoutePointIndex).map(_routePointToLatLng),
+        ])
       : const <LatLng>[];
 
   return _VehicleRouteSegments(traveled: traveled, remaining: remaining);
@@ -672,26 +1157,162 @@ List<VehicleRoutePoint> _sortedRoutePoints(List<VehicleRoutePoint> points) {
   );
 }
 
-CameraFit? _initialCameraFit(VehiclePosition position) {
-  final coordinates = _focusCoordinates(position);
-  if (coordinates.length < 2) {
-    return null;
-  }
-
-  return CameraFit.coordinates(
-    coordinates: coordinates,
-    padding: _vehicleMapFitPadding,
-    maxZoom: _vehicleMapFitMaxZoom,
-  );
+List<LatLng> _focusCoordinates(VehiclePosition position) {
+  return _uniqueCoordinates([
+    _vehiclePoint(position),
+    ..._nearbyRouteCoordinates(position),
+    ..._nearbyStopCoordinates(position),
+  ]);
 }
 
-List<LatLng> _focusCoordinates(VehiclePosition position) {
-  return [
-    _vehiclePoint(position),
-    for (final point in position.routePoints) _routePointToLatLng(point),
-    for (final stop in position.stopTimes)
-      LatLng(stop.latitude, stop.longitude),
-  ];
+/// Exposes the map camera focus target set for deterministic widget tests.
+@visibleForTesting
+List<LatLng> vehicleMapFocusCoordinatesForTesting(VehiclePosition position) {
+  return _focusCoordinates(position);
+}
+
+List<LatLng> _nearbyRouteCoordinates(VehiclePosition position) {
+  final routePoints = _sortedRoutePoints(position.routePoints);
+  if (routePoints.isEmpty) {
+    return const <LatLng>[];
+  }
+
+  final traveledDistance = position.shapeDistTraveled;
+  final routeHasDistances = routePoints.every(
+    (point) => point.shapeDistTraveled != null,
+  );
+
+  if (traveledDistance != null && routeHasDistances) {
+    final startDistance = traveledDistance - _vehicleMapLookBehindDistance;
+    final endDistance = traveledDistance + _vehicleMapLookAheadDistance;
+    final nearbyPoints = routePoints
+        .where(
+          (point) =>
+              point.shapeDistTraveled! >= startDistance &&
+              point.shapeDistTraveled! <= endDistance,
+        )
+        .toList(growable: false);
+
+    if (nearbyPoints.isNotEmpty) {
+      return nearbyPoints.map(_routePointToLatLng).toList(growable: false);
+    }
+  }
+
+  final vehiclePoint = _vehiclePoint(position);
+  final closestIndex = _closestRoutePointIndex(routePoints, vehiclePoint);
+  final startIndex = (closestIndex - _vehicleMapRoutePointsBefore).clamp(
+    0,
+    routePoints.length,
+  );
+  final endIndex = (closestIndex + _vehicleMapRoutePointsAfter + 1).clamp(
+    0,
+    routePoints.length,
+  );
+
+  return routePoints
+      .sublist(startIndex, endIndex)
+      .map(_routePointToLatLng)
+      .toList(growable: false);
+}
+
+List<LatLng> _nearbyStopCoordinates(VehiclePosition position) {
+  if (position.stopTimes.isEmpty) {
+    return const <LatLng>[];
+  }
+
+  final lastStopSequence = position.lastStopSequence;
+  final traveledDistance = position.shapeDistTraveled;
+  if (lastStopSequence != null) {
+    final upcomingStops =
+        position.stopTimes
+            .where(
+              (stop) =>
+                  stop.stopSequence != null &&
+                  stop.stopSequence! > lastStopSequence &&
+                  _isFocusableUpcomingStop(stop, traveledDistance),
+            )
+            .toList(growable: false)
+          ..sort((first, second) {
+            return first.stopSequence!.compareTo(second.stopSequence!);
+          });
+
+    if (upcomingStops.isNotEmpty) {
+      return upcomingStops
+          .take(_vehicleMapNearbyStopLimit)
+          .map((stop) => LatLng(stop.latitude, stop.longitude))
+          .toList(growable: false);
+    }
+  }
+
+  if (traveledDistance == null) {
+    return const <LatLng>[];
+  }
+
+  final nearbyStops =
+      position.stopTimes
+          .where(
+            (stop) =>
+                stop.shapeDistTraveled != null &&
+                stop.shapeDistTraveled! >= traveledDistance &&
+                stop.shapeDistTraveled! <=
+                    traveledDistance + _vehicleMapLookAheadDistance,
+          )
+          .toList(growable: false)
+        ..sort(
+          (first, second) =>
+              first.shapeDistTraveled!.compareTo(second.shapeDistTraveled!),
+        );
+
+  return nearbyStops
+      .take(_vehicleMapNearbyStopLimit)
+      .map((stop) => LatLng(stop.latitude, stop.longitude))
+      .toList(growable: false);
+}
+
+bool _isFocusableUpcomingStop(
+  VehicleRouteStop stop,
+  double? traveledDistance,
+) {
+  final stopDistance = stop.shapeDistTraveled;
+  if (traveledDistance == null || stopDistance == null) {
+    return true;
+  }
+
+  return stopDistance <= traveledDistance + _vehicleMapStopLookAheadDistance;
+}
+
+int _closestRoutePointIndex(List<VehicleRoutePoint> points, LatLng vehicle) {
+  var closestIndex = 0;
+  var closestDistance = double.infinity;
+
+  for (var index = 0; index < points.length; index++) {
+    final point = points[index];
+    final latitudeDelta = point.latitude - vehicle.latitude;
+    final longitudeDelta = point.longitude - vehicle.longitude;
+    final distance =
+        (latitudeDelta * latitudeDelta) + (longitudeDelta * longitudeDelta);
+
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  }
+
+  return closestIndex;
+}
+
+List<LatLng> _uniqueCoordinates(List<LatLng> coordinates) {
+  final seen = <String>{};
+  final unique = <LatLng>[];
+
+  for (final coordinate in coordinates) {
+    final key = '${coordinate.latitude}:${coordinate.longitude}';
+    if (seen.add(key)) {
+      unique.add(coordinate);
+    }
+  }
+
+  return unique;
 }
 
 LatLng _vehiclePoint(VehiclePosition position) {
@@ -773,6 +1394,7 @@ class _MapAttribution extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
+      key: _mapAttributionKey,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
       ),

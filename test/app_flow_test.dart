@@ -56,7 +56,7 @@ void main() {
 
         expect(receivedVehicleIds, ['service-3-1001']);
         expect(find.text('10 – Sidliste Repy'), findsWidgets);
-        expect(find.text('Vozidlo vehicle-from-api'), findsOneWidget);
+        expect(find.textContaining('vehicle-from-api'), findsNothing);
         expect(
           find.byKey(const ValueKey('vehicle-map-marker')),
           findsOneWidget,
@@ -132,7 +132,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('10 – Sidliste Repy'), findsWidgets);
-        expect(find.text('Vozidlo vehicle-before-stale'), findsOneWidget);
+        expect(find.textContaining('vehicle-before-stale'), findsNothing);
         expect(
           find.byKey(const ValueKey('vehicle-map-marker')),
           findsOneWidget,
@@ -144,7 +144,7 @@ void main() {
 
         expect(vehiclePositionCalls, greaterThanOrEqualTo(2));
         expect(find.text('10 – Sidliste Repy'), findsWidgets);
-        expect(find.text('Vozidlo vehicle-before-stale'), findsOneWidget);
+        expect(find.textContaining('vehicle-before-stale'), findsNothing);
         expect(
           find.byKey(const ValueKey('vehicle-map-marker')),
           findsOneWidget,
