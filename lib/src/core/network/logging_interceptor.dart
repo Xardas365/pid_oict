@@ -56,7 +56,7 @@ String _requestLog(RequestOptions options) {
     ..writeln('url: ${_safeUrl(options)}')
     ..writeln('path: ${options.path}')
     ..writeln('query:')
-    ..writeln(_formatBlock(_safeQueryParameters(options.queryParameters)))
+    ..writeln(_formatBlock(_safeQueryParameters(options)))
     ..writeln('headers:')
     ..writeln(_formatBlock(_safeHeaders(options.headers)))
     ..writeln('body:')
@@ -134,13 +134,20 @@ String _safeQueryString(Uri uri) {
   return entries.join('&');
 }
 
-Map<String, Object?>? _safeQueryParameters(Map<String, dynamic> parameters) {
+Map<String, Object?>? _safeQueryParameters(RequestOptions options) {
   final safeParameters = <String, Object?>{};
 
-  for (final entry in parameters.entries) {
+  for (final entry in options.uri.queryParametersAll.entries) {
+    final values = entry.value;
+    if (values.isEmpty) {
+      continue;
+    }
+
     safeParameters[entry.key] = _isSensitiveKey(entry.key)
         ? '<redacted>'
-        : _safeBody(entry.value);
+        : values.length == 1
+        ? _safeBody(values.single)
+        : values.map(_safeBody).toList(growable: false);
   }
 
   return safeParameters.isEmpty ? null : safeParameters;

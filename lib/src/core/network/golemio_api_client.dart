@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
 import '../errors/app_exception.dart';
 import 'dio_provider.dart';
+import 'golemio_query_parameters.dart';
 
 class GolemioApiClient {
   GolemioApiClient({
@@ -31,7 +32,8 @@ class GolemioApiClient {
 
   Future<Object?> getJson(
     String path, {
-    Map<String, String?> queryParameters = const {},
+    GolemioQueryParameters queryParameters =
+        const GolemioQueryParameters.empty(),
     bool notFoundEmptyListAsSuccess = false,
   }) async {
     final token = config.apiToken.trim();
@@ -48,8 +50,7 @@ class GolemioApiClient {
     late Response<String> response;
     try {
       response = await _dio.get<String>(
-        path,
-        queryParameters: _filterQueryParameters(queryParameters),
+        queryParameters.appendToPath(path),
         options: Options(
           headers: {'accept': 'application/json', 'x-access-token': token},
           responseType: ResponseType.plain,
@@ -103,15 +104,6 @@ class GolemioApiClient {
     if (_ownsDio) {
       _dio.close(force: true);
     }
-  }
-
-  Map<String, String> _filterQueryParameters(
-    Map<String, String?> queryParameters,
-  ) {
-    return <String, String>{
-      for (final entry in queryParameters.entries)
-        if (entry.value != null) entry.key: entry.value!,
-    };
   }
 
   AppException _exceptionForDioError(DioException error) {

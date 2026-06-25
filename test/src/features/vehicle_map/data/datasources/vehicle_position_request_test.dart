@@ -11,7 +11,8 @@ void main() {
 
       expect(request.vehicleId.value, 'service-3-1001');
       expect(request.path, '/v2/public/vehiclepositions/service-3-1001');
-      expect(request.queryParameters, {'scopes': 'info'});
+      expect(request.queryParameters.toSingleValueMap(), {'scopes': 'info'});
+      expect(request.queryParameters.encoded, 'scopes=info');
     });
 
     test('encodes vehicle id as one path segment', () {

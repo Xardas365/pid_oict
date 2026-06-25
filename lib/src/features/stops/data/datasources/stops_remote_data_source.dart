@@ -1,4 +1,5 @@
 import '../../../../core/network/golemio_api_client.dart';
+import '../../../../core/network/golemio_query_parameters.dart';
 import '../../domain/gtfs_stops_query.dart';
 import '../gtfs_stops_query_parameters.dart';
 
@@ -7,9 +8,9 @@ class StopsRequest {
 
   final GtfsStopsQuery query;
 
-  String get path => gtfsStopsPathWithQuery(query);
+  String get path => gtfsStopsPath;
 
-  Map<String, String?> get queryParameters => const <String, String?>{};
+  GolemioQueryParameters get queryParameters => gtfsStopsQueryParameters(query);
 }
 
 class StopsRemoteDataSource {

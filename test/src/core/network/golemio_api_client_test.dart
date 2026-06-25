@@ -6,6 +6,7 @@ import 'package:pid_oict/src/core/config/app_config.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/core/network/dio_provider.dart';
 import 'package:pid_oict/src/core/network/golemio_api_client.dart';
+import 'package:pid_oict/src/core/network/golemio_query_parameters.dart';
 
 void main() {
   group('GolemioApiClient', () {
@@ -35,7 +36,7 @@ void main() {
 
       final result = await client.getJson(
         '/v2/gtfs/stops',
-        queryParameters: {'limit': '1'},
+        queryParameters: GolemioQueryParameters.fromMap({'limit': '1'}),
       );
 
       expect(result, {'ok': true});
@@ -51,6 +52,35 @@ void main() {
       expect(adapter.requests.single.headers['accept'], 'application/json');
     });
 
+    test(
+      'serializes repeated query keys through the shared query encoder',
+      () async {
+        final adapter = _FakeDioAdapter((_) async {
+          return _jsonResponse('{"ok":true}');
+        });
+        final client = _client(apiToken: 'configured-value', adapter: adapter);
+
+        await client.getJson(
+          '/v2/gtfs/stops',
+          queryParameters: GolemioQueryParameters.fromEntries(
+            const [
+              GolemioQueryParameter('names[]', 'Flora'),
+              GolemioQueryParameter('names[]', 'Anděl'),
+              GolemioQueryParameter('limit', '100'),
+            ],
+          ),
+        );
+
+        expect(
+          adapter.requests.single.uri.toString(),
+          '$golemioBaseUrl/v2/gtfs/stops?'
+          'names%5B%5D=Flora&'
+          'names%5B%5D=And%C4%9Bl&'
+          'limit=100',
+        );
+      },
+    );
+
     test('does not log API token in debug logs', () async {
       final logs = <String>[];
       final adapter = _FakeDioAdapter((_) async {
@@ -63,7 +93,10 @@ void main() {
         dio: dio,
       );
 
-      await client.getJson('/v2/gtfs/stops', queryParameters: {'limit': '1'});
+      await client.getJson(
+        '/v2/gtfs/stops',
+        queryParameters: GolemioQueryParameters.fromMap({'limit': '1'}),
+      );
 
       final combinedLogs = logs.join('\n');
 

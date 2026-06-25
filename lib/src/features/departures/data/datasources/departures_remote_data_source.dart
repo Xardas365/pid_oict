@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../../../core/network/golemio_api_client.dart';
+import '../../../../core/network/golemio_query_parameters.dart';
 
 const departureBoardsPath = '/v2/public/departureboards';
 
@@ -20,9 +21,9 @@ class DepartureBoardRequest {
 
   bool get notFoundEmptyListAsSuccess => true;
 
-  Map<String, String?> get queryParameters => <String, String?>{
-    departureBoardsStopFilterParameter: stopIdsValue,
-  };
+  GolemioQueryParameters get queryParameters => GolemioQueryParameters([
+    GolemioQueryParameter(departureBoardsStopFilterParameter, stopIdsValue),
+  ]);
 
   String get stopIdsValue => jsonEncode({'0': stopIds});
 }

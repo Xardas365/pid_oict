@@ -40,7 +40,7 @@ void main() {
         '/v2/public/vehiclepositions/service-3-1001',
       );
       expect(
-        queryParameters,
+        queryParameters.toSingleValueMap(),
         {'scopes': 'info'},
       );
       expect(position.vehicleId, 'tram-22-123');
@@ -67,7 +67,7 @@ void main() {
         verifySingleGetJson(
           apiClient,
           '/v2/public/vehiclepositions/service%2Fwith%20slash',
-        ),
+        ).toSingleValueMap(),
         {'scopes': 'info'},
       );
     });

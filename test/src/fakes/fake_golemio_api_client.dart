@@ -1,12 +1,17 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:pid_oict/src/core/network/golemio_api_client.dart';
+import 'package:pid_oict/src/core/network/golemio_query_parameters.dart';
 
 class MockGolemioApiClient extends Mock implements GolemioApiClient {}
+
+var _fallbackValuesRegistered = false;
 
 MockGolemioApiClient mockGolemioApiClient({
   Object? response,
   Object? error,
 }) {
+  _registerFallbackValues();
+
   final client = MockGolemioApiClient();
 
   final stub = when(
@@ -26,7 +31,7 @@ MockGolemioApiClient mockGolemioApiClient({
   return client;
 }
 
-Map<String, String?> verifySingleGetJson(
+GolemioQueryParameters verifySingleGetJson(
   MockGolemioApiClient client,
   String path, {
   bool notFoundEmptyListAsSuccess = false,
@@ -39,5 +44,14 @@ Map<String, String?> verifySingleGetJson(
     ),
   )..called(1);
 
-  return result.captured.single! as Map<String, String?>;
+  return result.captured.single! as GolemioQueryParameters;
+}
+
+void _registerFallbackValues() {
+  if (_fallbackValuesRegistered) {
+    return;
+  }
+
+  registerFallbackValue(const GolemioQueryParameters.empty());
+  _fallbackValuesRegistered = true;
 }

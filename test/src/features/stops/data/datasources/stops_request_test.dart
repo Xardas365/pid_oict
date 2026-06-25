@@ -7,8 +7,8 @@ void main() {
     test('builds GTFS stops endpoint with limit and offset', () {
       const request = StopsRequest(GtfsStopsQuery(limit: 500, offset: 1000));
 
-      expect(request.path, '/v2/gtfs/stops?limit=500&offset=1000');
-      expect(request.queryParameters, isEmpty);
+      expect(request.path, '/v2/gtfs/stops');
+      expect(request.queryParameters.encoded, 'limit=500&offset=1000');
     });
 
     test('builds GTFS stops endpoint with array query parameters', () {
@@ -24,7 +24,16 @@ void main() {
       );
 
       expect(
-        request.path,
+        request.queryParameters.encoded,
+        'names[]=Flora&'
+        'ids[]=U118Z101P&'
+        'aswIds[]=1833_12&'
+        'cisIds[]=12345&'
+        'limit=100&'
+        'offset=0',
+      );
+      expect(
+        request.queryParameters.appendToPath(request.path),
         '/v2/gtfs/stops?'
         'names[]=Flora&'
         'ids[]=U118Z101P&'
@@ -33,7 +42,6 @@ void main() {
         'limit=100&'
         'offset=0',
       );
-      expect(request.queryParameters, isEmpty);
     });
   });
 }

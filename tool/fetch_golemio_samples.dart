@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:pid_oict/src/core/config/app_config.dart';
+import 'package:pid_oict/src/core/network/golemio_query_parameters.dart';
 import 'package:pid_oict/src/features/departures/data/datasources/departures_remote_data_source.dart';
 import 'package:pid_oict/src/features/stops/data/datasources/stops_remote_data_source.dart';
 import 'package:pid_oict/src/features/stops/domain/gtfs_stops_query.dart';
@@ -30,12 +31,14 @@ Future<void> main(List<String> args) async {
   final writtenFiles = <String>[];
   final timestamp = _timestampForFileName(DateTime.now().toUtc());
 
+  final stopsRequest = StopsRequest(
+    GtfsStopsQuery(limit: options.recordLimit, offset: 0),
+  );
   writtenFiles.add(
     await _fetchAndWriteSample(
       token: token,
-      path: StopsRequest(
-        GtfsStopsQuery(limit: options.recordLimit, offset: 0),
-      ).path,
+      path: stopsRequest.path,
+      queryParameters: stopsRequest.queryParameters,
       outputPath: '$_outputDirectory/${timestamp}_stops.json',
       recordLimit: options.recordLimit,
     ),
@@ -89,11 +92,9 @@ Future<String> _fetchAndWriteSample({
   required String path,
   required String outputPath,
   required int recordLimit,
-  Map<String, String?> queryParameters = const {},
+  GolemioQueryParameters queryParameters = const GolemioQueryParameters.empty(),
 }) async {
-  final uri = Uri.parse(
-    '$golemioBaseUrl$path',
-  ).replace(queryParameters: queryParameters.isEmpty ? null : queryParameters);
+  final uri = Uri.parse('$golemioBaseUrl${queryParameters.appendToPath(path)}');
   final json = await _fetchJson(uri, token);
   final sample = _trimSample(json, recordLimit);
   final file = File(outputPath);

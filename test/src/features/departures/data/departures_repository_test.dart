@@ -41,7 +41,7 @@ void main() {
           '/v2/public/departureboards',
           notFoundEmptyListAsSuccess: true,
         );
-        expect(queryParameters, {
+        expect(queryParameters.toSingleValueMap(), {
           'stopIds': '{"0":["U123Z1"]}',
         });
         expect(departures, hasLength(1));
@@ -135,7 +135,7 @@ void main() {
         '/v2/public/departureboards',
         notFoundEmptyListAsSuccess: true,
       );
-      expect(queryParameters, {
+      expect(queryParameters.toSingleValueMap(), {
         'stopIds': '{"0":["U118Z101P","U118Z102P","U118Z103P"]}',
       });
     });

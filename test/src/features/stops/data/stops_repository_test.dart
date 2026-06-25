@@ -122,8 +122,8 @@ void main() {
         final stops = await repository.fetchStops();
 
         expect(
-          verifySingleGetJson(apiClient, '/v2/gtfs/stops?limit=1000&offset=0'),
-          isEmpty,
+          verifySingleGetJson(apiClient, '/v2/gtfs/stops').encoded,
+          'limit=1000&offset=0',
         );
         expect(stops.map((stop) => stop.name), ['Andel', 'Flora']);
         expect(stops.first.id, 'U1Z1');
@@ -157,7 +157,10 @@ void main() {
         const GtfsStopsQuery(limit: 2, offset: 10),
       );
 
-      verifySingleGetJson(apiClient, '/v2/gtfs/stops?limit=2&offset=10');
+      expect(
+        verifySingleGetJson(apiClient, '/v2/gtfs/stops').encoded,
+        'limit=2&offset=10',
+      );
       expect(page.limit, 2);
       expect(page.offset, 10);
       expect(page.rawReturnedCount, 2);
@@ -187,9 +190,9 @@ void main() {
       expect(
         verifySingleGetJson(
           apiClient,
-          '/v2/gtfs/stops?names[]=Flora&limit=100&offset=0',
-        ),
-        isEmpty,
+          '/v2/gtfs/stops',
+        ).encoded,
+        'names[]=Flora&limit=100&offset=0',
       );
       expect(page.hasMore, isFalse);
       expect(page.stops.single.name, 'Flora');

@@ -11,9 +11,13 @@ void main() {
       expect(request.path, '/v2/public/departureboards');
       expect(request.notFoundEmptyListAsSuccess, isTrue);
       expect(request.stopIds, ['U717Z5P', 'U718Z5P']);
-      expect(request.queryParameters, {
+      expect(request.queryParameters.toSingleValueMap(), {
         'stopIds': '{"0":["U717Z5P","U718Z5P"]}',
       });
+      expect(
+        request.queryParameters.encoded,
+        'stopIds=%7B%220%22%3A%5B%22U717Z5P%22%2C%22U718Z5P%22%5D%7D',
+      );
     });
   });
 }
