@@ -140,64 +140,53 @@ class _StopsScreenState extends State<StopsScreen> {
           selection: TextSelection.collapsed(offset: state.searchQuery.length),
         );
       },
-      child: Scaffold(
-        appBar: AppBar(title: Text(strings.stops.title)),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Column(
-              children: [
-                BlocSelector<StopsCubit, StopsState, bool>(
-                  selector: (state) =>
-                      state.status != StopsStatus.loading &&
-                      state.status != StopsStatus.error,
-                  builder: (context, enabled) {
-                    return PidSearchField(
-                      controller: _searchController,
-                      enabled: enabled,
-                      hintText: strings.stops.searchHint,
-                    );
-                  },
-                ),
-                BlocSelector<StopsCubit, StopsState, bool>(
-                  selector: (state) => state.isSearching,
-                  builder: (context, isSearching) => AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 150),
-                    child: isSearching
-                        ? const Padding(
-                            padding: EdgeInsets.only(top: 8),
-                            child: LinearProgressIndicator(minHeight: 2),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ),
-                BlocSelector<StopsCubit, StopsState, _StopsCacheBannerData?>(
-                  selector: _cacheBannerData,
-                  builder: (context, banner) => AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 150),
-                    child: banner == null
-                        ? const SizedBox.shrink()
-                        : Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: PidStatusBanner(
-                              message: banner.message,
-                              tone: banner.tone,
-                              icon: banner.tone == PidStatusBannerTone.warning
-                                  ? Icons.warning_amber_rounded
-                                  : Icons.save_outlined,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: BlocBuilder<StopsCubit, StopsState>(
-                    builder: _buildContent,
-                  ),
-                ),
-              ],
-            ),
+      child: PidStopsTemplate.screen(
+        title: strings.stops.title,
+        search: BlocSelector<StopsCubit, StopsState, bool>(
+          selector: (state) =>
+              state.status != StopsStatus.loading &&
+              state.status != StopsStatus.error,
+          builder: (context, enabled) {
+            return PidSearchField(
+              controller: _searchController,
+              enabled: enabled,
+              hintText: strings.stops.searchHint,
+            );
+          },
+        ),
+        searchProgress: BlocSelector<StopsCubit, StopsState, bool>(
+          selector: (state) => state.isSearching,
+          builder: (context, isSearching) => AnimatedSwitcher(
+            duration: const Duration(milliseconds: 150),
+            child: isSearching
+                ? const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: LinearProgressIndicator(minHeight: 2),
+                  )
+                : const SizedBox.shrink(),
           ),
+        ),
+        statusBanner:
+            BlocSelector<StopsCubit, StopsState, _StopsCacheBannerData?>(
+              selector: _cacheBannerData,
+              builder: (context, banner) => AnimatedSwitcher(
+                duration: const Duration(milliseconds: 150),
+                child: banner == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: PidStatusBanner(
+                          message: banner.message,
+                          tone: banner.tone,
+                          icon: banner.tone == PidStatusBannerTone.warning
+                              ? Icons.warning_amber_rounded
+                              : Icons.save_outlined,
+                        ),
+                      ),
+              ),
+            ),
+        content: BlocBuilder<StopsCubit, StopsState>(
+          builder: _buildContent,
         ),
       ),
     );

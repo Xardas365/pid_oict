@@ -31,7 +31,41 @@ class PidDeparturesTemplate extends StatelessWidget {
     this.onShowVehicle,
     this.selectedTab = PidNavigationTab.departures,
     this.onTabSelected,
-  });
+  })  : screenTitle = null,
+        screenBackTooltip = null,
+        screenStopHeader = null,
+        screenFilterRow = null,
+        screenLastUpdatedRow = null,
+        screenContent = null;
+
+  const PidDeparturesTemplate.screen({
+    super.key,
+    required String title,
+    required Widget stopHeader,
+    required Widget content,
+    String? backTooltip,
+    this.onBack,
+    Widget? filterRow,
+    Widget? lastUpdatedRow,
+  })  : stopName = '',
+        stopSubtitle = null,
+        departures = const <PidDepartureData>[],
+        updatedText = '',
+        selectedFilter = '',
+        filters = const <PidFilterChipData>[],
+        isLoading = false,
+        errorMessage = null,
+        onRefresh = null,
+        onFilterSelected = null,
+        onShowVehicle = null,
+        selectedTab = PidNavigationTab.departures,
+        onTabSelected = null,
+        screenTitle = title,
+        screenBackTooltip = backTooltip,
+        screenStopHeader = stopHeader,
+        screenFilterRow = filterRow,
+        screenLastUpdatedRow = lastUpdatedRow,
+        screenContent = content;
 
   final String stopName;
   final String? stopSubtitle;
@@ -47,9 +81,20 @@ class PidDeparturesTemplate extends StatelessWidget {
   final ValueChanged<PidDepartureData>? onShowVehicle;
   final PidNavigationTab selectedTab;
   final ValueChanged<PidNavigationTab>? onTabSelected;
+  final String? screenTitle;
+  final String? screenBackTooltip;
+  final Widget? screenStopHeader;
+  final Widget? screenFilterRow;
+  final Widget? screenLastUpdatedRow;
+  final Widget? screenContent;
 
   @override
   Widget build(BuildContext context) {
+    final screenContent = this.screenContent;
+    if (screenContent != null) {
+      return _buildScreenTemplate(screenContent);
+    }
+
     final content = ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
@@ -153,6 +198,33 @@ class PidDeparturesTemplate extends StatelessWidget {
       bottomNavigationBar: PidBottomNavigation(
         selectedTab: selectedTab,
         onTabSelected: onTabSelected,
+      ),
+    );
+  }
+
+  Widget _buildScreenTemplate(Widget content) {
+    final stopHeader = screenStopHeader;
+    final filterRow = screenFilterRow;
+    final lastUpdatedRow = screenLastUpdatedRow;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: screenBackTooltip,
+          onPressed: onBack,
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: Text(screenTitle ?? ''),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            if (stopHeader != null) stopHeader,
+            if (filterRow != null) filterRow,
+            if (lastUpdatedRow != null) lastUpdatedRow,
+            Expanded(child: content),
+          ],
+        ),
       ),
     );
   }

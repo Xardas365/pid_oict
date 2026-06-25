@@ -17,7 +17,7 @@ import '../organisms/pid_vehicle_map_panel.dart';
 class PidVehicleMapTemplate extends StatelessWidget {
   const PidVehicleMapTemplate({
     super.key,
-    required this.vehicle,
+    required PidVehiclePositionData vehicle,
     this.mapContent,
     this.showDefaultMarker = true,
     this.onBack,
@@ -25,9 +25,26 @@ class PidVehicleMapTemplate extends StatelessWidget {
     this.onRefresh,
     this.selectedTab = PidNavigationTab.map,
     this.onTabSelected,
-  });
+  })  : _vehicle = vehicle,
+        screenTitle = null,
+        screenContent = null;
 
-  final PidVehiclePositionData vehicle;
+  const PidVehicleMapTemplate.screen({
+    super.key,
+    required String title,
+    required Widget content,
+  })  : _vehicle = null,
+        mapContent = null,
+        showDefaultMarker = true,
+        onBack = null,
+        onLocatePressed = null,
+        onRefresh = null,
+        selectedTab = PidNavigationTab.map,
+        onTabSelected = null,
+        screenTitle = title,
+        screenContent = content;
+
+  final PidVehiclePositionData? _vehicle;
   final Widget? mapContent;
   final bool showDefaultMarker;
   final VoidCallback? onBack;
@@ -35,9 +52,23 @@ class PidVehicleMapTemplate extends StatelessWidget {
   final VoidCallback? onRefresh;
   final PidNavigationTab selectedTab;
   final ValueChanged<PidNavigationTab>? onTabSelected;
+  final String? screenTitle;
+  final Widget? screenContent;
+
+  PidVehiclePositionData get vehicle => _vehicle!;
 
   @override
   Widget build(BuildContext context) {
+    final screenContent = this.screenContent;
+    if (screenContent != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(screenTitle ?? '')),
+        body: SafeArea(child: screenContent),
+      );
+    }
+
+    final vehicle = this.vehicle;
+
     return Scaffold(
       body: Stack(
         children: [

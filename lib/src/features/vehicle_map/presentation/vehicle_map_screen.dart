@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../../../i18n/strings.g.dart';
 import '../../../core/errors/app_failure.dart';
@@ -28,12 +29,10 @@ class VehicleMapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(context.t.vehicleMap.title)),
-      body: SafeArea(
-        child: BlocBuilder<VehicleMapBloc, VehicleMapState>(
-          builder: _buildBody,
-        ),
+    return PidVehicleMapTemplate.screen(
+      title: context.t.vehicleMap.title,
+      content: BlocBuilder<VehicleMapBloc, VehicleMapState>(
+        builder: _buildBody,
       ),
     );
   }

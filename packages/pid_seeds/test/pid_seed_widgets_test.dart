@@ -149,4 +149,77 @@ void main() {
 
     expect(backToTopPressed, isTrue);
   });
+
+  testWidgets('PidStopsTemplate.screen renders supplied slots', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: const PidStopsTemplate.screen(
+          title: 'Zastávky',
+          search: Text('Search slot'),
+          searchProgress: LinearProgressIndicator(),
+          statusBanner: Text('Saved stops banner'),
+          content: Text('Stops content'),
+        ),
+      ),
+    );
+
+    expect(find.text('Zastávky'), findsOneWidget);
+    expect(find.text('Search slot'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.text('Saved stops banner'), findsOneWidget);
+    expect(find.text('Stops content'), findsOneWidget);
+  });
+
+  testWidgets('PidDeparturesTemplate.screen renders board slots and back', (
+    tester,
+  ) async {
+    var backPressed = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: PidDeparturesTemplate.screen(
+          title: 'Odjezdy zo zastávky',
+          backTooltip: 'Zpět',
+          onBack: () {
+            backPressed = true;
+          },
+          stopHeader: const Text('Flora'),
+          filterRow: const Text('Vše Tram'),
+          lastUpdatedRow: const Text('Aktualizované před 4 s'),
+          content: const Text('Departure content'),
+        ),
+      ),
+    );
+
+    expect(find.text('Odjezdy zo zastávky'), findsOneWidget);
+    expect(find.text('Flora'), findsOneWidget);
+    expect(find.text('Vše Tram'), findsOneWidget);
+    expect(find.text('Aktualizované před 4 s'), findsOneWidget);
+    expect(find.text('Departure content'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Zpět'));
+
+    expect(backPressed, isTrue);
+  });
+
+  testWidgets('PidVehicleMapTemplate.screen renders title and content', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: const PidVehicleMapTemplate.screen(
+          title: 'Mapa vozidla',
+          content: Text('Map content'),
+        ),
+      ),
+    );
+
+    expect(find.text('Mapa vozidla'), findsOneWidget);
+    expect(find.text('Map content'), findsOneWidget);
+  });
 }

@@ -29,7 +29,38 @@ class PidStopsTemplate extends StatelessWidget {
     this.onRefresh,
     this.selectedTab = PidNavigationTab.stops,
     this.onTabSelected,
-  });
+  })  : screenTitle = null,
+        screenSearch = null,
+        screenSearchProgress = null,
+        screenStatusBanner = null,
+        screenContent = null;
+
+  const PidStopsTemplate.screen({
+    super.key,
+    required String title,
+    required Widget search,
+    required Widget content,
+    Widget? searchProgress,
+    Widget? statusBanner,
+  })  : stops = const <PidStopData>[],
+        selectedFilter = '',
+        filters = const <PidFilterChipData>[],
+        isLoading = false,
+        errorMessage = null,
+        searchController = null,
+        onSearchChanged = null,
+        onSearchSubmitted = null,
+        onFilterPressed = null,
+        onFilterSelected = null,
+        onStopSelected = null,
+        onRefresh = null,
+        selectedTab = PidNavigationTab.stops,
+        onTabSelected = null,
+        screenTitle = title,
+        screenSearch = search,
+        screenSearchProgress = searchProgress,
+        screenStatusBanner = statusBanner,
+        screenContent = content;
 
   final List<PidStopData> stops;
   final String selectedFilter;
@@ -45,9 +76,19 @@ class PidStopsTemplate extends StatelessWidget {
   final Future<void> Function()? onRefresh;
   final PidNavigationTab selectedTab;
   final ValueChanged<PidNavigationTab>? onTabSelected;
+  final String? screenTitle;
+  final Widget? screenSearch;
+  final Widget? screenSearchProgress;
+  final Widget? screenStatusBanner;
+  final Widget? screenContent;
 
   @override
   Widget build(BuildContext context) {
+    final screenContent = this.screenContent;
+    if (screenContent != null) {
+      return _buildScreenTemplate(screenContent);
+    }
+
     final content = ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
@@ -115,6 +156,28 @@ class PidStopsTemplate extends StatelessWidget {
       bottomNavigationBar: PidBottomNavigation(
         selectedTab: selectedTab,
         onTabSelected: onTabSelected,
+      ),
+    );
+  }
+
+  Widget _buildScreenTemplate(Widget content) {
+    final search = screenSearch;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(screenTitle ?? '')),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Column(
+            children: [
+              if (search != null) search,
+              if (screenSearchProgress != null) screenSearchProgress!,
+              if (screenStatusBanner != null) screenStatusBanner!,
+              const SizedBox(height: 16),
+              Expanded(child: content),
+            ],
+          ),
+        ),
       ),
     );
   }

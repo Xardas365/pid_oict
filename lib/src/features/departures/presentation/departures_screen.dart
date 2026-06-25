@@ -80,24 +80,13 @@ class DeparturesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: context.t.departures.backToStops,
-          onPressed: () => _backToStops(context),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: Text(context.t.departures.title),
-      ),
-      body: SafeArea(
-        child: BlocBuilder<DeparturesBloc, DeparturesState>(
-          builder: (context, state) => _DeparturesBoard(
-            stop: stop,
-            state: state,
-            onRefresh: () => _refresh(context),
-            onOpenVehicleMap: (args) => _openVehicleMap(context, args),
-          ),
-        ),
+    return BlocBuilder<DeparturesBloc, DeparturesState>(
+      builder: (context, state) => _DeparturesBoard(
+        stop: stop,
+        state: state,
+        onBackToStops: () => _backToStops(context),
+        onRefresh: () => _refresh(context),
+        onOpenVehicleMap: (args) => _openVehicleMap(context, args),
       ),
     );
   }
@@ -107,37 +96,44 @@ class _DeparturesBoard extends StatelessWidget {
   const _DeparturesBoard({
     required this.stop,
     required this.state,
+    required this.onBackToStops,
     required this.onRefresh,
     required this.onOpenVehicleMap,
   });
 
   final StopGroup stop;
   final DeparturesState state;
+  final VoidCallback onBackToStops;
   final Future<void> Function() onRefresh;
   final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _SelectedStopHeader(stop: stop, lineType: state.representativeLineType),
-        if (state.status != DeparturesStatus.loading &&
-            state.status != DeparturesStatus.error)
-          _TransportFilterRow(state: state),
-        if (state.lastUpdated != null || state.isRefreshing)
-          _LastUpdatedRow(state: state),
-        Expanded(
-          child: state.status == DeparturesStatus.loading
-              ? LoadingStateView(message: context.t.departures.loading)
-              : RefreshIndicator(
-                  onRefresh: onRefresh,
-                  child: _RefreshableDeparturesContent(
-                    state: state,
-                    onOpenVehicleMap: onOpenVehicleMap,
-                  ),
-                ),
-        ),
-      ],
+    final showBoardControls =
+        state.status != DeparturesStatus.loading &&
+        state.status != DeparturesStatus.error;
+
+    return PidDeparturesTemplate.screen(
+      title: context.t.departures.title,
+      backTooltip: context.t.departures.backToStops,
+      onBack: onBackToStops,
+      stopHeader: _SelectedStopHeader(
+        stop: stop,
+        lineType: state.representativeLineType,
+      ),
+      filterRow: showBoardControls ? _TransportFilterRow(state: state) : null,
+      lastUpdatedRow: state.lastUpdated != null || state.isRefreshing
+          ? _LastUpdatedRow(state: state)
+          : null,
+      content: state.status == DeparturesStatus.loading
+          ? LoadingStateView(message: context.t.departures.loading)
+          : RefreshIndicator(
+              onRefresh: onRefresh,
+              child: _RefreshableDeparturesContent(
+                state: state,
+                onOpenVehicleMap: onOpenVehicleMap,
+              ),
+            ),
     );
   }
 }
