@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/core/presentation/pid_transport_visuals.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
 import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_board_use_case.dart';
@@ -78,6 +79,15 @@ void main() {
       expect(find.text('Nástupiště 3'), findsOneWidget);
       expect(find.text('A'), findsOneWidget);
       expect(find.byIcon(Icons.accessible_forward), findsOneWidget);
+
+      final metroLabel = tester.widget<DecoratedBox>(
+        find.byKey(const ValueKey('departure-route-label-A')),
+      );
+      final metroDecoration = metroLabel.decoration as BoxDecoration;
+      expect(
+        metroDecoration.color,
+        PidLineBadgeColorResolver.metroA.backgroundColor,
+      );
     });
 
     testWidgets('non-accessible departure does not show wheelchair icon', (

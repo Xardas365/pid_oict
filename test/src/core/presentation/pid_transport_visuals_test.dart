@@ -80,5 +80,46 @@ void main() {
       expect(PidLineType.specialOther.visual.assetPath, isNull);
       expect(PidLineType.unknown.visual.assetPath, isNull);
     });
+
+    test('resolves Prague metro line colors by route short name', () {
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.metro,
+          routeShortName: 'A',
+        ),
+        same(PidLineBadgeColorResolver.metroA),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.metro,
+          routeShortName: 'b',
+        ),
+        same(PidLineBadgeColorResolver.metroB),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.metro,
+          routeShortName: ' C ',
+        ),
+        same(PidLineBadgeColorResolver.metroC),
+      );
+    });
+
+    test('falls back for non-metro and unknown metro route labels', () {
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.tram,
+          routeShortName: 'A',
+        ),
+        isNull,
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.metro,
+          routeShortName: 'D',
+        ),
+        isNull,
+      );
+    });
   });
 }

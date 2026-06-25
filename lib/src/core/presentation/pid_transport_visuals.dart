@@ -16,6 +16,54 @@ class PidTransportVisual {
   final Color? color;
 }
 
+class PidLineBadgeColors {
+  const PidLineBadgeColors({
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+  });
+
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+}
+
+abstract final class PidLineBadgeColorResolver {
+  static const metroA = PidLineBadgeColors(
+    backgroundColor: Color(0xFF007A3D),
+    foregroundColor: Colors.white,
+    borderColor: Color(0xFF006633),
+  );
+
+  static const metroB = PidLineBadgeColors(
+    backgroundColor: Color(0xFFFFD200),
+    foregroundColor: Color(0xFF1F2937),
+    borderColor: Color(0xFFD9A900),
+  );
+
+  static const metroC = PidLineBadgeColors(
+    backgroundColor: Color(0xFFC8102E),
+    foregroundColor: Colors.white,
+    borderColor: Color(0xFFA30D25),
+  );
+
+  static PidLineBadgeColors? resolve({
+    required PidLineType lineType,
+    required String routeShortName,
+  }) {
+    if (lineType != PidLineType.metro) {
+      return null;
+    }
+
+    return switch (routeShortName.trim().toUpperCase()) {
+      'A' => metroA,
+      'B' => metroB,
+      'C' => metroC,
+      _ => null,
+    };
+  }
+}
+
 extension PidLineTypeVisuals on PidLineType {
   PidTransportVisual get visual {
     if (isNight) {
