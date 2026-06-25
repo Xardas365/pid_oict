@@ -10,7 +10,7 @@ class PidFeedbackState extends StatelessWidget {
   const PidFeedbackState({
     super.key,
     required this.title,
-    required this.message,
+    this.message = '',
     this.icon = Icons.info_outline_rounded,
     this.actionLabel,
     this.onActionPressed,
@@ -39,9 +39,14 @@ class PidFeedbackState extends StatelessWidget {
           const SizedBox(height: PidSeedSpacing.md),
           Text(title,
               textAlign: TextAlign.center, style: PidSeedTypography.cardTitle),
-          const SizedBox(height: PidSeedSpacing.sm),
-          Text(message,
-              textAlign: TextAlign.center, style: PidSeedTypography.body),
+          if (message.isNotEmpty) ...[
+            const SizedBox(height: PidSeedSpacing.sm),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: PidSeedTypography.body,
+            ),
+          ],
           if (actionLabel != null) ...[
             const SizedBox(height: PidSeedSpacing.lg),
             FilledButton(

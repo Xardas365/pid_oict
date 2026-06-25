@@ -182,7 +182,13 @@ class _StopsScreenState extends State<StopsScreen> {
                         ? const SizedBox.shrink()
                         : Padding(
                             padding: const EdgeInsets.only(top: 10),
-                            child: _StopsCacheBanner(data: banner),
+                            child: PidStatusBanner(
+                              message: banner.message,
+                              tone: banner.tone,
+                              icon: banner.tone == PidStatusBannerTone.warning
+                                  ? Icons.warning_amber_rounded
+                                  : Icons.save_outlined,
+                            ),
                           ),
                   ),
                 ),
@@ -244,75 +250,29 @@ class _StopsScreenState extends State<StopsScreen> {
     if (state.cacheRefreshError != null) {
       return _StopsCacheBannerData(
         message: strings.stops.savedStopsRefreshFailed,
-        kind: _StopsCacheBannerKind.warning,
+        tone: PidStatusBannerTone.warning,
       );
     }
 
     if (state.isCacheStale) {
       return _StopsCacheBannerData(
         message: strings.stops.showingOlderSavedStops,
-        kind: _StopsCacheBannerKind.warning,
+        tone: PidStatusBannerTone.warning,
       );
     }
 
     return _StopsCacheBannerData(
       message: strings.stops.showingSavedStops,
-      kind: _StopsCacheBannerKind.info,
+      tone: PidStatusBannerTone.info,
     );
   }
 }
-
-enum _StopsCacheBannerKind { info, warning }
 
 class _StopsCacheBannerData {
-  const _StopsCacheBannerData({required this.message, required this.kind});
+  const _StopsCacheBannerData({required this.message, required this.tone});
 
   final String message;
-  final _StopsCacheBannerKind kind;
-}
-
-class _StopsCacheBanner extends StatelessWidget {
-  const _StopsCacheBanner({required this.data});
-
-  final _StopsCacheBannerData data;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isWarning = data.kind == _StopsCacheBannerKind.warning;
-    final backgroundColor = isWarning
-        ? colorScheme.errorContainer
-        : colorScheme.secondaryContainer;
-    final foregroundColor = isWarning
-        ? colorScheme.onErrorContainer
-        : colorScheme.onSecondaryContainer;
-
-    return Material(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              isWarning ? Icons.warning_amber_rounded : Icons.save_outlined,
-              color: foregroundColor,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                data.message,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: foregroundColor),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  final PidStatusBannerTone tone;
 }
 
 class _StopsList extends StatelessWidget {
@@ -529,104 +489,21 @@ class _StopGroupCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
-    final stopData = stop.toPidStopData(strings);
-    final accent = stopData.transportType.foreground;
-    final iconBackground = stopData.transportType.background;
-    final cardBackground = isFavorite
-        ? PidSeedColors.primarySoft
-        : PidSeedColors.surface;
-    final borderColor = isFavorite
-        ? PidSeedColors.primaryBorder
-        : PidSeedColors.border;
     final favoriteLabel = isFavorite
         ? strings.stops.removeFavorite
         : strings.stops.addFavorite;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: cardBackground,
-        borderRadius: PidSeedRadius.card,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: PidSeedRadius.card,
-            border: Border.all(color: borderColor),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  label: strings.stops.stopSemantic(name: stop.name),
-                  child: InkWell(
-                    onTap: onTap,
-                    borderRadius: PidSeedRadius.card,
-                    child: Padding(
-                      padding: const EdgeInsets.all(PidSeedSpacing.lg),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: iconBackground,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.location_on_outlined,
-                              color: accent,
-                              size: 23,
-                            ),
-                          ),
-                          const SizedBox(width: PidSeedSpacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  stopData.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: PidSeedTypography.cardTitle,
-                                ),
-                                if (stopData.subtitle.isNotEmpty) ...[
-                                  const SizedBox(height: PidSeedSpacing.xs),
-                                  Text(
-                                    stopData.subtitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: PidSeedTypography.caption,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: PidSeedSpacing.sm),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            color: PidSeedColors.textMuted,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: PidSeedSpacing.sm),
-                child: IconButton(
-                  tooltip: favoriteLabel,
-                  onPressed: onToggleFavorite,
-                  icon: Icon(
-                    isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
-                  ),
-                  color: isFavorite
-                      ? PidSeedColors.primary
-                      : PidSeedColors.textMuted,
-                ),
-              ),
-            ],
-          ),
+      child: PidStopCard(
+        stop: stop.toPidStopData(strings).copyWith(isHighlighted: isFavorite),
+        semanticLabel: strings.stops.stopSemantic(name: stop.name),
+        onTap: onTap,
+        trailingAction: PidStopCardAction(
+          tooltip: favoriteLabel,
+          onPressed: onToggleFavorite,
+          icon: isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+          color: isFavorite ? PidSeedColors.primary : PidSeedColors.textMuted,
         ),
       ),
     );

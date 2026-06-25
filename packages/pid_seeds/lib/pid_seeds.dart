@@ -12,6 +12,7 @@ export 'src/atomic/molecules/pid_feedback_state.dart';
 export 'src/atomic/molecules/pid_filter_chips.dart';
 export 'src/atomic/molecules/pid_map_control_button.dart';
 export 'src/atomic/molecules/pid_refresh_status_card.dart';
+export 'src/atomic/molecules/pid_status_banner.dart';
 export 'src/atomic/molecules/pid_stop_card.dart';
 export 'src/atomic/organisms/pid_departure_list.dart';
 export 'src/atomic/organisms/pid_home_header.dart';

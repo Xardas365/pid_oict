@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../../../i18n/strings.g.dart';
 import '../../../core/domain/pid_line_type.dart';
@@ -191,48 +192,76 @@ class _SelectedStopHeader extends StatelessWidget {
 class _TransportFilterRow extends StatelessWidget {
   const _TransportFilterRow({required this.state});
 
+  static const _allFilterValue = 'all';
+
   final DeparturesState state;
 
   @override
   Widget build(BuildContext context) {
     final selectedMode = state.selectedTransportMode;
     final modes = state.availableTransportModes;
+    final filters = [
+      PidFilterChipData(
+        value: _allFilterValue,
+        label: context.t.departures.filterAll,
+      ),
+      for (final mode in modes)
+        PidFilterChipData(
+          value: mode.name,
+          label: _transportModeLabel(context, mode),
+          icon: _transportModeIcon(mode),
+        ),
+    ];
 
     return SizedBox(
       height: 48,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: modes.length + 1,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return ChoiceChip(
-              label: Text(context.t.departures.filterAll),
-              selected: selectedMode == null,
-              onSelected: (_) {
-                context.read<DeparturesBloc>().add(
-                  const DeparturesTransportFilterSelected(null),
-                );
-              },
-            );
-          }
-
-          final mode = modes[index - 1];
-
-          return ChoiceChip(
-            label: Text(_transportModeLabel(context, mode)),
-            selected: selectedMode == mode,
-            onSelected: (_) {
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: PidFilterChips(
+            filters: filters,
+            selectedValue: selectedMode?.name ?? _allFilterValue,
+            onSelected: (value) {
               context.read<DeparturesBloc>().add(
-                DeparturesTransportFilterSelected(mode),
+                DeparturesTransportFilterSelected(
+                  value == _allFilterValue
+                      ? null
+                      : _transportModeFromValue(value, modes),
+                ),
               );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }
+}
+
+PidTransportMode? _transportModeFromValue(
+  String value,
+  List<PidTransportMode> modes,
+) {
+  for (final mode in modes) {
+    if (mode.name == value) {
+      return mode;
+    }
+  }
+
+  return null;
+}
+
+IconData _transportModeIcon(PidTransportMode mode) {
+  return switch (mode) {
+    PidTransportMode.metro => Icons.directions_subway_rounded,
+    PidTransportMode.tram => Icons.tram_rounded,
+    PidTransportMode.bus => Icons.directions_bus_rounded,
+    PidTransportMode.trolleybus => Icons.electric_rickshaw_rounded,
+    PidTransportMode.train => Icons.train_rounded,
+    PidTransportMode.ferry => Icons.directions_boat_rounded,
+    PidTransportMode.funicular => Icons.cable_rounded,
+    PidTransportMode.unknown => Icons.more_horiz_rounded,
+  };
 }
 
 class _LastUpdatedRow extends StatelessWidget {
@@ -386,44 +415,11 @@ class _RefreshWarning extends StatelessWidget {
     );
     final strings = context.t;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.errorContainer,
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(
-              Icons.info_outline,
-              color: Theme.of(context).colorScheme.onErrorContainer,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    strings.departures.staleWarning,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    message,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    return PidStatusBanner(
+      tone: PidStatusBannerTone.error,
+      icon: Icons.info_outline,
+      title: strings.departures.staleWarning,
+      message: message,
     );
   }
 }
