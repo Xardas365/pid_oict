@@ -12,6 +12,7 @@ import '../features/departures/presentation/departures_screen.dart';
 import '../features/stops/domain/stop_group.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/stops/domain/usecases/load_cached_stops_use_case.dart';
+import '../features/stops/domain/usecases/load_complete_stop_index_use_case.dart';
 import '../features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/load_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/record_recent_stop_use_case.dart';
@@ -123,6 +124,7 @@ class _StopsTab extends StatelessWidget {
           context.read<GetStopsUseCase>(),
           loadStopGroups: context.read<LoadStopGroupsUseCase>(),
           refreshStopGroups: context.read<RefreshStopGroupsUseCase>(),
+          loadCompleteStopIndex: context.read<LoadCompleteStopIndexUseCase>(),
           searchStopGroups: context.read<SearchStopGroupsUseCase>(),
           loadCachedStops: context.read<LoadCachedStopsUseCase>(),
           saveStopsCache: context.read<SaveStopsCacheUseCase>(),

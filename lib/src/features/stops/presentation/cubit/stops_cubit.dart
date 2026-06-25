@@ -13,6 +13,7 @@ import '../../domain/stop_visibility.dart';
 import '../../domain/stops_cache_snapshot.dart';
 import '../../domain/usecases/get_stops_use_case.dart';
 import '../../domain/usecases/load_cached_stops_use_case.dart';
+import '../../domain/usecases/load_complete_stop_index_use_case.dart';
 import '../../domain/usecases/load_saved_stop_groups_use_case.dart';
 import '../../domain/usecases/load_stop_groups_use_case.dart';
 import '../../domain/usecases/record_recent_stop_use_case.dart';
@@ -37,6 +38,7 @@ class StopsCubit extends Cubit<StopsState> {
     this.searchDebounceDuration = gtfsStopsSearchDebounceDuration,
     LoadStopGroupsUseCase? loadStopGroups,
     RefreshStopGroupsUseCase? refreshStopGroups,
+    this.loadCompleteStopIndex,
     SearchStopGroupsUseCase? searchStopGroups,
     this.loadCachedStops,
     this.saveStopsCache,
@@ -66,6 +68,7 @@ class StopsCubit extends Cubit<StopsState> {
 
   final LoadStopGroupsUseCase _loadStopGroups;
   final RefreshStopGroupsUseCase _refreshStopGroups;
+  final LoadCompleteStopIndexUseCase? loadCompleteStopIndex;
   final SearchStopGroupsUseCase _searchStopGroups;
   final StopsStateFactory _stateFactory = const StopsStateFactory();
   final LoadCachedStopsUseCase? loadCachedStops;
@@ -88,6 +91,7 @@ class StopsCubit extends Cubit<StopsState> {
 
   Timer? _searchDebounceTimer;
   var _initialRefreshInProgress = false;
+  var _completeIndexRefreshInProgress = false;
 
   Future<void> loadStops() async {
     _searchDebounceTimer?.cancel();
@@ -144,6 +148,7 @@ class StopsCubit extends Cubit<StopsState> {
         hasMore: page.hasMore,
         nextOffset: page.offset + page.rawReturnedCount,
       );
+      _startCompleteIndexRefreshIfNeeded();
     } on Object catch (error) {
       emit(
         _stateFactory.initialError(
@@ -201,6 +206,68 @@ class StopsCubit extends Cubit<StopsState> {
       );
     } finally {
       _initialRefreshInProgress = false;
+      _startCompleteIndexRefreshIfNeeded();
+    }
+  }
+
+  void _startCompleteIndexRefreshIfNeeded() {
+    final loadCompleteStopIndex = this.loadCompleteStopIndex;
+    if (loadCompleteStopIndex == null ||
+        _completeIndexRefreshInProgress ||
+        _searchIndex.isComplete ||
+        isClosed) {
+      return;
+    }
+
+    _completeIndexRefreshInProgress = true;
+    emit(
+      state.copyWith(
+        isBuildingSearchIndex: true,
+        clearSearchIndexRefreshError: true,
+      ),
+    );
+
+    unawaited(_loadCompleteIndex(loadCompleteStopIndex));
+  }
+
+  Future<void> _loadCompleteIndex(
+    LoadCompleteStopIndexUseCase loadCompleteStopIndex,
+  ) async {
+    try {
+      final page = await loadCompleteStopIndex();
+      if (isClosed) {
+        return;
+      }
+
+      _upsertStops(page.stops);
+      final nextOffset = page.offset + page.rawReturnedCount;
+
+      emit(
+        _stateFromStops(
+          _sortedStops,
+          searchQuery: state.searchQuery,
+          hasMore: false,
+          nextOffset: nextOffset,
+          isFromCache: state.isFromCache,
+          isCacheStale: state.isCacheStale,
+          cacheRefreshError: state.cacheRefreshError,
+        ),
+      );
+      await _writeCacheFromCurrentStops(hasMore: false, nextOffset: nextOffset);
+    } on Object catch (error) {
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            isBuildingSearchIndex: false,
+            searchIndexRefreshError: AppFailure.fromObject(error),
+          ),
+        );
+      }
+    } finally {
+      _completeIndexRefreshInProgress = false;
+      if (!isClosed && state.isBuildingSearchIndex) {
+        emit(state.copyWith(isBuildingSearchIndex: false));
+      }
     }
   }
 
@@ -263,6 +330,8 @@ class StopsCubit extends Cubit<StopsState> {
           searchQuery: current.searchQuery,
           hasMore: page.hasMore,
           nextOffset: current.nextOffset + page.rawReturnedCount,
+          isBuildingSearchIndex: current.isBuildingSearchIndex,
+          searchIndexRefreshError: current.searchIndexRefreshError,
           clearCacheRefreshError: true,
         ),
       );
@@ -305,6 +374,8 @@ class StopsCubit extends Cubit<StopsState> {
           isFromCache: current.isFromCache,
           isCacheStale: current.isCacheStale,
           cacheRefreshError: current.cacheRefreshError,
+          searchIndexRefreshError: current.searchIndexRefreshError,
+          isBuildingSearchIndex: current.isBuildingSearchIndex,
         ),
       );
       return;
@@ -320,6 +391,8 @@ class StopsCubit extends Cubit<StopsState> {
         isFromCache: current.isFromCache,
         isCacheStale: current.isCacheStale,
         cacheRefreshError: current.cacheRefreshError,
+        searchIndexRefreshError: current.searchIndexRefreshError,
+        isBuildingSearchIndex: current.isBuildingSearchIndex,
       ),
     );
 
@@ -363,6 +436,8 @@ class StopsCubit extends Cubit<StopsState> {
           isFromCache: state.isFromCache,
           isCacheStale: state.isCacheStale,
           cacheRefreshError: state.cacheRefreshError,
+          searchIndexRefreshError: state.searchIndexRefreshError,
+          isBuildingSearchIndex: state.isBuildingSearchIndex,
         ),
       );
     } on Object catch (error) {
@@ -387,8 +462,10 @@ class StopsCubit extends Cubit<StopsState> {
     required int nextOffset,
     bool isLoadingMore = false,
     bool isSearching = false,
+    bool isBuildingSearchIndex = false,
     bool isFromCache = false,
     bool isCacheStale = false,
+    AppFailure? searchIndexRefreshError,
     AppFailure? cacheRefreshError,
     bool clearCacheRefreshError = false,
   }) {
@@ -402,6 +479,8 @@ class StopsCubit extends Cubit<StopsState> {
       nextOffset: nextOffset,
       isLoadingMore: isLoadingMore,
       isSearching: isSearching,
+      isBuildingSearchIndex: isBuildingSearchIndex,
+      searchIndexRefreshError: searchIndexRefreshError,
       isFromCache: isFromCache,
       isCacheStale: isCacheStale,
       cacheRefreshError: cacheRefreshError,

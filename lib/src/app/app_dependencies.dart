@@ -19,6 +19,7 @@ import '../features/stops/domain/repositories/stops_cache_repository.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/stops/domain/usecases/load_cached_stops_use_case.dart';
+import '../features/stops/domain/usecases/load_complete_stop_index_use_case.dart';
 import '../features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/load_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/record_recent_stop_use_case.dart';
@@ -125,6 +126,10 @@ class AppDependencies extends StatelessWidget {
         RepositoryProvider<RefreshStopGroupsUseCase>(
           create: (context) =>
               RefreshStopGroupsUseCase(context.read<GetStopsUseCase>()),
+        ),
+        RepositoryProvider<LoadCompleteStopIndexUseCase>(
+          create: (context) =>
+              LoadCompleteStopIndexUseCase(context.read<GetStopsUseCase>()),
         ),
         RepositoryProvider<SearchStopGroupsUseCase>(
           create: (context) =>

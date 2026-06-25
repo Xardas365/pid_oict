@@ -6,6 +6,7 @@ import 'package:pid_oict/src/features/stops/domain/repositories/saved_stops_repo
 import 'package:pid_oict/src/features/stops/domain/repositories/stops_cache_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/get_stops_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/load_cached_stops_use_case.dart';
+import 'package:pid_oict/src/features/stops/domain/usecases/load_complete_stop_index_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/record_recent_stop_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/save_stops_cache_use_case.dart';
@@ -19,6 +20,7 @@ StopsCubit testStopsCubit(
   Duration searchDebounceDuration = gtfsStopsSearchDebounceDuration,
   StopsCacheDataSource? cacheDataSource,
   SavedStopsDataSource? savedStopsDataSource,
+  LoadCompleteStopIndexUseCase? loadCompleteStopIndex,
   DateTime Function()? now,
 }) {
   final cacheRepository = cacheDataSource == null
@@ -33,6 +35,7 @@ StopsCubit testStopsCubit(
     pageSize: pageSize,
     searchLimit: searchLimit,
     searchDebounceDuration: searchDebounceDuration,
+    loadCompleteStopIndex: loadCompleteStopIndex,
     loadCachedStops: _loadCachedStops(cacheRepository),
     saveStopsCache: _saveStopsCache(cacheRepository),
     loadSavedStopGroups: _loadSavedStopGroups(savedStopsRepository),

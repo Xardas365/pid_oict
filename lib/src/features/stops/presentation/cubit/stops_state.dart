@@ -21,6 +21,9 @@ class StopsState {
     this.nextOffset = 0,
     this.isLoadingMore = false,
     this.isSearching = false,
+    this.isSearchIndexComplete = false,
+    this.isBuildingSearchIndex = false,
+    this.searchIndexRefreshError,
     this.isFromCache = false,
     this.isCacheStale = false,
     this.cacheRefreshError,
@@ -43,6 +46,9 @@ class StopsState {
   final int nextOffset;
   final bool isLoadingMore;
   final bool isSearching;
+  final bool isSearchIndexComplete;
+  final bool isBuildingSearchIndex;
+  final AppFailure? searchIndexRefreshError;
   final bool isFromCache;
   final bool isCacheStale;
   final AppFailure? cacheRefreshError;
@@ -70,6 +76,9 @@ class StopsState {
     int? nextOffset,
     bool? isLoadingMore,
     bool? isSearching,
+    bool? isSearchIndexComplete,
+    bool? isBuildingSearchIndex,
+    AppFailure? searchIndexRefreshError,
     bool? isFromCache,
     bool? isCacheStale,
     AppFailure? cacheRefreshError,
@@ -78,6 +87,7 @@ class StopsState {
     List<StopGroup>? favoriteGroups,
     List<StopGroup>? recentGroups,
     bool clearError = false,
+    bool clearSearchIndexRefreshError = false,
     bool clearCacheRefreshError = false,
   }) {
     return StopsState(
@@ -92,6 +102,13 @@ class StopsState {
       nextOffset: nextOffset ?? this.nextOffset,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isSearching: isSearching ?? this.isSearching,
+      isSearchIndexComplete:
+          isSearchIndexComplete ?? this.isSearchIndexComplete,
+      isBuildingSearchIndex:
+          isBuildingSearchIndex ?? this.isBuildingSearchIndex,
+      searchIndexRefreshError: clearSearchIndexRefreshError
+          ? null
+          : searchIndexRefreshError ?? this.searchIndexRefreshError,
       isFromCache: isFromCache ?? this.isFromCache,
       isCacheStale: isCacheStale ?? this.isCacheStale,
       cacheRefreshError: clearCacheRefreshError
@@ -119,6 +136,9 @@ class StopsState {
             nextOffset == other.nextOffset &&
             isLoadingMore == other.isLoadingMore &&
             isSearching == other.isSearching &&
+            isSearchIndexComplete == other.isSearchIndexComplete &&
+            isBuildingSearchIndex == other.isBuildingSearchIndex &&
+            searchIndexRefreshError == other.searchIndexRefreshError &&
             isFromCache == other.isFromCache &&
             isCacheStale == other.isCacheStale &&
             cacheRefreshError == other.cacheRefreshError &&
@@ -130,7 +150,7 @@ class StopsState {
 
   @override
   int get hashCode {
-    return Object.hash(
+    return Object.hashAll([
       status,
       iterableHash(allStops),
       iterableHash(filteredStops),
@@ -142,6 +162,9 @@ class StopsState {
       nextOffset,
       isLoadingMore,
       isSearching,
+      isSearchIndexComplete,
+      isBuildingSearchIndex,
+      searchIndexRefreshError,
       isFromCache,
       isCacheStale,
       cacheRefreshError,
@@ -149,6 +172,6 @@ class StopsState {
       iterableHash(recentGroupIds),
       iterableHash(favoriteGroups),
       iterableHash(recentGroups),
-    );
+    ]);
   }
 }

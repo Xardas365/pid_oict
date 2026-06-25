@@ -12,6 +12,7 @@ import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/stops/domain/stops_cache_snapshot.dart';
 import 'package:pid_oict/src/features/stops/domain/stops_page.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/get_stops_use_case.dart';
+import 'package:pid_oict/src/features/stops/domain/usecases/load_complete_stop_index_use_case.dart';
 import 'package:pid_oict/src/features/stops/presentation/cubit/stops_cubit.dart';
 import 'package:pid_oict/src/features/stops/presentation/cubit/stops_state.dart';
 
@@ -709,6 +710,183 @@ void main() {
       cubit.searchChanged('praha hl');
       expect(cubit.state.filteredGroups.single.name, 'Hlavní nádraží');
       expect(repository.queries, hasLength(1));
+    });
+
+    test(
+      'initial load emits before background complete index finishes',
+      () async {
+        final completeIndexCompleter = Completer<StopsPage>();
+        final repository = _FakePaginatedStopsRepository([
+          const _StopsPageSuccess(
+            StopsPage(
+              stops: [_andelPublicStop],
+              limit: 1,
+              offset: 0,
+              rawReturnedCount: 1,
+              hasMore: true,
+            ),
+          ),
+          _StopsPagePending(completeIndexCompleter),
+        ]);
+        final cubit = testStopsCubit(
+          GetStopsUseCase(repository),
+          pageSize: 1,
+          loadCompleteStopIndex: _loadCompleteStopIndex(repository),
+        );
+        addTearDown(cubit.close);
+
+        await cubit.loadStops();
+
+        expect(repository.queries.map((query) => query.limit), [
+          1,
+          gtfsCompleteStopsPageLimit,
+        ]);
+        expect(cubit.state.status, StopsStatus.loaded);
+        expect(cubit.state.filteredGroups.single.name, 'Andel');
+        expect(cubit.state.isBuildingSearchIndex, isTrue);
+        expect(cubit.state.isSearchIndexComplete, isFalse);
+
+        completeIndexCompleter.complete(
+          const StopsPage(
+            stops: [_andelPublicStop, _floraPublicStop],
+            limit: gtfsCompleteStopsPageLimit,
+            offset: 0,
+            rawReturnedCount: 2,
+            hasMore: false,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(cubit.state.isBuildingSearchIndex, isFalse);
+        expect(cubit.state.isSearchIndexComplete, isTrue);
+        expect(cubit.state.filteredGroups.map((group) => group.name), [
+          'Andel',
+          'Flora',
+        ]);
+      },
+    );
+
+    test('complete index success writes complete cache snapshot', () async {
+      final cache = InMemoryStopsCacheDataSource();
+      final completeIndexCompleter = Completer<StopsPage>();
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_andelPublicStop],
+            limit: 1,
+            offset: 0,
+            rawReturnedCount: 1,
+            hasMore: true,
+          ),
+        ),
+        _StopsPagePending(completeIndexCompleter),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 1,
+        cacheDataSource: cache,
+        loadCompleteStopIndex: _loadCompleteStopIndex(repository),
+        now: () => _now,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+      completeIndexCompleter.complete(
+        const StopsPage(
+          stops: [_andelPublicStop, _floraPublicStop],
+          limit: gtfsCompleteStopsPageLimit,
+          offset: 0,
+          rawReturnedCount: 2,
+          hasMore: false,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final writtenCache = await cache.read();
+      expect(writtenCache, isNotNull);
+      expect(writtenCache!.stops.map((stop) => stop.id), [
+        _andelPublicStop.id,
+        _floraPublicStop.id,
+      ]);
+      expect(writtenCache.hasMore, isFalse);
+      expect(writtenCache.nextOffset, 2);
+    });
+
+    test('complete index failure keeps partial results visible', () async {
+      const expectedError = AppException(
+        type: AppExceptionType.network,
+        message: 'Network failed.',
+      );
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_andelPublicStop],
+            limit: 1,
+            offset: 0,
+            rawReturnedCount: 1,
+            hasMore: true,
+          ),
+        ),
+        const _StopsPageFailure(expectedError),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 1,
+        loadCompleteStopIndex: _loadCompleteStopIndex(repository),
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.status, StopsStatus.loaded);
+      expect(cubit.state.filteredGroups.single.name, 'Andel');
+      expect(cubit.state.isBuildingSearchIndex, isFalse);
+      expect(cubit.state.isSearchIndexComplete, isFalse);
+      expect(
+        cubit.state.searchIndexRefreshError?.category,
+        AppFailureCategory.network,
+      );
+    });
+
+    test('complete index prevents remote names search', () async {
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_andelPublicStop],
+            limit: 1,
+            offset: 0,
+            rawReturnedCount: 1,
+            hasMore: true,
+          ),
+        ),
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_andelPublicStop, _floraPublicStop],
+            limit: gtfsCompleteStopsPageLimit,
+            offset: 0,
+            rawReturnedCount: 2,
+            hasMore: false,
+          ),
+        ),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 1,
+        searchDebounceDuration: Duration.zero,
+        loadCompleteStopIndex: _loadCompleteStopIndex(repository),
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+      await Future<void>.delayed(Duration.zero);
+      cubit.searchChanged('Flo');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.queries, hasLength(2));
+      expect(repository.queries.any((query) => query.names != null), isFalse);
+      expect(cubit.state.isSearchIndexComplete, isTrue);
+      expect(cubit.state.filteredGroups.single.name, 'Flora');
     });
 
     test('writes cache after network-first load succeeds', () async {
@@ -1600,6 +1778,12 @@ StopGroup _stopGroup(int index) {
 
 StopsCubit _createCubit(_FakeStopsRepository repository) {
   return testStopsCubit(GetStopsUseCase(repository));
+}
+
+LoadCompleteStopIndexUseCase _loadCompleteStopIndex(
+  _FakePaginatedStopsRepository repository,
+) {
+  return LoadCompleteStopIndexUseCase(GetStopsUseCase(repository));
 }
 
 class _FakeStopsRepository implements StopsRepository {

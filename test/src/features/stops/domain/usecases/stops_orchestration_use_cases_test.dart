@@ -10,6 +10,7 @@ import 'package:pid_oict/src/features/stops/domain/stops_cache_snapshot.dart';
 import 'package:pid_oict/src/features/stops/domain/stops_page.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/get_stops_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/load_cached_stops_use_case.dart';
+import 'package:pid_oict/src/features/stops/domain/usecases/load_complete_stop_index_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/load_stop_groups_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/record_recent_stop_use_case.dart';
@@ -40,6 +41,72 @@ void main() {
         expect(repository.queries[2].names, ['Flo']);
       },
     );
+
+    test(
+      'complete index loader fetches pages until hasMore is false',
+      () async {
+        const flora = Stop(id: 'U118Z101P', name: 'Flora');
+        final repository = _QueuedStopsRepository(
+          const [
+            StopsPage(
+              stops: [_andel],
+              limit: gtfsCompleteStopsPageLimit,
+              offset: 0,
+              rawReturnedCount: gtfsCompleteStopsPageLimit,
+              hasMore: true,
+            ),
+            StopsPage(
+              stops: [flora],
+              limit: gtfsCompleteStopsPageLimit,
+              offset: gtfsCompleteStopsPageLimit,
+              rawReturnedCount: 1,
+              hasMore: false,
+            ),
+          ],
+        );
+        final useCase = LoadCompleteStopIndexUseCase(
+          GetStopsUseCase(repository),
+        );
+
+        final result = await useCase();
+
+        expect(
+          repository.queries.map((query) => query.limit),
+          [gtfsCompleteStopsPageLimit, gtfsCompleteStopsPageLimit],
+        );
+        expect(
+          repository.queries.map((query) => query.offset),
+          [0, gtfsCompleteStopsPageLimit],
+        );
+        expect(result.stops, const [_andel, flora]);
+        expect(result.rawReturnedCount, gtfsCompleteStopsPageLimit + 1);
+        expect(result.hasMore, isFalse);
+      },
+    );
+
+    test('complete index loader stops when a page has zero raw rows', () async {
+      final repository = _QueuedStopsRepository(
+        const [
+          StopsPage(
+            stops: [],
+            limit: gtfsCompleteStopsPageLimit,
+            offset: 0,
+            rawReturnedCount: 0,
+            hasMore: true,
+          ),
+        ],
+      );
+      final useCase = LoadCompleteStopIndexUseCase(GetStopsUseCase(repository));
+
+      final result = await useCase();
+
+      expect(repository.queries, hasLength(1));
+      expect(repository.queries.single.limit, gtfsCompleteStopsPageLimit);
+      expect(repository.queries.single.offset, 0);
+      expect(result.stops, isEmpty);
+      expect(result.rawReturnedCount, 0);
+      expect(result.hasMore, isFalse);
+    });
 
     test('cache use cases read and write cache snapshots', () async {
       final repository = _MemoryStopsCacheRepository();
@@ -154,6 +221,24 @@ class _RecordingStopsRepository implements PaginatedStopsRepository {
       rawReturnedCount: 0,
       hasMore: false,
     );
+  }
+}
+
+class _QueuedStopsRepository implements PaginatedStopsRepository {
+  _QueuedStopsRepository(this._pages);
+
+  final List<StopsPage> _pages;
+  final queries = <GtfsStopsQuery>[];
+
+  @override
+  Future<List<Stop>> fetchStops() async {
+    return _pages.first.stops;
+  }
+
+  @override
+  Future<StopsPage> fetchStopsPage(GtfsStopsQuery query) async {
+    queries.add(query);
+    return _pages[queries.length - 1];
   }
 }
 
