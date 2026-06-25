@@ -93,7 +93,7 @@ class VehicleMapScreen extends StatelessWidget {
 const _vehicleMapZoom = 15.0;
 const _vehicleMapFitMinZoom = 13.0;
 const _vehicleMapFitMaxZoom = 16.5;
-const _vehicleMapFitPadding = EdgeInsets.fromLTRB(56, 72, 56, 240);
+const _vehicleMapFitPadding = EdgeInsets.fromLTRB(56, 72, 56, 210);
 const _vehicleMapBackgroundColor = Color(0xFFE7EEF4);
 const _vehicleMapStaticBackgroundKey = Key('vehicle-map-static-background');
 const _vehicleMapLookBehindDistance = 900.0;
@@ -749,10 +749,13 @@ class _VehiclePositionCard extends StatelessWidget {
         _routeLabel(args, position) ??
         context.t.vehicleMap.title;
     final routeLabel = style.routeLabel;
+    final primaryTitle = routeLabel == null
+        ? title
+        : _headsign(args, position) ?? title;
     final delay = formatRealtimeDelayLabel(position.delaySeconds);
     final lastUpdatedText = _lastUpdatedText(context, lastUpdated);
     final nextStopText = _nextStopText(context, position);
-    final metadata = _metadataPills(context, args, position, routeLabel);
+    final metadata = _metadataLabels(context, args, position, routeLabel);
 
     return DecoratedBox(
       key: _vehicleMapPanelKey,
@@ -769,38 +772,37 @@ class _VehiclePositionCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (routeLabel != null) ...[
                   _RouteBadge(label: routeLabel, style: style),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                 ],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        title,
-                        maxLines: 2,
+                        primaryTitle,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
+                        spacing: 6,
+                        runSpacing: 3,
                         children: [
                           _InfoPill(text: delay),
                           if (lastUpdatedText != null)
-                            _InfoPill(text: lastUpdatedText),
+                            _SubtleInfoPill(text: lastUpdatedText),
                         ],
                       ),
                     ],
@@ -809,18 +811,18 @@ class _VehiclePositionCard extends StatelessWidget {
               ],
             ),
             if (nextStopText != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               _InlineInfo(
                 icon: Icons.flag_outlined,
                 text: nextStopText,
               ),
             ],
             if (metadata.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(spacing: 8, runSpacing: 5, children: metadata),
+              const SizedBox(height: 6),
+              _MetadataSummary(labels: metadata),
             ],
             if (staleError != null) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 staleDataWarning(staleError),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -848,8 +850,8 @@ class _RouteBadge extends StatelessWidget {
         border: Border.all(color: style.badgeBorderColor),
       ),
       child: SizedBox(
-        width: 52,
-        height: 44,
+        width: 46,
+        height: 38,
         child: Center(
           child: Text(
             label,
@@ -879,7 +881,7 @@ class _InfoPill extends StatelessWidget {
         borderRadius: const BorderRadius.all(Radius.circular(999)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         child: Text(
           text,
           maxLines: 1,
@@ -889,6 +891,27 @@ class _InfoPill extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SubtleInfoPill extends StatelessWidget {
+  const _SubtleInfoPill({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
@@ -920,6 +943,25 @@ class _InlineInfo extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MetadataSummary extends StatelessWidget {
+  const _MetadataSummary({required this.labels});
+
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      labels.join(' · '),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 }
@@ -1008,7 +1050,7 @@ VehicleRouteStop? _nextStop(VehiclePosition position) {
   return candidates.isEmpty ? null : candidates.first;
 }
 
-List<Widget> _metadataPills(
+List<String> _metadataLabels(
   BuildContext context,
   VehicleMapArgs args,
   VehiclePosition position,
@@ -1033,7 +1075,7 @@ List<Widget> _metadataPills(
     labels.add(context.t.vehicleMap.usbChargers);
   }
 
-  return labels.map((label) => _InfoPill(text: label)).toList(growable: false);
+  return labels;
 }
 
 class _VehicleRouteStyle {

@@ -113,13 +113,15 @@ void main() {
       expect(find.byTooltip('Vycentrovat vozidlo'), findsOneWidget);
       expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
       expect(find.textContaining('vehicle-123'), findsNothing);
+      expect(find.text('Sidliste Repy'), findsOneWidget);
       expect(find.text('+1 min'), findsOneWidget);
       expect(find.text('Další: Narodni divadlo v 10:24'), findsOneWidget);
-      expect(find.text('Tramvaj'), findsOneWidget);
-      expect(find.text('Dopravce DPP'), findsOneWidget);
-      expect(find.text('Bezbariérové'), findsOneWidget);
-      expect(find.text('Klimatizace'), findsOneWidget);
-      expect(find.text('USB nabíjení'), findsOneWidget);
+      expect(
+        find.text(
+          'Tramvaj · Dopravce DPP · Bezbariérové · Klimatizace · USB nabíjení',
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Poslední aktualizace 10:20:00'), findsOneWidget);
       expect(
         find.text('Mapová data (c) přispěvatelé OpenStreetMap'),
