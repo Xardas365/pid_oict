@@ -1,12 +1,13 @@
-import 'dart:async';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/pid_line_type.dart';
+import '../../../../shared/utils/refresh_ticker.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
-import '../../domain/usecases/get_departures_for_stop_use_case.dart';
+import '../../domain/usecases/load_departure_board_use_case.dart';
+import '../../domain/usecases/refresh_departure_board_use_case.dart';
 import '../departure_transport_filter.dart';
+import 'departure_board_refresh_policy.dart';
 import 'departures_event.dart';
 import 'departures_state.dart';
 
@@ -14,10 +15,20 @@ const departureBoardRefreshInterval = Duration(seconds: 30);
 
 class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
   DeparturesBloc(
-    this._getDepartures, {
+    this._loadDepartureBoard, {
+    required RefreshDepartureBoardUseCase refreshDepartureBoard,
     this.refreshInterval = departureBoardRefreshInterval,
+    DepartureTransportFilterPolicy filterPolicy =
+        departureTransportFilterPolicy,
+    DepartureBoardRefreshPolicy refreshPolicy =
+        const DepartureBoardRefreshPolicy(),
+    RefreshTicker? refreshTicker,
     DateTime Function()? now,
   }) : super(const DeparturesState.loading()) {
+    _refreshDepartureBoard = refreshDepartureBoard;
+    _filterPolicy = filterPolicy;
+    _refreshPolicy = refreshPolicy;
+    _refreshTicker = refreshTicker ?? TimerRefreshTicker();
     _now = now ?? DateTime.now;
     on<DeparturesStarted>(_onStarted);
     on<DeparturesRetried>(_onRetried);
@@ -25,10 +36,13 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     on<DeparturesTransportFilterSelected>(_onTransportFilterSelected);
   }
 
-  final GetDeparturesForStopUseCase _getDepartures;
+  final LoadDepartureBoardUseCase _loadDepartureBoard;
   final Duration refreshInterval;
+  late final RefreshDepartureBoardUseCase _refreshDepartureBoard;
+  late final DepartureTransportFilterPolicy _filterPolicy;
+  late final DepartureBoardRefreshPolicy _refreshPolicy;
+  late final RefreshTicker _refreshTicker;
   late final DateTime Function() _now;
-  Timer? _refreshTimer;
   var _refreshInProgress = false;
 
   Future<void> _onStarted(
@@ -54,7 +68,10 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     DeparturesRefreshed event,
     Emitter<DeparturesState> emit,
   ) async {
-    if (_refreshInProgress) {
+    if (!_refreshPolicy.canStartRefresh(
+      state: state,
+      refreshInProgress: _refreshInProgress,
+    )) {
       event.completion?.complete();
       return;
     }
@@ -66,50 +83,30 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
         return;
       }
 
-      final previousDepartures = state.departures;
-      if (previousDepartures.isNotEmpty) {
-        emit(
-          state.copyWith(
-            status: DeparturesStatus.loaded,
-            departures: previousDepartures,
-            isRefreshing: true,
-            clearError: true,
-            clearRefreshError: true,
-          ),
-        );
+      final previousState = state;
+      if (_refreshPolicy.shouldKeepDeparturesVisible(previousState)) {
+        emit(_refreshPolicy.refreshingWithPreviousData(previousState));
       }
 
       try {
-        final departures = await _getDepartures(stop);
+        final departures = await _refreshDepartureBoard(stop);
         emit(
           _stateFromDepartures(
             stop,
             departures,
-            selectedTransportMode: state.selectedTransportMode,
+            selectedTransportMode: previousState.selectedTransportMode,
           ),
         );
       } on Object catch (error) {
-        if (previousDepartures.isNotEmpty) {
-          emit(
-            state.copyWith(
-              status: DeparturesStatus.loaded,
-              departures: previousDepartures,
-              refreshError: error,
-              isRefreshing: false,
-              clearError: true,
-            ),
-          );
-          return;
-        }
-
-        emit(
-          DeparturesState(
-            status: DeparturesStatus.error,
-            stop: stop,
-            error: error,
-          ),
+        final nextState = _refreshPolicy.refreshFailure(
+          previousState: previousState,
+          stop: stop,
+          error: error,
         );
-        _stopPeriodicRefresh();
+        emit(nextState);
+        if (!_refreshPolicy.shouldKeepDeparturesVisible(previousState)) {
+          _stopPeriodicRefresh();
+        }
       }
     } finally {
       _refreshInProgress = false;
@@ -122,15 +119,20 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     Emitter<DeparturesState> emit,
   ) {
     final mode = event.mode;
-    if (mode != null && !state.availableTransportModes.contains(mode)) {
+    final selectedMode = _filterPolicy.resolveSelectedMode(
+      departures: state.departures,
+      selectedMode: mode,
+    );
+
+    if (mode != null && selectedMode == null) {
       emit(state.copyWith(clearSelectedTransportMode: true));
       return;
     }
 
     emit(
       state.copyWith(
-        selectedTransportMode: mode,
-        clearSelectedTransportMode: mode == null,
+        selectedTransportMode: selectedMode,
+        clearSelectedTransportMode: selectedMode == null,
       ),
     );
   }
@@ -147,7 +149,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     emit(DeparturesState.loading(stop: stop));
 
     try {
-      final departures = await _getDepartures(stop);
+      final departures = await _loadDepartureBoard(stop);
       emit(_stateFromDepartures(stop, departures));
       _startPeriodicRefresh();
     } on Object catch (error) {
@@ -167,12 +169,10 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     PidTransportMode? selectedTransportMode,
   }) {
     final immutableDepartures = List<Departure>.unmodifiable(departures);
-    final availableModes = deriveDepartureTransportModes(immutableDepartures);
-    final validSelectedTransportMode =
-        selectedTransportMode != null &&
-            availableModes.contains(selectedTransportMode)
-        ? selectedTransportMode
-        : null;
+    final validSelectedTransportMode = _filterPolicy.resolveSelectedMode(
+      departures: immutableDepartures,
+      selectedMode: selectedTransportMode,
+    );
 
     return DeparturesState(
       status: immutableDepartures.isEmpty
@@ -191,21 +191,23 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
       return;
     }
 
-    _refreshTimer = Timer.periodic(refreshInterval, (_) {
-      if (isClosed ||
-          _refreshInProgress ||
-          state.status == DeparturesStatus.loading ||
-          state.stop == null) {
-        return;
-      }
+    _refreshTicker.start(
+      interval: refreshInterval,
+      onTick: () {
+        if (isClosed ||
+            _refreshInProgress ||
+            state.status == DeparturesStatus.loading ||
+            state.stop == null) {
+          return;
+        }
 
-      add(const DeparturesRefreshed());
-    });
+        add(const DeparturesRefreshed());
+      },
+    );
   }
 
   void _stopPeriodicRefresh() {
-    _refreshTimer?.cancel();
-    _refreshTimer = null;
+    _refreshTicker.stop();
   }
 
   @override

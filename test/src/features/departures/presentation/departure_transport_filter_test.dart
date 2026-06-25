@@ -24,11 +24,35 @@ void main() {
     test('filters departures by selected transport mode', () {
       final tram = _departure(routeShortName: '10', routeType: 'tram');
       final bus = _departure(routeShortName: '175', routeType: 'bus');
+      const useCase = FilterDeparturesByTransportModeUseCase();
 
       expect(filterDeparturesByTransportMode([tram, bus], null), [tram, bus]);
       expect(
-        filterDeparturesByTransportMode([tram, bus], PidTransportMode.bus),
+        useCase(
+          departures: [tram, bus],
+          selectedMode: PidTransportMode.bus,
+        ),
         [bus],
+      );
+    });
+
+    test('resolves unavailable selected mode back to all', () {
+      final departures = [_departure(routeShortName: '10', routeType: 'tram')];
+      const policy = DepartureTransportFilterPolicy();
+
+      expect(
+        policy.resolveSelectedMode(
+          departures: departures,
+          selectedMode: PidTransportMode.tram,
+        ),
+        PidTransportMode.tram,
+      );
+      expect(
+        policy.resolveSelectedMode(
+          departures: departures,
+          selectedMode: PidTransportMode.bus,
+        ),
+        isNull,
       );
     });
 

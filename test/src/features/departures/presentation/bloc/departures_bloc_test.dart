@@ -5,7 +5,8 @@ import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
-import 'package:pid_oict/src/features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
+import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_board_use_case.dart';
+import 'package:pid_oict/src/features/departures/domain/usecases/refresh_departure_board_use_case.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bloc.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_state.dart';
@@ -298,7 +299,8 @@ DeparturesBloc _createBloc(
   DateTime Function()? now,
 }) {
   return DeparturesBloc(
-    GetDeparturesForStopUseCase(repository),
+    LoadDepartureBoardUseCase(repository),
+    refreshDepartureBoard: RefreshDepartureBoardUseCase(repository),
     refreshInterval: refreshInterval,
     now: now,
   );

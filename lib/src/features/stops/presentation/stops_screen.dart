@@ -9,7 +9,8 @@ import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
 import '../../../shared/widgets/loading_state_view.dart';
-import '../../departures/domain/usecases/get_departures_for_stop_use_case.dart';
+import '../../departures/domain/usecases/load_departure_board_use_case.dart';
+import '../../departures/domain/usecases/refresh_departure_board_use_case.dart';
 import '../../departures/presentation/bloc/departures_bloc.dart';
 import '../../departures/presentation/bloc/departures_event.dart';
 import '../../departures/presentation/departures_screen.dart';
@@ -116,9 +117,11 @@ class _StopsScreenState extends State<StopsScreen> {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => BlocProvider(
-            create: (context) =>
-                DeparturesBloc(context.read<GetDeparturesForStopUseCase>())
-                  ..add(DeparturesStarted(stop)),
+            create: (context) => DeparturesBloc(
+              context.read<LoadDepartureBoardUseCase>(),
+              refreshDepartureBoard: context
+                  .read<RefreshDepartureBoardUseCase>(),
+            )..add(DeparturesStarted(stop)),
             child: DeparturesScreen(stop: stop),
           ),
         ),

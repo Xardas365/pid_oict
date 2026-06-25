@@ -12,38 +12,88 @@ const List<PidTransportMode> departureTransportModeOrder = [
   PidTransportMode.unknown,
 ];
 
+const departureTransportFilterPolicy = DepartureTransportFilterPolicy();
+
+class DepartureTransportFilterPolicy {
+  const DepartureTransportFilterPolicy({
+    this.filterDepartures = const FilterDeparturesByTransportModeUseCase(),
+  });
+
+  final FilterDeparturesByTransportModeUseCase filterDepartures;
+
+  List<PidTransportMode> deriveAvailableModes(
+    Iterable<Departure> departures,
+  ) {
+    final modes = departures
+        .map((departure) => departure.lineType.mode)
+        .toSet();
+
+    return List<PidTransportMode>.unmodifiable(
+      departureTransportModeOrder.where(modes.contains),
+    );
+  }
+
+  PidTransportMode? resolveSelectedMode({
+    required Iterable<Departure> departures,
+    required PidTransportMode? selectedMode,
+  }) {
+    if (selectedMode == null) {
+      return null;
+    }
+
+    final availableModes = deriveAvailableModes(departures);
+    return availableModes.contains(selectedMode) ? selectedMode : null;
+  }
+
+  PidLineType representativeLineTypeFor(
+    Iterable<Departure> departures,
+  ) {
+    final modes = deriveAvailableModes(departures);
+    if (modes.isEmpty) {
+      return PidLineType.unknown;
+    }
+
+    return representativeLineTypeForMode(modes.first);
+  }
+}
+
+class FilterDeparturesByTransportModeUseCase {
+  const FilterDeparturesByTransportModeUseCase();
+
+  List<Departure> call({
+    required Iterable<Departure> departures,
+    required PidTransportMode? selectedMode,
+  }) {
+    if (selectedMode == null) {
+      return List<Departure>.unmodifiable(departures);
+    }
+
+    return List<Departure>.unmodifiable(
+      departures.where((departure) => departure.lineType.mode == selectedMode),
+    );
+  }
+}
+
 List<PidTransportMode> deriveDepartureTransportModes(
   Iterable<Departure> departures,
 ) {
-  final modes = departures.map((departure) => departure.lineType.mode).toSet();
-
-  return List<PidTransportMode>.unmodifiable(
-    departureTransportModeOrder.where(modes.contains),
-  );
+  return departureTransportFilterPolicy.deriveAvailableModes(departures);
 }
 
 List<Departure> filterDeparturesByTransportMode(
   Iterable<Departure> departures,
   PidTransportMode? selectedMode,
 ) {
-  if (selectedMode == null) {
-    return List<Departure>.unmodifiable(departures);
-  }
-
-  return List<Departure>.unmodifiable(
-    departures.where((departure) => departure.lineType.mode == selectedMode),
+  return departureTransportFilterPolicy.filterDepartures(
+    departures: departures,
+    selectedMode: selectedMode,
   );
 }
 
 PidLineType representativeLineTypeForDepartures(
   Iterable<Departure> departures,
 ) {
-  final modes = deriveDepartureTransportModes(departures);
-  if (modes.isEmpty) {
-    return PidLineType.unknown;
-  }
-
-  return representativeLineTypeForMode(modes.first);
+  return departureTransportFilterPolicy.representativeLineTypeFor(departures);
 }
 
 PidLineType representativeLineTypeForMode(PidTransportMode mode) {

@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
-import 'package:pid_oict/src/features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
+import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_board_use_case.dart';
+import 'package:pid_oict/src/features/departures/domain/usecases/refresh_departure_board_use_case.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bloc.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
 import 'package:pid_oict/src/features/departures/presentation/departures_screen.dart';
@@ -466,7 +467,8 @@ Future<void> _pumpDeparturesScreen(
     localizedTestApp(
       home: BlocProvider(
         create: (_) => DeparturesBloc(
-          GetDeparturesForStopUseCase(repository),
+          LoadDepartureBoardUseCase(repository),
+          refreshDepartureBoard: RefreshDepartureBoardUseCase(repository),
           refreshInterval: Duration.zero,
         )..add(DeparturesStarted(_testStopGroup)),
         child: DeparturesScreen(
