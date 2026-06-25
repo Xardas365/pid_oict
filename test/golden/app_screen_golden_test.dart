@@ -17,9 +17,11 @@ import 'package:pid_oict/src/features/stops/presentation/cubit/stops_cubit.dart'
 import 'package:pid_oict/src/features/stops/presentation/stops_screen.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
+import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_args.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_screen.dart';
 
 import '../helpers/fake_repositories.dart';
@@ -296,20 +298,19 @@ Widget _vehicleMapScreen(
   VehiclePositionRepository repository, {
   void Function(VehicleMapBloc bloc)? onBlocCreated,
 }) {
+  final args = VehicleMapArgs(vehicleId: VehicleId('service-3-1001'));
+
   return BlocProvider(
     create: (_) {
       final bloc = VehicleMapBloc(
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: Duration.zero,
-      )..add(const VehicleMapStarted('service-3-1001'));
+      )..add(VehicleMapStarted(args.vehicleId));
       onBlocCreated?.call(bloc);
 
       return bloc;
     },
-    child: const VehicleMapScreen(
-      vehicleId: 'service-3-1001',
-      showMapTiles: false,
-    ),
+    child: VehicleMapScreen(args: args, showMapTiles: false),
   );
 }
 

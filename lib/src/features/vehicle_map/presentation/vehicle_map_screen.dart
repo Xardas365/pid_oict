@@ -14,15 +14,16 @@ import '../domain/vehicle_position.dart';
 import 'bloc/vehicle_map_bloc.dart';
 import 'bloc/vehicle_map_event.dart';
 import 'bloc/vehicle_map_state.dart';
+import 'vehicle_map_args.dart';
 
 class VehicleMapScreen extends StatelessWidget {
   const VehicleMapScreen({
-    required this.vehicleId,
+    required this.args,
     super.key,
     this.showMapTiles = true,
   });
 
-  final String vehicleId;
+  final VehicleMapArgs args;
   final bool showMapTiles;
 
   @override

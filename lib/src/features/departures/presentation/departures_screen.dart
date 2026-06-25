@@ -18,6 +18,7 @@ import '../../stops/domain/stop_group.dart';
 import '../../vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_event.dart';
+import '../../vehicle_map/presentation/vehicle_map_args.dart';
 import '../../vehicle_map/presentation/vehicle_map_screen.dart';
 import '../domain/departure.dart';
 import 'bloc/departures_bloc.dart';
@@ -34,7 +35,7 @@ class DeparturesScreen extends StatelessWidget {
   });
 
   final StopGroup stop;
-  final ValueChanged<String>? onVehicleSelected;
+  final ValueChanged<VehicleMapArgs>? onVehicleSelected;
   final VoidCallback? onBackToStops;
 
   void _backToStops(BuildContext context) {
@@ -47,10 +48,10 @@ class DeparturesScreen extends StatelessWidget {
     unawaited(Navigator.of(context).maybePop());
   }
 
-  void _openVehicleMap(BuildContext context, String vehicleId) {
+  void _openVehicleMap(BuildContext context, VehicleMapArgs args) {
     final onVehicleSelected = this.onVehicleSelected;
     if (onVehicleSelected != null) {
-      onVehicleSelected(vehicleId);
+      onVehicleSelected(args);
       return;
     }
 
@@ -60,8 +61,8 @@ class DeparturesScreen extends StatelessWidget {
           builder: (_) => BlocProvider(
             create: (context) => VehicleMapBloc(
               context.read<GetVehiclePositionForVehicleUseCase>(),
-            )..add(VehicleMapStarted(vehicleId)),
-            child: VehicleMapScreen(vehicleId: vehicleId),
+            )..add(VehicleMapStarted(args.vehicleId)),
+            child: VehicleMapScreen(args: args),
           ),
         ),
       ),
@@ -94,8 +95,7 @@ class DeparturesScreen extends StatelessWidget {
             stop: stop,
             state: state,
             onRefresh: () => _refresh(context),
-            onOpenVehicleMap: (vehicleId) =>
-                _openVehicleMap(context, vehicleId),
+            onOpenVehicleMap: (args) => _openVehicleMap(context, args),
           ),
         ),
       ),
@@ -114,7 +114,7 @@ class _DeparturesBoard extends StatelessWidget {
   final StopGroup stop;
   final DeparturesState state;
   final Future<void> Function() onRefresh;
-  final ValueChanged<String> onOpenVehicleMap;
+  final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +305,7 @@ class _RefreshableDeparturesContent extends StatelessWidget {
   });
 
   final DeparturesState state;
-  final ValueChanged<String> onOpenVehicleMap;
+  final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
 
   @override
   Widget build(BuildContext context) {
@@ -355,7 +355,7 @@ class _DeparturesList extends StatelessWidget {
 
   final DeparturesState state;
   final List<Departure> departures;
-  final ValueChanged<String> onOpenVehicleMap;
+  final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
 
   @override
   Widget build(BuildContext context) {
@@ -376,12 +376,13 @@ class _DeparturesList extends StatelessWidget {
         final departure = departures[index - headerCount];
         // Departure boards can omit vehicle.id. A separate lookup would be
         // needed; do not fake vehicle tracking from gtfsTripId.
+        final mapArgs = VehicleMapArgs.tryParseVehicleId(departure.vehicleId);
 
         return DepartureTile(
           departure: departure,
-          onOpenVehicleMap: departure.vehicleId == null
+          onOpenVehicleMap: mapArgs == null
               ? null
-              : () => onOpenVehicleMap(departure.vehicleId!),
+              : () => onOpenVehicleMap(mapArgs),
         );
       },
     );

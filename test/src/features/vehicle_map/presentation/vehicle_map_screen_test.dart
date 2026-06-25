@@ -10,6 +10,7 @@ import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
+import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_args.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_screen.dart';
 
 import '../../../test_localized_app.dart';
@@ -196,16 +197,19 @@ Future<void> _pumpVehicleMapScreen(
     localizedTestApp(
       home: BlocProvider(
         create: (_) {
+          final args = VehicleMapArgs(
+            vehicleId: VehicleId('service-3-1001'),
+          );
           final bloc = VehicleMapBloc(
             GetVehiclePositionForVehicleUseCase(repository),
             pollingInterval: Duration.zero,
-          )..add(const VehicleMapStarted('service-3-1001'));
+          )..add(VehicleMapStarted(args.vehicleId));
           onBlocCreated?.call(bloc);
 
           return bloc;
         },
-        child: const VehicleMapScreen(
-          vehicleId: 'service-3-1001',
+        child: VehicleMapScreen(
+          args: VehicleMapArgs(vehicleId: VehicleId('service-3-1001')),
           showMapTiles: false,
         ),
       ),

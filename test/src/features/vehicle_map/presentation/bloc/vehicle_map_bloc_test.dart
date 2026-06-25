@@ -20,7 +20,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
+      bloc.add(_started());
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       expect(bloc.state.position?.vehicleId, 'vehicle-1');
@@ -34,11 +34,11 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted(' service-3-1001 '));
+      bloc.add(_started(' service-3-1001 '));
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       expect(repository.receivedVehicleIds, ['service-3-1001']);
-      expect(bloc.state.vehicleId, 'service-3-1001');
+      expect(bloc.state.vehicleId?.value, 'service-3-1001');
     });
 
     test('maps initial invalid data to no-position state', () async {
@@ -50,7 +50,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
+      bloc.add(_started());
       await _waitForStatus(bloc, VehicleMapStatus.noPosition);
 
       expect(bloc.state.position, isNull);
@@ -68,7 +68,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
+      bloc.add(_started());
       await _waitForStatus(bloc, VehicleMapStatus.error);
 
       expect(bloc.state.error?.category, AppFailureCategory.network);
@@ -86,7 +86,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
+      bloc.add(_started());
       await _waitForStatus(bloc, VehicleMapStatus.error);
 
       bloc.add(const VehicleMapRetried());
@@ -104,7 +104,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
+      bloc.add(_started());
       await _waitForLatitude(bloc, 50.0755);
 
       bloc.add(const VehicleMapRefreshTicked());
@@ -126,7 +126,7 @@ void main() {
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
+      bloc.add(_started());
       await _waitForLatitude(bloc, 50.0755);
 
       bloc.add(const VehicleMapRefreshTicked());
@@ -150,7 +150,7 @@ void main() {
         final bloc = _createBloc(repository);
         addTearDown(bloc.close);
 
-        bloc.add(const VehicleMapStarted('service-1'));
+        bloc.add(_started());
         await _waitForLatitude(bloc, 50.0755);
 
         final emitted = <VehicleMapState>[];
@@ -186,7 +186,7 @@ void main() {
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
         tickerFactory: (_) => tickerController.stream,
-      )..add(const VehicleMapStarted('service-1'));
+      )..add(_started());
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       await bloc.close();
@@ -205,7 +205,7 @@ void main() {
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
         tickerFactory: (_) => tickerController.stream,
-      )..add(const VehicleMapStarted('service-1'));
+      )..add(_started());
       addTearDown(bloc.close);
       addTearDown(tickerController.close);
 
@@ -224,6 +224,10 @@ VehicleMapBloc _createBloc(_QueueVehiclePositionRepository repository) {
     GetVehiclePositionForVehicleUseCase(repository),
     pollingInterval: Duration.zero,
   );
+}
+
+VehicleMapStarted _started([String vehicleId = 'service-1']) {
+  return VehicleMapStarted(VehicleId(vehicleId));
 }
 
 Future<void> _waitForStatus(

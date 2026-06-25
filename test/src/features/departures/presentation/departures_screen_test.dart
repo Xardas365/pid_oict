@@ -12,6 +12,7 @@ import 'package:pid_oict/src/features/departures/presentation/bloc/departures_ev
 import 'package:pid_oict/src/features/departures/presentation/departures_screen.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
+import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_args.dart';
 
 import '../../../test_localized_app.dart';
 
@@ -215,12 +216,12 @@ void main() {
     testWidgets('opens vehicle map screen with vehicleId', (
       tester,
     ) async {
-      String? selectedVehicleId;
+      VehicleMapArgs? selectedArgs;
 
       await _pumpDeparturesScreen(
         tester,
-        onVehicleSelected: (vehicleId) {
-          selectedVehicleId = vehicleId;
+        onVehicleSelected: (args) {
+          selectedArgs = args;
         },
         repository: _QueueDeparturesRepository([
           _DeparturesSuccess([
@@ -239,18 +240,18 @@ void main() {
       await tester.tap(find.text('Nadrazi Hostivar'));
       await tester.pumpAndSettle();
 
-      expect(selectedVehicleId, 'service-3-1001');
+      expect(selectedArgs?.vehicleId.value, 'service-3-1001');
     });
 
     testWidgets('hides vehicle map action when vehicleId is missing', (
       tester,
     ) async {
-      String? selectedVehicleId;
+      VehicleMapArgs? selectedArgs;
 
       await _pumpDeparturesScreen(
         tester,
-        onVehicleSelected: (vehicleId) {
-          selectedVehicleId = vehicleId;
+        onVehicleSelected: (args) {
+          selectedArgs = args;
         },
         repository: _QueueDeparturesRepository([
           _DeparturesSuccess([
@@ -270,7 +271,39 @@ void main() {
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
-      expect(selectedVehicleId, isNull);
+      expect(selectedArgs, isNull);
+    });
+
+    testWidgets('hides vehicle map action when vehicleId is empty', (
+      tester,
+    ) async {
+      VehicleMapArgs? selectedArgs;
+
+      await _pumpDeparturesScreen(
+        tester,
+        onVehicleSelected: (args) {
+          selectedArgs = args;
+        },
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: 'A',
+              headsign: 'Nemocnice Motol',
+              departureTime: DateTime(2026, 6, 22, 10, 15),
+              gtfsTripId: 'trip-without-vehicle',
+              vehicleId: '   ',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nemocnice Motol'), findsOneWidget);
+      await tester.tap(find.text('Nemocnice Motol'));
+      await tester.pumpAndSettle();
+
+      expect(selectedArgs, isNull);
     });
 
     testWidgets('shows error and retries loading departures', (
@@ -459,7 +492,7 @@ void main() {
 Future<void> _pumpDeparturesScreen(
   WidgetTester tester, {
   required DeparturesRepository repository,
-  ValueChanged<String>? onVehicleSelected,
+  ValueChanged<VehicleMapArgs>? onVehicleSelected,
   VoidCallback? onBackToStops,
 }) async {
   await tester.pumpWidget(

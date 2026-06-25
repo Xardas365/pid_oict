@@ -31,6 +31,7 @@ import '../features/vehicle_map/domain/vehicle_id.dart';
 import '../features/vehicle_map/domain/vehicle_position.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
+import '../features/vehicle_map/presentation/vehicle_map_args.dart';
 import '../features/vehicle_map/presentation/vehicle_map_screen.dart';
 import '../shared/widgets/empty_state_view.dart';
 
@@ -59,7 +60,7 @@ class PidOictShell extends StatefulWidget {
 class _PidOictShellState extends State<PidOictShell> {
   PidNavigationTab _selectedTab = PidNavigationTab.stops;
   StopGroup? _selectedStop;
-  String? _selectedVehicleId;
+  VehicleMapArgs? _selectedVehicleMapArgs;
 
   void _selectStop(StopGroup stop) {
     setState(() {
@@ -68,9 +69,9 @@ class _PidOictShellState extends State<PidOictShell> {
     });
   }
 
-  void _selectVehicle(String vehicleId) {
+  void _selectVehicle(VehicleMapArgs args) {
     setState(() {
-      _selectedVehicleId = vehicleId;
+      _selectedVehicleMapArgs = args;
       _selectedTab = PidNavigationTab.map;
     });
   }
@@ -99,7 +100,7 @@ class _PidOictShellState extends State<PidOictShell> {
             isActive: _selectedTab == PidNavigationTab.departures,
           ),
           _MapTab(
-            selectedVehicleId: _selectedVehicleId,
+            args: _selectedVehicleMapArgs,
             loadVehiclePosition: widget.loadVehiclePosition,
             refreshInterval: widget.vehicleMapRefreshInterval,
             showMapTiles: widget.showMapTiles,
@@ -193,7 +194,7 @@ class _DeparturesTab extends StatelessWidget {
   final StopGroup? selectedStop;
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
   final Duration refreshInterval;
-  final ValueChanged<String> onVehicleSelected;
+  final ValueChanged<VehicleMapArgs> onVehicleSelected;
   final VoidCallback onBackToStops;
   final bool isActive;
 
@@ -264,14 +265,14 @@ class _CallbackDeparturesRepository implements DeparturesRepository {
 
 class _MapTab extends StatelessWidget {
   const _MapTab({
-    required this.selectedVehicleId,
+    required this.args,
     required this.loadVehiclePosition,
     required this.refreshInterval,
     required this.showMapTiles,
     required this.isActive,
   });
 
-  final String? selectedVehicleId;
+  final VehicleMapArgs? args;
   final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
   final Duration refreshInterval;
   final bool showMapTiles;
@@ -279,8 +280,8 @@ class _MapTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vehicleId = selectedVehicleId;
-    if (vehicleId == null) {
+    final args = this.args;
+    if (args == null) {
       final strings = context.t;
 
       return _ShellEmptyTab(
@@ -295,12 +296,12 @@ class _MapTab extends StatelessWidget {
     }
 
     return BlocProvider(
-      key: ValueKey(vehicleId),
+      key: ValueKey(args.vehicleId.value),
       create: (context) => VehicleMapBloc(
         _getVehiclePositionUseCase(context),
         pollingInterval: refreshInterval,
-      )..add(VehicleMapStarted(vehicleId)),
-      child: VehicleMapScreen(vehicleId: vehicleId, showMapTiles: showMapTiles),
+      )..add(VehicleMapStarted(args.vehicleId)),
+      child: VehicleMapScreen(args: args, showMapTiles: showMapTiles),
     );
   }
 

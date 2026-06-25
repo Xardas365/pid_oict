@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/errors/app_exception.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import '../../domain/vehicle_id.dart';
@@ -10,11 +9,6 @@ import 'vehicle_map_event.dart';
 import 'vehicle_map_state.dart';
 
 typedef VehicleMapTickerFactory = Stream<void> Function(Duration interval);
-
-const _missingVehicleIdException = AppException(
-  type: AppExceptionType.invalidData,
-  message: 'Vehicle ID is required to load vehicle position.',
-);
 
 Stream<void> _defaultTicker(Duration interval) {
   return Stream<void>.periodic(interval);
@@ -43,18 +37,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     Emitter<VehicleMapState> emit,
   ) async {
     await _restartPolling();
-    final vehicleId = VehicleId.tryParse(event.vehicleId);
-    if (vehicleId == null) {
-      emit(
-        VehicleMapState(
-          status: VehicleMapStatus.noPosition,
-          error: AppFailure.fromException(_missingVehicleIdException),
-        ),
-      );
-      return;
-    }
-
-    await _loadPosition(vehicleId, emit, showInitialLoading: true);
+    await _loadPosition(event.vehicleId, emit, showInitialLoading: true);
   }
 
   Future<void> _onRetried(
@@ -62,12 +45,11 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     Emitter<VehicleMapState> emit,
   ) {
     final vehicleId = state.vehicleId;
-    final parsedVehicleId = VehicleId.tryParse(vehicleId);
-    if (parsedVehicleId == null) {
+    if (vehicleId == null) {
       return Future<void>.value();
     }
 
-    return _loadPosition(parsedVehicleId, emit, showInitialLoading: true);
+    return _loadPosition(vehicleId, emit, showInitialLoading: true);
   }
 
   Future<void> _onRefreshTicked(
@@ -75,12 +57,11 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     Emitter<VehicleMapState> emit,
   ) {
     final vehicleId = state.vehicleId;
-    final parsedVehicleId = VehicleId.tryParse(vehicleId);
-    if (parsedVehicleId == null) {
+    if (vehicleId == null) {
       return Future<void>.value();
     }
 
-    return _loadPosition(parsedVehicleId, emit, showInitialLoading: false);
+    return _loadPosition(vehicleId, emit, showInitialLoading: false);
   }
 
   Future<void> _restartPolling() async {
@@ -109,12 +90,12 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     final previousPosition = state.position;
 
     if (showInitialLoading && previousPosition == null) {
-      emit(VehicleMapState.loading(vehicleId: vehicleId.value));
+      emit(VehicleMapState.loading(vehicleId: vehicleId));
     } else if (previousPosition != null) {
       emit(
         state.copyWith(
           status: VehicleMapStatus.loaded,
-          vehicleId: vehicleId.value,
+          vehicleId: vehicleId,
           position: previousPosition,
           isRefreshing: true,
           clearError: true,
@@ -128,7 +109,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
       emit(
         VehicleMapState(
           status: VehicleMapStatus.loaded,
-          vehicleId: vehicleId.value,
+          vehicleId: vehicleId,
           position: position,
         ),
       );
@@ -138,7 +119,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.loaded,
-            vehicleId: vehicleId.value,
+            vehicleId: vehicleId,
             position: previousPosition,
             staleError: failure,
           ),
@@ -147,7 +128,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.noPosition,
-            vehicleId: vehicleId.value,
+            vehicleId: vehicleId,
             error: failure,
           ),
         );
@@ -155,7 +136,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.error,
-            vehicleId: vehicleId.value,
+            vehicleId: vehicleId,
             error: failure,
           ),
         );

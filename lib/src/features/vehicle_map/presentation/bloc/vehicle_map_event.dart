@@ -1,3 +1,5 @@
+import '../../domain/vehicle_id.dart';
+
 sealed class VehicleMapEvent {
   const VehicleMapEvent();
 }
@@ -5,7 +7,7 @@ sealed class VehicleMapEvent {
 class VehicleMapStarted extends VehicleMapEvent {
   const VehicleMapStarted(this.vehicleId);
 
-  final String vehicleId;
+  final VehicleId vehicleId;
 }
 
 class VehicleMapRetried extends VehicleMapEvent {

@@ -1,4 +1,5 @@
 import '../../../../core/errors/app_failure.dart';
+import '../../domain/vehicle_id.dart';
 import '../../domain/vehicle_position.dart';
 
 enum VehicleMapStatus { loading, loaded, noPosition, error }
@@ -13,11 +14,11 @@ class VehicleMapState {
     this.isRefreshing = false,
   });
 
-  const VehicleMapState.loading({String? vehicleId})
+  const VehicleMapState.loading({VehicleId? vehicleId})
     : this(status: VehicleMapStatus.loading, vehicleId: vehicleId);
 
   final VehicleMapStatus status;
-  final String? vehicleId;
+  final VehicleId? vehicleId;
   final VehiclePosition? position;
   final AppFailure? error;
   final AppFailure? staleError;
@@ -27,7 +28,7 @@ class VehicleMapState {
 
   VehicleMapState copyWith({
     VehicleMapStatus? status,
-    String? vehicleId,
+    VehicleId? vehicleId,
     VehiclePosition? position,
     AppFailure? error,
     AppFailure? staleError,
