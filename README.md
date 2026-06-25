@@ -97,6 +97,7 @@ run locally without private signing material.
 ## Verification
 
 ```bash
+flutter pub get
 dart run slang
 dart format .
 flutter analyze
@@ -121,6 +122,42 @@ dart run build_runner build --delete-conflicting-outputs
 
 The test suite is offline. It does not call the real Golemio API, require a real
 token, or load real map tiles.
+
+The local `pid_seeds` package can be checked separately when shared UI package
+code changes:
+
+```bash
+cd packages/pid_seeds
+flutter pub get
+dart format .
+flutter analyze
+flutter test
+```
+
+## CI And Submission Hygiene
+
+GitHub Actions runs the same review checks for the app and the local
+`packages/pid_seeds` package:
+
+- `flutter pub get`
+- `dart format --set-exit-if-changed .`
+- `flutter analyze`
+- `flutter test`
+- a JWT-like token scan that fails when a committed encoded token prefix is
+  found
+
+Before submitting or packaging the project, keep these files out of Git:
+
+- real Golemio API tokens,
+- `.env.local` and other local env files,
+- `.dart_tool/`, `build/`, and `coverage/`,
+- `.debug/`, runtime logs, and downloaded API samples,
+- IDE caches or workspace files.
+
+Only `.env.example` with `GOLEMIO_API_TOKEN=your_token_here` is committed. Use
+`--dart-define=GOLEMIO_API_TOKEN=your_token_here`,
+`--dart-define-from-file=.env.local`, or the provided local run scripts for
+reviewer/developer runs.
 
 ## API Endpoints
 

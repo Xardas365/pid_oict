@@ -24,10 +24,10 @@ migrate_working_dir/
 .idea/runConfigurations/*
 !.idea/runConfigurations/OICT_PID_local_token.xml
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# Keep only shared VS Code run templates in version control.
+.vscode/*
+!.vscode/
+!.vscode/launch.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -52,9 +52,16 @@ app.*.symbols
 app.*.map.json
 
 # Android Studio will place build artifacts here
+/android/.gradle/
+/android/local.properties
+/android/key.properties
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/app/*.jks
+/android/app/*.keystore
+*.jks
+*.keystore
 
 # Local secrets
 .env

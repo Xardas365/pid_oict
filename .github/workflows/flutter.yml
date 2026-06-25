@@ -1,0 +1,62 @@
+name: Flutter CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  verify:
+    name: Format, analyze, and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Install app dependencies
+        run: flutter pub get
+
+      - name: Install pid_seeds dependencies
+        working-directory: packages/pid_seeds
+        run: flutter pub get
+
+      - name: Check app formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze app
+        run: flutter analyze
+
+      - name: Test app
+        run: flutter test
+
+      - name: Check pid_seeds formatting
+        working-directory: packages/pid_seeds
+        run: dart format --set-exit-if-changed .
+
+      - name: Analyze pid_seeds
+        working-directory: packages/pid_seeds
+        run: flutter analyze
+
+      - name: Test pid_seeds
+        working-directory: packages/pid_seeds
+        run: flutter test
+
+      - name: Scan for committed JWT-like tokens
+        run: |
+          token_prefix="e""yJ"
+          if git grep -n "$token_prefix" -- . ':!.env.local'; then
+            echo "Potential committed JWT/API token detected."
+            exit 1
+          fi
