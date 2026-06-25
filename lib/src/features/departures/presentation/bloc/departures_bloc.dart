@@ -6,6 +6,7 @@ import '../../../../shared/utils/refresh_ticker.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 import '../../domain/usecases/load_departure_board_use_case.dart';
+import '../departure_time_display_mode.dart';
 import '../departure_transport_filter.dart';
 import 'departure_board_refresh_policy.dart';
 import 'departures_event.dart';
@@ -32,6 +33,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     on<DeparturesRetried>(_onRetried);
     on<DeparturesRefreshed>(_onRefreshed);
     on<DeparturesTransportFilterSelected>(_onTransportFilterSelected);
+    on<DeparturesTimeDisplayModeToggled>(_onTimeDisplayModeToggled);
   }
 
   final LoadDepartureBoardUseCase _loadDepartureBoard;
@@ -92,6 +94,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
             stop,
             departures,
             selectedTransportMode: previousState.selectedTransportMode,
+            timeDisplayMode: previousState.timeDisplayMode,
           ),
         );
       } on Object catch (error) {
@@ -109,6 +112,18 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
       _refreshInProgress = false;
       event.completion?.complete();
     }
+  }
+
+  void _onTimeDisplayModeToggled(
+    DeparturesTimeDisplayModeToggled event,
+    Emitter<DeparturesState> emit,
+  ) {
+    final nextMode =
+        state.timeDisplayMode == DepartureTimeDisplayMode.relativeFirst
+        ? DepartureTimeDisplayMode.clockFirst
+        : DepartureTimeDisplayMode.relativeFirst;
+
+    emit(state.copyWith(timeDisplayMode: nextMode));
   }
 
   void _onTransportFilterSelected(
@@ -164,6 +179,8 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     StopGroup stop,
     List<Departure> departures, {
     PidTransportMode? selectedTransportMode,
+    DepartureTimeDisplayMode timeDisplayMode =
+        DepartureTimeDisplayMode.relativeFirst,
   }) {
     final immutableDepartures = List<Departure>.unmodifiable(departures);
     final validSelectedTransportMode = _filterPolicy.resolveSelectedMode(
@@ -179,6 +196,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
       departures: immutableDepartures,
       selectedTransportMode: validSelectedTransportMode,
       lastUpdated: _now(),
+      timeDisplayMode: timeDisplayMode,
     );
   }
 

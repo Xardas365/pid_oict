@@ -10,6 +10,7 @@ import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bloc.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_state.dart';
+import 'package:pid_oict/src/features/departures/presentation/departure_time_display_mode.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 
@@ -166,6 +167,55 @@ void main() {
       await _waitForStatus(bloc, DeparturesStatus.loaded);
 
       expect(bloc.state.lastUpdated, updatedAt);
+    });
+
+    test('toggles departure time display mode', () async {
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([_departure('Nadrazi Hostivar')]),
+      ]);
+      final bloc = _createBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForStatus(bloc, DeparturesStatus.loaded);
+
+      expect(
+        bloc.state.timeDisplayMode,
+        DepartureTimeDisplayMode.relativeFirst,
+      );
+
+      bloc.add(const DeparturesTimeDisplayModeToggled());
+      await bloc.stream.firstWhere(
+        (state) => state.timeDisplayMode == DepartureTimeDisplayMode.clockFirst,
+      );
+
+      bloc.add(const DeparturesTimeDisplayModeToggled());
+      await bloc.stream.firstWhere(
+        (state) =>
+            state.timeDisplayMode == DepartureTimeDisplayMode.relativeFirst,
+      );
+    });
+
+    test('refresh preserves departure time display mode', () async {
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([_departure('Nadrazi Hostivar')]),
+        _DeparturesSuccess([_departure('Vypich')]),
+      ]);
+      final bloc = _createBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForStatus(bloc, DeparturesStatus.loaded);
+
+      bloc.add(const DeparturesTimeDisplayModeToggled());
+      await bloc.stream.firstWhere(
+        (state) => state.timeDisplayMode == DepartureTimeDisplayMode.clockFirst,
+      );
+
+      bloc.add(const DeparturesRefreshed());
+      await _waitForDeparture(bloc, 'Vypich');
+
+      expect(bloc.state.timeDisplayMode, DepartureTimeDisplayMode.clockFirst);
     });
 
     test('refresh error keeps previous departures visible', () async {

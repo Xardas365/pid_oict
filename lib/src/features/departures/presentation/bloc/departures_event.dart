@@ -28,3 +28,7 @@ class DeparturesTransportFilterSelected extends DeparturesEvent {
 
   final PidTransportMode? mode;
 }
+
+class DeparturesTimeDisplayModeToggled extends DeparturesEvent {
+  const DeparturesTimeDisplayModeToggled();
+}

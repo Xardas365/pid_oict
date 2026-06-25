@@ -177,8 +177,15 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String lastUpdatedAgo({required Object seconds}) => 'Updated ${seconds} s ago';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
+	@override String get trackingHint => 'Vehicle position →';
+	@override String get toggleTimeDisplay => 'Toggle departure time display';
 	@override String get showVehicleTooltip => 'Show vehicle position';
 	@override String get wheelchairAccessible => 'Wheelchair-accessible departure';
+	@override String get wheelchairAccessibleShort => 'Accessible';
+	@override String get departingNow => 'now';
+	@override String departingInMinutes({required Object minutes}) => 'in ${minutes} min';
+	@override String get onTime => 'On time';
+	@override String get scheduledTimeOnly => 'timetable';
 }
 
 // Path: vehicleMap
@@ -342,8 +349,15 @@ extension on TranslationsEn {
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Updated ${seconds} s ago',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',
+			'departures.trackingHint' => 'Vehicle position →',
+			'departures.toggleTimeDisplay' => 'Toggle departure time display',
 			'departures.showVehicleTooltip' => 'Show vehicle position',
 			'departures.wheelchairAccessible' => 'Wheelchair-accessible departure',
+			'departures.wheelchairAccessibleShort' => 'Accessible',
+			'departures.departingNow' => 'now',
+			'departures.departingInMinutes' => ({required Object minutes}) => 'in ${minutes} min',
+			'departures.onTime' => 'On time',
+			'departures.scheduledTimeOnly' => 'timetable',
 			'vehicleMap.emptyTabMessage' => 'Select a departure with an available vehicle position.',
 			'vehicleMap.title' => 'Vehicle map',
 			'vehicleMap.backToDepartures' => 'Back to departures',

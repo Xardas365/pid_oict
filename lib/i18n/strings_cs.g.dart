@@ -309,11 +309,32 @@ class Translations$departures$cs {
 	/// cs: 'Nástupiště $platform'
 	String platform({required Object platform}) => 'Nástupiště ${platform}';
 
+	/// cs: 'Poloha vozidla →'
+	String get trackingHint => 'Poloha vozidla →';
+
+	/// cs: 'Přepnout zobrazení času odjezdu'
+	String get toggleTimeDisplay => 'Přepnout zobrazení času odjezdu';
+
 	/// cs: 'Zobrazit polohu vozidla'
 	String get showVehicleTooltip => 'Zobrazit polohu vozidla';
 
 	/// cs: 'Bezbariérový odjezd'
 	String get wheelchairAccessible => 'Bezbariérový odjezd';
+
+	/// cs: 'Bezbariérové'
+	String get wheelchairAccessibleShort => 'Bezbariérové';
+
+	/// cs: 'teď'
+	String get departingNow => 'teď';
+
+	/// cs: 'za $minutes min'
+	String departingInMinutes({required Object minutes}) => 'za ${minutes} min';
+
+	/// cs: 'Načas'
+	String get onTime => 'Načas';
+
+	/// cs: 'dle JŘ'
+	String get scheduledTimeOnly => 'dle JŘ';
 }
 
 // Path: vehicleMap
@@ -553,8 +574,15 @@ extension on Translations {
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizované před ${seconds} s',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
+			'departures.trackingHint' => 'Poloha vozidla →',
+			'departures.toggleTimeDisplay' => 'Přepnout zobrazení času odjezdu',
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',
 			'departures.wheelchairAccessible' => 'Bezbariérový odjezd',
+			'departures.wheelchairAccessibleShort' => 'Bezbariérové',
+			'departures.departingNow' => 'teď',
+			'departures.departingInMinutes' => ({required Object minutes}) => 'za ${minutes} min',
+			'departures.onTime' => 'Načas',
+			'departures.scheduledTimeOnly' => 'dle JŘ',
 			'vehicleMap.emptyTabMessage' => 'Vyberte odjezd s dostupnou polohou vozidla.',
 			'vehicleMap.title' => 'Mapa vozidla',
 			'vehicleMap.backToDepartures' => 'Zpět na odjezdy',

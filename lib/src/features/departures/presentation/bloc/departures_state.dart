@@ -5,6 +5,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/utils/value_equality.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
+import '../departure_time_display_mode.dart';
 import '../departure_transport_filter.dart';
 
 enum DeparturesStatus { loading, loaded, empty, error }
@@ -20,6 +21,7 @@ class DeparturesState {
     this.isRefreshing = false,
     this.selectedTransportMode,
     this.lastUpdated,
+    this.timeDisplayMode = DepartureTimeDisplayMode.relativeFirst,
   });
 
   const DeparturesState.loading({StopGroup? stop})
@@ -33,6 +35,7 @@ class DeparturesState {
   final bool isRefreshing;
   final PidTransportMode? selectedTransportMode;
   final DateTime? lastUpdated;
+  final DepartureTimeDisplayMode timeDisplayMode;
 
   bool get hasDepartures => departures.isNotEmpty;
   List<PidTransportMode> get availableTransportModes {
@@ -56,6 +59,7 @@ class DeparturesState {
     bool? isRefreshing,
     PidTransportMode? selectedTransportMode,
     DateTime? lastUpdated,
+    DepartureTimeDisplayMode? timeDisplayMode,
     bool clearError = false,
     bool clearRefreshError = false,
     bool clearSelectedTransportMode = false,
@@ -73,6 +77,7 @@ class DeparturesState {
           ? null
           : selectedTransportMode ?? this.selectedTransportMode,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      timeDisplayMode: timeDisplayMode ?? this.timeDisplayMode,
     );
   }
 
@@ -87,7 +92,8 @@ class DeparturesState {
             refreshError == other.refreshError &&
             isRefreshing == other.isRefreshing &&
             selectedTransportMode == other.selectedTransportMode &&
-            lastUpdated == other.lastUpdated;
+            lastUpdated == other.lastUpdated &&
+            timeDisplayMode == other.timeDisplayMode;
   }
 
   @override
@@ -101,6 +107,7 @@ class DeparturesState {
       isRefreshing,
       selectedTransportMode,
       lastUpdated,
+      timeDisplayMode,
     );
   }
 }

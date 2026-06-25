@@ -20,6 +20,7 @@ import '../../../test_localized_app.dart';
 final _testStopGroup = StopGroup.single(
   const Stop(id: 'U123Z1', name: 'Staromestska'),
 );
+final _testNow = DateTime(2026, 6, 22, 10, 12);
 
 void main() {
   group('DeparturesScreen', () {
@@ -74,9 +75,12 @@ void main() {
       expect(find.textContaining('Aktualizované před'), findsOneWidget);
       expect(find.text('22'), findsOneWidget);
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
+      expect(find.text('za 3 min'), findsOneWidget);
       expect(find.text('10:15'), findsOneWidget);
-      expect(find.text('+2 min'), findsOneWidget);
+      expect(find.text('+2 min'), findsNothing);
       expect(find.text('Nástupiště 3'), findsOneWidget);
+      expect(find.text('Bezbariérové'), findsOneWidget);
+      expect(find.text('Poloha vozidla →'), findsOneWidget);
       expect(find.text('A'), findsOneWidget);
       expect(find.byIcon(Icons.accessible_forward), findsOneWidget);
 
@@ -111,6 +115,60 @@ void main() {
 
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
       expect(find.byIcon(Icons.accessible_forward), findsNothing);
+    });
+
+    testWidgets('time block toggles the display mode for all departures', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      VehicleMapArgs? selectedArgs;
+
+      await _pumpDeparturesScreen(
+        tester,
+        onVehicleSelected: (args) {
+          selectedArgs = args;
+        },
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: '22',
+              headsign: 'Nadrazi Hostivar',
+              departureTime: DateTime(2026, 6, 22, 10, 15),
+              delaySeconds: 120,
+              vehicleId: 'service-3-1001',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('za 3 min'), findsOneWidget);
+      expect(find.text('+2 min'), findsNothing);
+      expect(
+        find.bySemanticsLabel('Přepnout zobrazení času odjezdu'),
+        findsOneWidget,
+      );
+      expect(
+        tester.getSize(find.byTooltip('Přepnout zobrazení času odjezdu')),
+        const Size(72, 52),
+      );
+
+      await tester.tap(find.byTooltip('Přepnout zobrazení času odjezdu'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('za 3 min'), findsNothing);
+      expect(find.text('10:15'), findsOneWidget);
+      expect(find.text('+2 min'), findsOneWidget);
+      expect(selectedArgs, isNull);
+
+      await tester.tap(find.byTooltip('Přepnout zobrazení času odjezdu'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('za 3 min'), findsOneWidget);
+      expect(find.text('+2 min'), findsNothing);
+      expect(selectedArgs, isNull);
+      semantics.dispose();
     });
 
     testWidgets('departure without platform hides platform row', (
@@ -162,6 +220,34 @@ void main() {
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('train line badge renders route short name as the focus', (
+      tester,
+    ) async {
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: 'S7',
+              routeType: 'train',
+              headsign: 'Beroun',
+              departureTime: DateTime(2026, 6, 22, 10, 15),
+              platform: '7J',
+              vehicleId: 'service-3-s7',
+              isWheelchairAccessible: true,
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('S7'), findsOneWidget);
+      expect(find.text('Beroun'), findsOneWidget);
+      expect(find.text('Nástupiště 7J'), findsOneWidget);
+      expect(find.text('Bezbariérové'), findsOneWidget);
     });
 
     testWidgets('back button returns to stops callback', (
@@ -281,6 +367,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
+      expect(find.text('Poloha vozidla →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
@@ -313,6 +400,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
+      expect(find.text('Poloha vozidla →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
@@ -514,6 +602,7 @@ Future<void> _pumpDeparturesScreen(
         create: (_) => DeparturesBloc(
           LoadDepartureBoardUseCase(repository),
           refreshInterval: Duration.zero,
+          now: () => _testNow,
         )..add(DeparturesStarted(_testStopGroup)),
         child: DeparturesScreen(
           stop: _testStopGroup,

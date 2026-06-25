@@ -102,8 +102,15 @@
     "lastUpdatedAgo": "Updated $seconds s ago",
     "departureTime": "Departure $time",
     "platform": "Platform $platform",
+    "trackingHint": "Vehicle position →",
+    "toggleTimeDisplay": "Toggle departure time display",
     "showVehicleTooltip": "Show vehicle position",
-    "wheelchairAccessible": "Wheelchair-accessible departure"
+    "wheelchairAccessible": "Wheelchair-accessible departure",
+    "wheelchairAccessibleShort": "Accessible",
+    "departingNow": "now",
+    "departingInMinutes": "in $minutes min",
+    "onTime": "On time",
+    "scheduledTimeOnly": "timetable"
   },
   "vehicleMap": {
     "emptyTabMessage": "Select a departure with an available vehicle position.",

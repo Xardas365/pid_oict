@@ -1,0 +1,1 @@
+enum DepartureTimeDisplayMode { relativeFirst, clockFirst }

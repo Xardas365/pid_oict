@@ -24,6 +24,7 @@ import '../domain/departure.dart';
 import 'bloc/departures_bloc.dart';
 import 'bloc/departures_event.dart';
 import 'bloc/departures_state.dart';
+import 'departure_time_display_mode.dart';
 import 'widgets/departure_tile.dart';
 
 class DeparturesScreen extends StatelessWidget {
@@ -340,7 +341,13 @@ class _RefreshableDeparturesContent extends StatelessWidget {
     return _DeparturesList(
       state: state,
       departures: visibleDepartures,
+      timeDisplayMode: state.timeDisplayMode,
       onOpenVehicleMap: onOpenVehicleMap,
+      onToggleTimeDisplayMode: () {
+        context.read<DeparturesBloc>().add(
+          const DeparturesTimeDisplayModeToggled(),
+        );
+      },
     );
   }
 }
@@ -349,12 +356,16 @@ class _DeparturesList extends StatelessWidget {
   const _DeparturesList({
     required this.state,
     required this.departures,
+    required this.timeDisplayMode,
     required this.onOpenVehicleMap,
+    required this.onToggleTimeDisplayMode,
   });
 
   final DeparturesState state;
   final List<Departure> departures;
+  final DepartureTimeDisplayMode timeDisplayMode;
   final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
+  final VoidCallback onToggleTimeDisplayMode;
 
   @override
   Widget build(BuildContext context) {
@@ -379,6 +390,9 @@ class _DeparturesList extends StatelessWidget {
 
         return DepartureTile(
           departure: departure,
+          timeDisplayMode: timeDisplayMode,
+          referenceTime: state.lastUpdated,
+          onToggleTimeDisplayMode: onToggleTimeDisplayMode,
           onOpenVehicleMap: mapArgs == null
               ? null
               : () => onOpenVehicleMap(mapArgs),

@@ -102,8 +102,15 @@
     "lastUpdatedAgo": "Aktualizované před $seconds s",
     "departureTime": "Odjezd $time",
     "platform": "Nástupiště $platform",
+    "trackingHint": "Poloha vozidla →",
+    "toggleTimeDisplay": "Přepnout zobrazení času odjezdu",
     "showVehicleTooltip": "Zobrazit polohu vozidla",
-    "wheelchairAccessible": "Bezbariérový odjezd"
+    "wheelchairAccessible": "Bezbariérový odjezd",
+    "wheelchairAccessibleShort": "Bezbariérové",
+    "departingNow": "teď",
+    "departingInMinutes": "za $minutes min",
+    "onTime": "Načas",
+    "scheduledTimeOnly": "dle JŘ"
   },
   "vehicleMap": {
     "emptyTabMessage": "Vyberte odjezd s dostupnou polohou vozidla.",
