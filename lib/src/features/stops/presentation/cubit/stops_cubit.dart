@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/saved_stop_groups.dart';
+import '../../domain/search/stop_search_query.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
 import '../../domain/stop_visibility.dart';
@@ -327,7 +328,7 @@ class StopsCubit extends Cubit<StopsState> {
         return;
       }
 
-      if (state.searchQuery.trim() != result.normalizedQuery) {
+      if (_normalizedSearchQuery(state.searchQuery) != result.normalizedQuery) {
         return;
       }
 
@@ -359,7 +360,8 @@ class StopsCubit extends Cubit<StopsState> {
         ),
       );
     } on Object catch (error) {
-      if (state.searchQuery.trim() != query.trim()) {
+      if (_normalizedSearchQuery(state.searchQuery) !=
+          _normalizedSearchQuery(query)) {
         return;
       }
 
@@ -470,6 +472,10 @@ class StopsCubit extends Cubit<StopsState> {
   }
 
   List<Stop> get _sortedStops => sortStopsByPublicName(_stopsById.values);
+
+  String _normalizedSearchQuery(String query) {
+    return StopSearchQuery.parse(query).normalizedInput;
+  }
 
   @override
   Future<void> close() {

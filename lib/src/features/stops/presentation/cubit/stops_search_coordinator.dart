@@ -1,7 +1,9 @@
+import '../../domain/search/stop_search_index.dart';
+import '../../domain/search/stop_search_matcher.dart';
+import '../../domain/search/stop_search_query.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
 import '../../domain/stops_page.dart';
-import '../stop_filter.dart';
 import 'stops_sorting.dart';
 
 typedef StopsApiSearch =
@@ -20,11 +22,13 @@ class StopsSearchCoordinator {
   final StopsApiSearch searchStops;
   final int searchLimit;
   final int minApiSearchLength;
+  final StopSearchMatcher _searchMatcher = const StopSearchMatcher();
 
   var _lastRequestedSearch = '';
 
   bool shouldUseApiSearch(String query) {
-    return normalizeQuery(query).length >= minApiSearchLength;
+    return StopSearchQuery.parse(query).normalizedInput.length >=
+        minApiSearchLength;
   }
 
   void resetLastRequestedSearch() {
@@ -35,38 +39,42 @@ class StopsSearchCoordinator {
     required String query,
     required List<Stop> loadedStops,
   }) async {
-    final normalizedQuery = normalizeQuery(query);
-    if (!shouldUseApiSearch(normalizedQuery) ||
-        normalizedQuery == _lastRequestedSearch) {
+    final searchQuery = StopSearchQuery.parse(query);
+    final requestQuery = query.trim();
+
+    if (!shouldUseApiSearch(query) ||
+        searchQuery.normalizedInput == _lastRequestedSearch) {
       return null;
     }
 
-    _lastRequestedSearch = normalizedQuery;
+    _lastRequestedSearch = searchQuery.normalizedInput;
 
-    final page = await searchStops(query: normalizedQuery, limit: searchLimit);
+    final page = await searchStops(query: requestQuery, limit: searchLimit);
     final searchStopsById = <String, Stop>{};
     for (final stop in page.stops) {
       searchStopsById[stop.id] = stop;
     }
 
     final remoteStops = sortStopsByPublicName(searchStopsById.values);
-    final localFallbackGroups = filterStopGroupsByName(
-      groupStops(loadedStops),
-      query,
+    final localFallbackGroups = _searchMatcher.matchGroups(
+      StopSearchIndex.fromGroups(groupStops(loadedStops)),
+      searchQuery,
     );
 
     if (remoteStops.isEmpty && localFallbackGroups.isNotEmpty) {
-      return StopsSearchResult.localFallback(normalizedQuery: normalizedQuery);
+      return StopsSearchResult.localFallback(
+        normalizedQuery: searchQuery.normalizedInput,
+      );
     }
 
     return StopsSearchResult.remote(
-      normalizedQuery: normalizedQuery,
+      normalizedQuery: searchQuery.normalizedInput,
       stops: remoteStops,
     );
   }
 
   String normalizeQuery(String query) {
-    return query.trim();
+    return StopSearchQuery.parse(query).normalizedInput;
   }
 }
 

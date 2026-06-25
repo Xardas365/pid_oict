@@ -1,4 +1,5 @@
 import 'stop.dart';
+import 'stop_group.dart';
 
 /// Public GTFS stops that can be selected for PID departure boards.
 ///
@@ -54,6 +55,36 @@ bool isTechnicalStopName(String name) {
       normalized.contains('odj.nav') ||
       normalized.contains('náv.') ||
       normalized.contains('nav.');
+}
+
+/// Defensive guard for grouped stop sources. Production Golemio data is already
+/// filtered in the repository, but injected tests and future sources should not
+/// surface obvious infrastructure groups in the public stops list.
+bool isDisplayablePassengerStopGroup(StopGroup group) {
+  final normalizedName = group.name.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalizedName.isEmpty || isTechnicalStopName(normalizedName)) {
+    return false;
+  }
+
+  return group.stops.any(isDisplayablePassengerStop);
+}
+
+/// Conservative cleanup for GTFS records that are infrastructure markers rather
+/// than passenger-facing stops. The data repository applies the stricter public
+/// stop predicate; this remains a light defensive guard for injected tests,
+/// restored cache data, or future non-Golemio sources.
+bool isDisplayablePassengerStop(Stop stop) {
+  final locationType = stop.locationType;
+  if (locationType != null && locationType != 0) {
+    return false;
+  }
+
+  final normalizedName = stop.name.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalizedName.isEmpty) {
+    return false;
+  }
+
+  return !isTechnicalStopName(normalizedName);
 }
 
 List<Stop> sortedUserFacingStops(Iterable<Stop> stops) {

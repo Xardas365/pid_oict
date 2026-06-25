@@ -1,11 +1,15 @@
 import '../../../../core/errors/app_failure.dart';
+import '../../domain/search/stop_search_index.dart';
+import '../../domain/search/stop_search_matcher.dart';
+import '../../domain/search/stop_search_query.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
-import '../stop_filter.dart';
 import 'stops_state.dart';
 
 class StopsStateFactory {
   const StopsStateFactory();
+
+  static const _searchMatcher = StopSearchMatcher();
 
   StopsState loading({
     required List<String> favoriteGroupIds,
@@ -47,10 +51,14 @@ class StopsStateFactory {
     bool clearCacheRefreshError = false,
   }) {
     final allStops = List<Stop>.unmodifiable(stops);
-    final allGroups = groupStops(allStops);
+    final searchIndex = StopSearchIndex.fromGroups(groupStops(allStops));
+    final allGroups = searchIndex.groups;
     final filteredGroups = useProvidedStopsDirectly
         ? allGroups
-        : filterStopGroupsByName(allGroups, searchQuery);
+        : _searchMatcher.matchGroups(
+            searchIndex,
+            StopSearchQuery.parse(searchQuery),
+          );
     final filteredStops = _representativeStops(filteredGroups);
     final status = filteredGroups.isEmpty
         ? StopsStatus.empty
@@ -85,7 +93,8 @@ class StopsStateFactory {
     required List<String> favoriteGroupIds,
     required List<String> recentGroupIds,
   }) {
-    final allGroups = groupStops(allStops);
+    final searchIndex = StopSearchIndex.fromGroups(groupStops(allStops));
+    final allGroups = searchIndex.groups;
 
     return StopsState(
       status: StopsStatus.error,
