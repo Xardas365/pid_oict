@@ -12,14 +12,15 @@ import 'package:pid_oict/src/features/stops/data/models/saved_stops.dart';
 import 'package:pid_oict/src/features/stops/domain/repositories/stops_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
+import 'package:pid_oict/src/features/stops/domain/stops_cache_snapshot.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/get_stops_use_case.dart';
-import 'package:pid_oict/src/features/stops/presentation/cubit/stops_cubit.dart';
 import 'package:pid_oict/src/features/stops/presentation/stops_screen.dart';
 import 'package:pid_seeds/i18n/pid_seed_strings.g.dart' as pid_seed_strings;
 import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../../../helpers/in_memory_saved_stops_data_source.dart';
 import '../../../../helpers/in_memory_stops_cache_data_source.dart';
+import '../../../../helpers/stops_cubit_test_builder.dart';
 
 void main() {
   setUp(() {
@@ -459,7 +460,7 @@ Future<void> _pumpStopsScreen(
         theme: PidSeedsTheme.light(),
         home: BlocProvider(
           create: (_) {
-            final cubit = StopsCubit(
+            final cubit = testStopsCubit(
               GetStopsUseCase(repository),
               cacheDataSource: cacheDataSource,
               savedStopsDataSource: savedStopsDataSource,

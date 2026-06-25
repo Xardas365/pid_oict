@@ -8,6 +8,7 @@ import 'package:pid_oict/src/features/stops/domain/gtfs_stops_query.dart';
 import 'package:pid_oict/src/features/stops/domain/repositories/stops_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
+import 'package:pid_oict/src/features/stops/domain/stops_cache_snapshot.dart';
 import 'package:pid_oict/src/features/stops/domain/stops_page.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/get_stops_use_case.dart';
 import 'package:pid_oict/src/features/stops/presentation/cubit/stops_cubit.dart';
@@ -15,6 +16,7 @@ import 'package:pid_oict/src/features/stops/presentation/cubit/stops_state.dart'
 
 import '../../../../../helpers/in_memory_saved_stops_data_source.dart';
 import '../../../../../helpers/in_memory_stops_cache_data_source.dart';
+import '../../../../../helpers/stops_cubit_test_builder.dart';
 
 void main() {
   group('StopsCubit', () {
@@ -159,7 +161,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         pageSize: 2,
         searchDebounceDuration: Duration.zero,
@@ -206,7 +208,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(GetStopsUseCase(repository), pageSize: 2);
+      final cubit = testStopsCubit(GetStopsUseCase(repository), pageSize: 2);
       addTearDown(cubit.close);
 
       await cubit.loadStops();
@@ -248,7 +250,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(GetStopsUseCase(repository), pageSize: 2);
+      final cubit = testStopsCubit(GetStopsUseCase(repository), pageSize: 2);
       addTearDown(cubit.close);
 
       await cubit.loadStops();
@@ -301,7 +303,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(GetStopsUseCase(repository), pageSize: 1);
+      final cubit = testStopsCubit(GetStopsUseCase(repository), pageSize: 1);
       addTearDown(cubit.close);
 
       await cubit.loadStops();
@@ -332,7 +334,7 @@ void main() {
           ),
           _StopsPagePending(completer),
         ]);
-        final cubit = StopsCubit(GetStopsUseCase(repository), pageSize: 1);
+        final cubit = testStopsCubit(GetStopsUseCase(repository), pageSize: 1);
         addTearDown(cubit.close);
 
         await cubit.loadStops();
@@ -385,7 +387,7 @@ void main() {
             ),
           ),
         ]);
-        final cubit = StopsCubit(
+        final cubit = testStopsCubit(
           GetStopsUseCase(repository),
           pageSize: 2,
           searchDebounceDuration: Duration.zero,
@@ -446,7 +448,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         pageSize: 2,
         searchDebounceDuration: Duration.zero,
@@ -490,7 +492,7 @@ void main() {
             ),
           ),
         ]);
-        final cubit = StopsCubit(
+        final cubit = testStopsCubit(
           GetStopsUseCase(repository),
           pageSize: 1,
           searchDebounceDuration: Duration.zero,
@@ -529,7 +531,7 @@ void main() {
             ),
           ),
         ]);
-        final cubit = StopsCubit(
+        final cubit = testStopsCubit(
           GetStopsUseCase(repository),
           pageSize: 2,
           searchDebounceDuration: Duration.zero,
@@ -558,7 +560,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         pageSize: 1,
         cacheDataSource: cache,
@@ -587,7 +589,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         const _StopsPageFailure(expectedError),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
       );
@@ -614,7 +616,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         _StopsPagePending(completer),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -665,7 +667,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         const _StopsPageFailure(expectedError),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -693,7 +695,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         _StopsPagePending(completer),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -740,7 +742,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -773,7 +775,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         const _StopsPageFailure(expectedError),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -811,7 +813,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         pageSize: 1,
         cacheDataSource: cache,
@@ -854,7 +856,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         pageSize: 2,
         searchDebounceDuration: Duration.zero,
@@ -888,7 +890,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         _StopsPagePending(completer),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -927,7 +929,7 @@ void main() {
       final repository = _FakePaginatedStopsRepository([
         _StopsPagePending(completer),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -988,7 +990,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         now: () => _now,
@@ -1033,7 +1035,7 @@ void main() {
             ),
           ),
         ]);
-        final cubit = StopsCubit(
+        final cubit = testStopsCubit(
           GetStopsUseCase(repository),
           savedStopsDataSource: savedStops,
         );
@@ -1069,7 +1071,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         savedStopsDataSource: savedStops,
       );
@@ -1099,7 +1101,7 @@ void main() {
             ),
           ),
         ]);
-        final cubit = StopsCubit(
+        final cubit = testStopsCubit(
           GetStopsUseCase(repository),
           savedStopsDataSource: savedStops,
           now: () => _now,
@@ -1137,7 +1139,7 @@ void main() {
             ),
           ),
         ]);
-        final cubit = StopsCubit(
+        final cubit = testStopsCubit(
           GetStopsUseCase(repository),
           savedStopsDataSource: savedStops,
           now: () => _now,
@@ -1162,7 +1164,7 @@ void main() {
 
     test('record recent enforces max count', () async {
       final savedStops = InMemorySavedStopsDataSource();
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(_FakePaginatedStopsRepository(const [])),
         savedStopsDataSource: savedStops,
         now: () => _now,
@@ -1207,7 +1209,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         savedStopsDataSource: savedStops,
         searchDebounceDuration: Duration.zero,
@@ -1248,7 +1250,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         cacheDataSource: cache,
         savedStopsDataSource: savedStops,
@@ -1283,7 +1285,7 @@ void main() {
           ),
         ),
       ]);
-      final cubit = StopsCubit(
+      final cubit = testStopsCubit(
         GetStopsUseCase(repository),
         savedStopsDataSource: savedStops,
       );
@@ -1372,7 +1374,7 @@ StopGroup _stopGroup(int index) {
 }
 
 StopsCubit _createCubit(_FakeStopsRepository repository) {
-  return StopsCubit(GetStopsUseCase(repository));
+  return testStopsCubit(GetStopsUseCase(repository));
 }
 
 class _FakeStopsRepository implements StopsRepository {

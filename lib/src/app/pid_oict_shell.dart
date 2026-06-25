@@ -11,12 +11,18 @@ import '../features/departures/domain/usecases/get_departures_for_stop_use_case.
 import '../features/departures/presentation/bloc/departures_bloc.dart';
 import '../features/departures/presentation/bloc/departures_event.dart';
 import '../features/departures/presentation/departures_screen.dart';
-import '../features/stops/data/datasources/saved_stops_data_source.dart';
-import '../features/stops/data/datasources/stops_cache_data_source.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/stop.dart';
 import '../features/stops/domain/stop_group.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
+import '../features/stops/domain/usecases/load_cached_stops_use_case.dart';
+import '../features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/load_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/record_recent_stop_use_case.dart';
+import '../features/stops/domain/usecases/refresh_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/save_stops_cache_use_case.dart';
+import '../features/stops/domain/usecases/search_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/toggle_favorite_stop_use_case.dart';
 import '../features/stops/presentation/cubit/stops_cubit.dart';
 import '../features/stops/presentation/stops_screen.dart';
 import '../features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
@@ -131,11 +137,29 @@ class _StopsTab extends StatelessWidget {
       create: (context) {
         final cubit = StopsCubit(
           _getStopsUseCase(context),
-          cacheDataSource: loadStops == null
-              ? context.read<StopsCacheDataSource>()
+          loadStopGroups: loadStops == null
+              ? context.read<LoadStopGroupsUseCase>()
               : null,
-          savedStopsDataSource: loadStops == null
-              ? context.read<SavedStopsDataSource>()
+          refreshStopGroups: loadStops == null
+              ? context.read<RefreshStopGroupsUseCase>()
+              : null,
+          searchStopGroups: loadStops == null
+              ? context.read<SearchStopGroupsUseCase>()
+              : null,
+          loadCachedStops: loadStops == null
+              ? context.read<LoadCachedStopsUseCase>()
+              : null,
+          saveStopsCache: loadStops == null
+              ? context.read<SaveStopsCacheUseCase>()
+              : null,
+          loadSavedStopGroups: loadStops == null
+              ? context.read<LoadSavedStopGroupsUseCase>()
+              : null,
+          toggleFavoriteStop: loadStops == null
+              ? context.read<ToggleFavoriteStopUseCase>()
+              : null,
+          recordRecentStopUseCase: loadStops == null
+              ? context.read<RecordRecentStopUseCase>()
               : null,
         );
         unawaited(cubit.loadStops());

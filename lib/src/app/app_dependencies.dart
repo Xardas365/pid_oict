@@ -12,8 +12,20 @@ import '../features/stops/data/datasources/saved_stops_data_source.dart';
 import '../features/stops/data/datasources/stops_cache_data_source.dart';
 import '../features/stops/data/datasources/stops_remote_data_source.dart';
 import '../features/stops/data/repositories/golemio_stops_repository.dart';
+import '../features/stops/data/repositories/saved_stops_repository_impl.dart';
+import '../features/stops/data/repositories/stops_cache_repository_impl.dart';
+import '../features/stops/domain/repositories/saved_stops_repository.dart';
+import '../features/stops/domain/repositories/stops_cache_repository.dart';
 import '../features/stops/domain/repositories/stops_repository.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
+import '../features/stops/domain/usecases/load_cached_stops_use_case.dart';
+import '../features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/load_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/record_recent_stop_use_case.dart';
+import '../features/stops/domain/usecases/refresh_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/save_stops_cache_use_case.dart';
+import '../features/stops/domain/usecases/search_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/toggle_favorite_stop_use_case.dart';
 import '../features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
 import '../features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
 import '../features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
@@ -74,6 +86,48 @@ class AppDependencies extends StatelessWidget {
         ),
         RepositoryProvider<SavedStopsDataSource>(
           create: (_) => const AppSavedStopsDataSource(),
+        ),
+        RepositoryProvider<StopsCacheRepository>(
+          create: (context) => StopsCacheRepositoryImpl(
+            context.read<StopsCacheDataSource>(),
+          ),
+        ),
+        RepositoryProvider<SavedStopsRepository>(
+          create: (context) => SavedStopsRepositoryImpl(
+            context.read<SavedStopsDataSource>(),
+          ),
+        ),
+        RepositoryProvider<LoadStopGroupsUseCase>(
+          create: (context) =>
+              LoadStopGroupsUseCase(context.read<GetStopsUseCase>()),
+        ),
+        RepositoryProvider<RefreshStopGroupsUseCase>(
+          create: (context) =>
+              RefreshStopGroupsUseCase(context.read<GetStopsUseCase>()),
+        ),
+        RepositoryProvider<SearchStopGroupsUseCase>(
+          create: (context) =>
+              SearchStopGroupsUseCase(context.read<GetStopsUseCase>()),
+        ),
+        RepositoryProvider<LoadCachedStopsUseCase>(
+          create: (context) =>
+              LoadCachedStopsUseCase(context.read<StopsCacheRepository>()),
+        ),
+        RepositoryProvider<SaveStopsCacheUseCase>(
+          create: (context) =>
+              SaveStopsCacheUseCase(context.read<StopsCacheRepository>()),
+        ),
+        RepositoryProvider<LoadSavedStopGroupsUseCase>(
+          create: (context) =>
+              LoadSavedStopGroupsUseCase(context.read<SavedStopsRepository>()),
+        ),
+        RepositoryProvider<ToggleFavoriteStopUseCase>(
+          create: (context) =>
+              ToggleFavoriteStopUseCase(context.read<SavedStopsRepository>()),
+        ),
+        RepositoryProvider<RecordRecentStopUseCase>(
+          create: (context) =>
+              RecordRecentStopUseCase(context.read<SavedStopsRepository>()),
         ),
         RepositoryProvider<GetDeparturesForStopUseCase>(
           create: (context) =>

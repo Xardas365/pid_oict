@@ -1,8 +1,8 @@
 import '../../../../shared/utils/json_parsing.dart';
 import '../../domain/stop.dart';
+import '../../domain/stops_cache_snapshot.dart';
 
 const stopsCacheSchemaVersion = 1;
-const stopsCacheTtl = Duration(hours: 24);
 
 class CachedStops {
   const CachedStops({
@@ -92,12 +92,12 @@ bool isStopsCacheFresh(
     return false;
   }
 
-  final age = now.toUtc().difference(cache.cachedAt.toUtc());
-  if (age.isNegative) {
-    return true;
-  }
-
-  return age <= ttl;
+  return StopsCacheSnapshot(
+    cachedAt: cache.cachedAt,
+    stops: cache.stops,
+    hasMore: cache.hasMore,
+    nextOffset: cache.nextOffset,
+  ).isFresh(now, ttl: ttl);
 }
 
 JsonMap _stopToJson(Stop stop) {

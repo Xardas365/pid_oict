@@ -2,15 +2,20 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/datasources/saved_stops_data_source.dart';
-import '../../data/datasources/stops_cache_data_source.dart';
-import '../../data/models/cached_stops.dart';
-import '../../data/models/saved_stops.dart';
-import '../../domain/gtfs_stops_query.dart';
+import '../../domain/saved_stop_groups.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
 import '../../domain/stop_visibility.dart';
+import '../../domain/stops_cache_snapshot.dart';
 import '../../domain/usecases/get_stops_use_case.dart';
+import '../../domain/usecases/load_cached_stops_use_case.dart';
+import '../../domain/usecases/load_saved_stop_groups_use_case.dart';
+import '../../domain/usecases/load_stop_groups_use_case.dart';
+import '../../domain/usecases/record_recent_stop_use_case.dart';
+import '../../domain/usecases/refresh_stop_groups_use_case.dart';
+import '../../domain/usecases/save_stops_cache_use_case.dart';
+import '../../domain/usecases/search_stop_groups_use_case.dart';
+import '../../domain/usecases/toggle_favorite_stop_use_case.dart';
 import '../stop_filter.dart';
 import 'stops_state.dart';
 
@@ -21,19 +26,38 @@ const gtfsStopsSearchDebounceDuration = Duration(milliseconds: 350);
 
 class StopsCubit extends Cubit<StopsState> {
   StopsCubit(
-    this._getStops, {
+    GetStopsUseCase getStops, {
     this.pageSize = gtfsStopsPageSize,
     this.searchLimit = gtfsStopsSearchLimit,
     this.searchDebounceDuration = gtfsStopsSearchDebounceDuration,
-    this.cacheDataSource,
-    this.savedStopsDataSource,
+    LoadStopGroupsUseCase? loadStopGroups,
+    RefreshStopGroupsUseCase? refreshStopGroups,
+    SearchStopGroupsUseCase? searchStopGroups,
+    this.loadCachedStops,
+    this.saveStopsCache,
+    this.loadSavedStopGroups,
+    this.toggleFavoriteStop,
+    this.recordRecentStopUseCase,
     DateTime Function()? now,
-  }) : _now = now ?? DateTime.now,
+  }) : _loadStopGroups = loadStopGroups ?? LoadStopGroupsUseCase(getStops),
+       _refreshStopGroups =
+           refreshStopGroups ?? RefreshStopGroupsUseCase(getStops),
+       _searchStopGroups =
+           searchStopGroups ??
+           SearchStopGroupsUseCase(
+             getStops,
+           ),
+       _now = now ?? DateTime.now,
        super(const StopsState.loading());
 
-  final GetStopsUseCase _getStops;
-  final StopsCacheDataSource? cacheDataSource;
-  final SavedStopsDataSource? savedStopsDataSource;
+  final LoadStopGroupsUseCase _loadStopGroups;
+  final RefreshStopGroupsUseCase _refreshStopGroups;
+  final SearchStopGroupsUseCase _searchStopGroups;
+  final LoadCachedStopsUseCase? loadCachedStops;
+  final SaveStopsCacheUseCase? saveStopsCache;
+  final LoadSavedStopGroupsUseCase? loadSavedStopGroups;
+  final ToggleFavoriteStopUseCase? toggleFavoriteStop;
+  final RecordRecentStopUseCase? recordRecentStopUseCase;
   final DateTime Function() _now;
   final int pageSize;
   final int searchLimit;
@@ -87,9 +111,7 @@ class StopsCubit extends Cubit<StopsState> {
     );
 
     try {
-      final page = await _getStops.page(
-        GtfsStopsQuery(limit: pageSize, offset: 0),
-      );
+      final page = await _refreshStopGroups(limit: pageSize);
       _upsertStops(page.stops);
       emit(
         _stateFromStops(
@@ -123,9 +145,7 @@ class StopsCubit extends Cubit<StopsState> {
     _initialRefreshInProgress = true;
 
     try {
-      final page = await _getStops.page(
-        GtfsStopsQuery(limit: pageSize, offset: 0),
-      );
+      final page = await _refreshStopGroups(limit: pageSize);
       if (page.stops.isEmpty) {
         emit(
           state.copyWith(
@@ -172,29 +192,28 @@ class StopsCubit extends Cubit<StopsState> {
 
   Future<void> toggleFavorite(StopGroup group) async {
     final updatedAt = _now().toUtc();
-    final favorites = FavoriteStops(
-      updatedAt: updatedAt,
-      favoriteGroupIds: _favoriteGroupIds,
-    );
-    final updatedFavorites = state.isFavorite(group)
-        ? favorites.remove(group.id, updatedAt: updatedAt)
-        : favorites.add(group.id, updatedAt: updatedAt);
-
-    _favoriteGroupIds = updatedFavorites.favoriteGroupIds;
+    final toggleFavorite = toggleFavoriteStop;
+    _favoriteGroupIds = toggleFavorite == null
+        ? toggleFavoriteGroupId(_favoriteGroupIds, group.id)
+        : await toggleFavorite(
+            groupId: group.id,
+            currentFavoriteGroupIds: _favoriteGroupIds,
+            updatedAt: updatedAt,
+          );
     _emitStateWithSavedStops();
-    await _writeFavorites(updatedFavorites);
   }
 
   Future<void> recordRecentStop(StopGroup group) async {
     final updatedAt = _now().toUtc();
-    final updatedRecent = RecentStops(
-      updatedAt: updatedAt,
-      recentGroupIds: _recentGroupIds,
-    ).add(group.id, updatedAt: updatedAt);
-
-    _recentGroupIds = updatedRecent.recentGroupIds;
+    final recordRecentStop = recordRecentStopUseCase;
+    _recentGroupIds = recordRecentStop == null
+        ? recordRecentGroupId(_recentGroupIds, group.id)
+        : await recordRecentStop(
+            groupId: group.id,
+            currentRecentGroupIds: _recentGroupIds,
+            updatedAt: updatedAt,
+          );
     _emitStateWithSavedStops();
-    await _writeRecent(updatedRecent);
   }
 
   Future<void> loadMore() async {
@@ -211,8 +230,9 @@ class StopsCubit extends Cubit<StopsState> {
     emit(current.copyWith(isLoadingMore: true, clearError: true));
 
     try {
-      final page = await _getStops.page(
-        GtfsStopsQuery(limit: pageSize, offset: current.nextOffset),
+      final page = await _loadStopGroups(
+        limit: pageSize,
+        offset: current.nextOffset,
       );
       _upsertStops(page.stops);
 
@@ -291,8 +311,9 @@ class StopsCubit extends Cubit<StopsState> {
     _lastRequestedSearch = normalizedQuery;
 
     try {
-      final page = await _getStops.page(
-        GtfsStopsQuery(limit: searchLimit, offset: 0, names: [normalizedQuery]),
+      final page = await _searchStopGroups(
+        query: normalizedQuery,
+        limit: searchLimit,
       );
       final stopsById = <String, Stop>{};
       for (final stop in page.stops) {
@@ -411,50 +432,16 @@ class StopsCubit extends Cubit<StopsState> {
   }
 
   Future<void> _readSavedStops() async {
-    final dataSource = savedStopsDataSource;
-    if (dataSource == null) {
+    final loadSavedStopGroups = this.loadSavedStopGroups;
+    if (loadSavedStopGroups == null) {
       _favoriteGroupIds = const <String>[];
       _recentGroupIds = const <String>[];
       return;
     }
 
-    try {
-      _favoriteGroupIds = (await dataSource.readFavorites()).favoriteGroupIds;
-    } on Object {
-      _favoriteGroupIds = const <String>[];
-    }
-
-    try {
-      _recentGroupIds = (await dataSource.readRecent()).recentGroupIds;
-    } on Object {
-      _recentGroupIds = const <String>[];
-    }
-  }
-
-  Future<void> _writeFavorites(FavoriteStops favorites) async {
-    final dataSource = savedStopsDataSource;
-    if (dataSource == null) {
-      return;
-    }
-
-    try {
-      await dataSource.writeFavorites(favorites);
-    } on Object {
-      // Saved-stop persistence must not block the main stops flow.
-    }
-  }
-
-  Future<void> _writeRecent(RecentStops recent) async {
-    final dataSource = savedStopsDataSource;
-    if (dataSource == null) {
-      return;
-    }
-
-    try {
-      await dataSource.writeRecent(recent);
-    } on Object {
-      // Saved-stop persistence must not block departure navigation.
-    }
+    final savedStops = await loadSavedStopGroups();
+    _favoriteGroupIds = savedStops.favoriteGroupIds;
+    _recentGroupIds = savedStops.recentGroupIds;
   }
 
   void _emitStateWithSavedStops() {
@@ -489,25 +476,21 @@ class StopsCubit extends Cubit<StopsState> {
     return List<StopGroup>.unmodifiable(resolvedGroups);
   }
 
-  Future<CachedStops?> _readCache() async {
-    final dataSource = cacheDataSource;
-    if (dataSource == null) {
+  Future<StopsCacheSnapshot?> _readCache() async {
+    final loadCachedStops = this.loadCachedStops;
+    if (loadCachedStops == null) {
       return null;
     }
 
-    try {
-      return await dataSource.read();
-    } on Object {
-      return null;
-    }
+    return loadCachedStops();
   }
 
   Future<void> _writeCacheFromCurrentStops({
     required bool hasMore,
     required int nextOffset,
   }) async {
-    final dataSource = cacheDataSource;
-    if (dataSource == null) {
+    final saveStopsCache = this.saveStopsCache;
+    if (saveStopsCache == null) {
       return;
     }
 
@@ -516,18 +499,12 @@ class StopsCubit extends Cubit<StopsState> {
       return;
     }
 
-    try {
-      await dataSource.write(
-        CachedStops(
-          cachedAt: _now().toUtc(),
-          stops: publicStops,
-          hasMore: hasMore,
-          nextOffset: nextOffset,
-        ),
-      );
-    } on Object {
-      // Cache failures must not block live stop loading.
-    }
+    await saveStopsCache(
+      cachedAt: _now().toUtc(),
+      stops: publicStops,
+      hasMore: hasMore,
+      nextOffset: nextOffset,
+    );
   }
 
   List<Stop> _representativeStops(List<StopGroup> groups) {

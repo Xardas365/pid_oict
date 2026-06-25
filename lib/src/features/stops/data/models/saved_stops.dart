@@ -1,7 +1,8 @@
 import '../../../../shared/utils/json_parsing.dart';
+import '../../domain/saved_stop_groups.dart';
 
 const savedStopsSchemaVersion = 1;
-const maxRecentStopsCount = 10;
+const int maxRecentStopsCount = maxRecentStopGroupsCount;
 
 class FavoriteStops {
   const FavoriteStops({
