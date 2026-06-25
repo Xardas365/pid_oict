@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/saved_stop_groups.dart';
+import '../../domain/search/remote_stop_search_supplement.dart';
 import '../../domain/search/stop_search_index.dart';
 import '../../domain/search/stop_search_query.dart';
-import '../../domain/search/stops_search_coordinator.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
 import '../../domain/stop_visibility.dart';
@@ -18,58 +18,58 @@ import '../../domain/usecases/load_saved_stop_groups_use_case.dart';
 import '../../domain/usecases/load_stop_groups_use_case.dart';
 import '../../domain/usecases/record_recent_stop_use_case.dart';
 import '../../domain/usecases/refresh_stop_groups_use_case.dart';
+import '../../domain/usecases/remote_supplement_stop_search_use_case.dart';
 import '../../domain/usecases/save_stops_cache_use_case.dart';
-import '../../domain/usecases/search_stop_groups_use_case.dart';
 import '../../domain/usecases/toggle_favorite_stop_use_case.dart';
 import 'stops_sorting.dart';
 import 'stops_state.dart';
 import 'stops_state_factory.dart';
 
 const gtfsStopsPageSize = 500;
-const gtfsStopsSearchLimit = 100;
-const minGtfsStopsApiSearchLength = 3;
+const gtfsStopsRemoteSupplementLimit = 100;
+const minGtfsStopsRemoteSupplementLength = 3;
 const gtfsStopsSearchDebounceDuration = Duration(milliseconds: 350);
 
 class StopsCubit extends Cubit<StopsState> {
   StopsCubit(
     GetStopsUseCase getStops, {
     this.pageSize = gtfsStopsPageSize,
-    this.searchLimit = gtfsStopsSearchLimit,
+    this.remoteSupplementLimit = gtfsStopsRemoteSupplementLimit,
     this.searchDebounceDuration = gtfsStopsSearchDebounceDuration,
     LoadStopGroupsUseCase? loadStopGroups,
     RefreshStopGroupsUseCase? refreshStopGroups,
     this.loadCompleteStopIndex,
-    SearchStopGroupsUseCase? searchStopGroups,
+    RemoteSupplementStopSearchUseCase? remoteSupplementStopSearch,
     this.loadCachedStops,
     this.saveStopsCache,
     this.loadSavedStopGroups,
     this.toggleFavoriteStop,
     this.recordRecentStopUseCase,
-    StopsSearchCoordinator? searchCoordinator,
+    RemoteStopSearchSupplement? remoteSearchSupplement,
     DateTime Function()? now,
   }) : _loadStopGroups = loadStopGroups ?? LoadStopGroupsUseCase(getStops),
        _refreshStopGroups =
            refreshStopGroups ?? RefreshStopGroupsUseCase(getStops),
-       _searchStopGroups =
-           searchStopGroups ??
-           SearchStopGroupsUseCase(
+       _remoteSupplementStopSearch =
+           remoteSupplementStopSearch ??
+           RemoteSupplementStopSearchUseCase(
              getStops,
            ),
        _now = now ?? DateTime.now,
        super(const StopsState.loading()) {
-    _searchCoordinator =
-        searchCoordinator ??
-        StopsSearchCoordinator(
-          searchStops: _searchStopGroups.call,
-          searchLimit: searchLimit,
-          minApiSearchLength: minGtfsStopsApiSearchLength,
+    _remoteSearchSupplement =
+        remoteSearchSupplement ??
+        RemoteStopSearchSupplement(
+          searchStops: _remoteSupplementStopSearch.call,
+          searchLimit: remoteSupplementLimit,
+          minApiSearchLength: minGtfsStopsRemoteSupplementLength,
         );
   }
 
   final LoadStopGroupsUseCase _loadStopGroups;
   final RefreshStopGroupsUseCase _refreshStopGroups;
   final LoadCompleteStopIndexUseCase? loadCompleteStopIndex;
-  final SearchStopGroupsUseCase _searchStopGroups;
+  final RemoteSupplementStopSearchUseCase _remoteSupplementStopSearch;
   final StopsStateFactory _stateFactory = const StopsStateFactory();
   final LoadCachedStopsUseCase? loadCachedStops;
   final SaveStopsCacheUseCase? saveStopsCache;
@@ -78,9 +78,9 @@ class StopsCubit extends Cubit<StopsState> {
   final RecordRecentStopUseCase? recordRecentStopUseCase;
   final DateTime Function() _now;
   final int pageSize;
-  final int searchLimit;
+  final int remoteSupplementLimit;
   final Duration searchDebounceDuration;
-  late final StopsSearchCoordinator _searchCoordinator;
+  late final RemoteStopSearchSupplement _remoteSearchSupplement;
   final _stopsById = <String, Stop>{};
   var _searchIndex = StopSearchIndex.fromGroups(
     const <StopGroup>[],
@@ -97,7 +97,7 @@ class StopsCubit extends Cubit<StopsState> {
     _searchDebounceTimer?.cancel();
     _stopsById.clear();
     _rebuildSearchIndex(const <Stop>[], isComplete: false);
-    _searchCoordinator.resetLastRequestedSearch();
+    _remoteSearchSupplement.resetLastRequestedSearch();
 
     await _readSavedStops();
 
@@ -308,7 +308,7 @@ class StopsCubit extends Cubit<StopsState> {
         current.isLoadingMore ||
         current.isSearching ||
         !current.hasMore ||
-        _searchCoordinator.shouldUseRemoteSupplement(
+        _remoteSearchSupplement.shouldUseRemoteSupplement(
           current.searchQuery,
           _searchIndex,
         )) {
@@ -358,12 +358,12 @@ class StopsCubit extends Cubit<StopsState> {
 
     _searchDebounceTimer?.cancel();
 
-    final shouldUseRemoteSupplement = _searchCoordinator
+    final shouldUseRemoteSupplement = _remoteSearchSupplement
         .shouldUseRemoteSupplement(query, _searchIndex);
 
     if (!shouldUseRemoteSupplement) {
-      if (!_searchCoordinator.isRemoteSearchQuery(query)) {
-        _searchCoordinator.resetLastRequestedSearch();
+      if (!_remoteSearchSupplement.isRemoteSupplementQuery(query)) {
+        _remoteSearchSupplement.resetLastRequestedSearch();
       }
       emit(
         _stateFromStops(
@@ -407,7 +407,7 @@ class StopsCubit extends Cubit<StopsState> {
 
   Future<void> _searchStops(String query) async {
     try {
-      final result = await _searchCoordinator.search(
+      final result = await _remoteSearchSupplement.search(
         query: query,
         index: _searchIndex,
       );

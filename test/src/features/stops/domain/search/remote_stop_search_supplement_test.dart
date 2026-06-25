@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/src/features/stops/domain/search/remote_stop_search_supplement.dart';
 import 'package:pid_oict/src/features/stops/domain/search/stop_search_index.dart';
-import 'package:pid_oict/src/features/stops/domain/search/stops_search_coordinator.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/stops/domain/stops_page.dart';
 
 void main() {
-  group('StopsSearchCoordinator', () {
-    test('ignores queries below remote search threshold', () async {
+  group('RemoteStopSearchSupplement', () {
+    test('ignores queries below remote supplement threshold', () async {
       var calls = 0;
-      final coordinator = StopsSearchCoordinator(
+      final supplement = RemoteStopSearchSupplement(
         searchLimit: 100,
         minApiSearchLength: 3,
         searchStops: ({required limit, required query}) async {
@@ -18,7 +18,7 @@ void main() {
         },
       );
 
-      final result = await coordinator.search(
+      final result = await supplement.search(
         query: 'ce',
         index: _index(const [_cernyMost], isComplete: false),
       );
@@ -27,29 +27,32 @@ void main() {
       expect(calls, 0);
     });
 
-    test('does not call remote search when local index is complete', () async {
-      var calls = 0;
-      final coordinator = StopsSearchCoordinator(
-        searchLimit: 100,
-        minApiSearchLength: 3,
-        searchStops: ({required limit, required query}) async {
-          calls++;
-          return _page(const [_floraPlatformA]);
-        },
-      );
+    test(
+      'does not call remote supplement when local index is complete',
+      () async {
+        var calls = 0;
+        final supplement = RemoteStopSearchSupplement(
+          searchLimit: 100,
+          minApiSearchLength: 3,
+          searchStops: ({required limit, required query}) async {
+            calls++;
+            return _page(const [_floraPlatformA]);
+          },
+        );
 
-      final result = await coordinator.search(
-        query: 'flo',
-        index: _index(const [_floraPlatformA], isComplete: true),
-      );
+        final result = await supplement.search(
+          query: 'flo',
+          index: _index(const [_floraPlatformA], isComplete: true),
+        );
 
-      expect(result, isNull);
-      expect(calls, 0);
-    });
+        expect(result, isNull);
+        expect(calls, 0);
+      },
+    );
 
     test('deduplicates and sorts remote supplement results', () async {
       final queries = <String>[];
-      final coordinator = StopsSearchCoordinator(
+      final supplement = RemoteStopSearchSupplement(
         searchLimit: 100,
         minApiSearchLength: 3,
         searchStops: ({required limit, required query}) async {
@@ -71,7 +74,7 @@ void main() {
         },
       );
 
-      final result = await coordinator.search(
+      final result = await supplement.search(
         query: ' flo ',
         index: _index(const [_andel, _floraPlatformA], isComplete: false),
       );
@@ -88,7 +91,7 @@ void main() {
     test(
       'returns an empty remote supplement without clearing local matches',
       () async {
-        final coordinator = StopsSearchCoordinator(
+        final supplement = RemoteStopSearchSupplement(
           searchLimit: 100,
           minApiSearchLength: 3,
           searchStops: ({required limit, required query}) async {
@@ -96,7 +99,7 @@ void main() {
           },
         );
 
-        final result = await coordinator.search(
+        final result = await supplement.search(
           query: 'cer',
           index: _index(const [_cernyMost], isComplete: false),
         );
@@ -109,7 +112,7 @@ void main() {
 
     test('does not call API again for the same normalized query', () async {
       var calls = 0;
-      final coordinator = StopsSearchCoordinator(
+      final supplement = RemoteStopSearchSupplement(
         searchLimit: 100,
         minApiSearchLength: 3,
         searchStops: ({required limit, required query}) async {
@@ -118,11 +121,11 @@ void main() {
         },
       );
 
-      final firstResult = await coordinator.search(
+      final firstResult = await supplement.search(
         query: ' flo ',
         index: _index(const [], isComplete: false),
       );
-      final secondResult = await coordinator.search(
+      final secondResult = await supplement.search(
         query: 'flo',
         index: _index(const [], isComplete: false),
       );
@@ -134,7 +137,7 @@ void main() {
 
     test('reset allows the same query to be searched again', () async {
       var calls = 0;
-      final coordinator = StopsSearchCoordinator(
+      final supplement = RemoteStopSearchSupplement(
         searchLimit: 100,
         minApiSearchLength: 3,
         searchStops: ({required limit, required query}) async {
@@ -143,12 +146,12 @@ void main() {
         },
       );
 
-      await coordinator.search(
+      await supplement.search(
         query: 'flo',
         index: _index(const [], isComplete: false),
       );
-      coordinator.resetLastRequestedSearch();
-      final result = await coordinator.search(
+      supplement.resetLastRequestedSearch();
+      final result = await supplement.search(
         query: 'flo',
         index: _index(const [], isComplete: false),
       );

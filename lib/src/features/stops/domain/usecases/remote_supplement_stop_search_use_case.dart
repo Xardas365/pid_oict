@@ -2,8 +2,8 @@ import '../gtfs_stops_query.dart';
 import '../stops_page.dart';
 import 'get_stops_use_case.dart';
 
-class SearchStopGroupsUseCase {
-  const SearchStopGroupsUseCase(this._getStops);
+class RemoteSupplementStopSearchUseCase {
+  const RemoteSupplementStopSearchUseCase(this._getStops);
 
   final GetStopsUseCase _getStops;
 

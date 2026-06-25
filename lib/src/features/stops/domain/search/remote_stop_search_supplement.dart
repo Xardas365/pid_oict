@@ -3,26 +3,26 @@ import '../stops_page.dart';
 import 'stop_search_index.dart';
 import 'stop_search_query.dart';
 
-typedef StopsApiSearch =
+typedef RemoteStopSearch =
     Future<StopsPage> Function({
       required String query,
       required int limit,
     });
 
-class StopsSearchCoordinator {
-  StopsSearchCoordinator({
+class RemoteStopSearchSupplement {
+  RemoteStopSearchSupplement({
     required this.searchStops,
     required this.searchLimit,
     required this.minApiSearchLength,
   });
 
-  final StopsApiSearch searchStops;
+  final RemoteStopSearch searchStops;
   final int searchLimit;
   final int minApiSearchLength;
 
   var _lastRequestedSearch = '';
 
-  bool isRemoteSearchQuery(String query) {
+  bool isRemoteSupplementQuery(String query) {
     return StopSearchQuery.parse(query).normalizedInput.length >=
         minApiSearchLength;
   }
@@ -38,7 +38,7 @@ class StopsSearchCoordinator {
     _lastRequestedSearch = '';
   }
 
-  Future<StopsSearchResult?> search({
+  Future<RemoteStopSearchSupplementResult?> search({
     required String query,
     required StopSearchIndex index,
   }) async {
@@ -57,7 +57,7 @@ class StopsSearchCoordinator {
       searchStopsById[stop.id] = stop;
     }
 
-    return StopsSearchResult.remote(
+    return RemoteStopSearchSupplementResult(
       normalizedQuery: searchQuery.normalizedInput,
       stops: _sortStopsByPublicName(searchStopsById.values),
     );
@@ -91,21 +91,11 @@ class StopsSearchCoordinator {
   }
 }
 
-class StopsSearchResult {
-  const StopsSearchResult._({
+class RemoteStopSearchSupplementResult {
+  const RemoteStopSearchSupplementResult({
     required this.normalizedQuery,
     required this.stops,
   });
-
-  factory StopsSearchResult.remote({
-    required String normalizedQuery,
-    required List<Stop> stops,
-  }) {
-    return StopsSearchResult._(
-      normalizedQuery: normalizedQuery,
-      stops: List<Stop>.unmodifiable(stops),
-    );
-  }
 
   final String normalizedQuery;
   final List<Stop> stops;

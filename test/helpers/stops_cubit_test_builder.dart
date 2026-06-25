@@ -16,7 +16,7 @@ import 'package:pid_oict/src/features/stops/presentation/cubit/stops_cubit.dart'
 StopsCubit testStopsCubit(
   GetStopsUseCase getStops, {
   int pageSize = gtfsStopsPageSize,
-  int searchLimit = gtfsStopsSearchLimit,
+  int remoteSupplementLimit = gtfsStopsRemoteSupplementLimit,
   Duration searchDebounceDuration = gtfsStopsSearchDebounceDuration,
   StopsCacheDataSource? cacheDataSource,
   SavedStopsDataSource? savedStopsDataSource,
@@ -33,7 +33,7 @@ StopsCubit testStopsCubit(
   return StopsCubit(
     getStops,
     pageSize: pageSize,
-    searchLimit: searchLimit,
+    remoteSupplementLimit: remoteSupplementLimit,
     searchDebounceDuration: searchDebounceDuration,
     loadCompleteStopIndex: loadCompleteStopIndex,
     loadCachedStops: _loadCachedStops(cacheRepository),

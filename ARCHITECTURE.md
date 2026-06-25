@@ -91,8 +91,8 @@ Dio:
 - entities such as stop points, grouped public stops, departures, vehicle
   positions, and vehicle IDs,
 - repository interfaces,
-- use cases for loading stops, refreshing/searching stop groups, saved stops,
-  departure boards, and vehicle positions,
+- use cases for loading stops, refreshing stop groups, remote stop-search
+  supplementation, saved stops, departure boards, and vehicle positions,
 - pure helpers for stop visibility, stop grouping, departure aggregation, and
   PID line classification.
 
@@ -163,8 +163,34 @@ such as `Praha hl.` resolve to the related passenger stop group without
 loosening public-stop filtering.
 
 The stops flow supports paginated loading, background complete-index loading,
-API-backed search while the local index is incomplete, local fallback
+remote `names[]` supplementation while the local index is incomplete, local
 filtering, cache restore, stale cache warnings, favorites, and recent stops.
+
+## Stop Search Architecture
+
+Stop search is local-first. `StopsCubit` maintains an in-memory
+`StopSearchIndex` rebuilt from the currently known public `StopGroup` values.
+The initial screen can render from cache or the first GTFS stops page, then
+`LoadCompleteStopIndexUseCase` fetches the remaining pages in the background
+and marks the index complete when pagination ends.
+
+Each group becomes a `StopSearchDocument` with stable aliases built from the
+group name, child stop names, useful platform aliases, and search-only parent
+station names when raw GTFS parent records are available. Parent stations are
+metadata only: they are not selectable, cached as independent stops, or sent to
+departure boards.
+
+`StopSearchNormalizer` performs diacritics-insensitive normalization and a small
+set of Czech transit abbreviations such as `hl.`, `hl. n.`, and `nadr.`. Search
+ranking prefers exact alias matches, then prefix matches, token matches, and
+contains matches, with deterministic public-name/id ordering for ties.
+
+The remote `names[]` path is explicitly modeled as
+`RemoteSupplementStopSearchUseCase` plus `RemoteStopSearchSupplement`. It is
+used only while `StopSearchIndex.isComplete == false` and the query is long
+enough. Remote results are merged into the local stop store by `stop_id`, then
+searched locally again. Empty or failed remote supplements do not clear local
+matches, and a complete local index never calls the remote search supplement.
 
 ### Departures
 

@@ -404,7 +404,7 @@ void main() {
 
         expect(repository.queries, hasLength(2));
         expect(repository.queries.last.names, ['Flo']);
-        expect(repository.queries.last.limit, gtfsStopsSearchLimit);
+        expect(repository.queries.last.limit, gtfsStopsRemoteSupplementLimit);
         expect(repository.queries.last.offset, 0);
         expect(cubit.state.isSearching, isFalse);
         expect(cubit.state.filteredStops.single.name, 'Flora');

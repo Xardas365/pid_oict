@@ -24,8 +24,8 @@ import '../features/stops/domain/usecases/load_saved_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/load_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/record_recent_stop_use_case.dart';
 import '../features/stops/domain/usecases/refresh_stop_groups_use_case.dart';
+import '../features/stops/domain/usecases/remote_supplement_stop_search_use_case.dart';
 import '../features/stops/domain/usecases/save_stops_cache_use_case.dart';
-import '../features/stops/domain/usecases/search_stop_groups_use_case.dart';
 import '../features/stops/domain/usecases/toggle_favorite_stop_use_case.dart';
 import '../features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
 import '../features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
@@ -131,9 +131,10 @@ class AppDependencies extends StatelessWidget {
           create: (context) =>
               LoadCompleteStopIndexUseCase(context.read<GetStopsUseCase>()),
         ),
-        RepositoryProvider<SearchStopGroupsUseCase>(
-          create: (context) =>
-              SearchStopGroupsUseCase(context.read<GetStopsUseCase>()),
+        RepositoryProvider<RemoteSupplementStopSearchUseCase>(
+          create: (context) => RemoteSupplementStopSearchUseCase(
+            context.read<GetStopsUseCase>(),
+          ),
         ),
         RepositoryProvider<LoadCachedStopsUseCase>(
           create: (context) =>

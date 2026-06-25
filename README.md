@@ -15,7 +15,8 @@ with Flutter 3.44.1 and Dart 3.12.1.
 
 - Public-facing PID stops loaded from `/v2/gtfs/stops`.
 - Paginated stop loading with `limit` and `offset`.
-- API-backed stop search using `names[]`, with local fallback search.
+- Local stop search over a complete background-built search index, with
+  `names[]` used only as a temporary supplement while the index is incomplete.
 - Conservative filtering of technical GTFS stop points before display.
 - Grouped public stops, so platforms of one stop are shown as one item.
 - Departure boards for grouped stop IDs.
@@ -263,8 +264,8 @@ The tool writes only under `.debug/golemio_samples/`, which is ignored by Git.
 
 ## Known Limitations
 
-- `names[]` is not guaranteed to behave as true full-text search, so the app
-  keeps a local fallback over loaded/cached groups.
+- `names[]` is not treated as full-text search. It is used only as a
+  supplemental API lookup while the local stop index is still incomplete.
 - Manual runtime verification requires a valid Golemio token.
 - Vehicle tracking depends on a departure containing a usable `vehicleId`.
 - Map tiles require network access.

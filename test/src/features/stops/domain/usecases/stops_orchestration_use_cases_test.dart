@@ -15,21 +15,24 @@ import 'package:pid_oict/src/features/stops/domain/usecases/load_saved_stop_grou
 import 'package:pid_oict/src/features/stops/domain/usecases/load_stop_groups_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/record_recent_stop_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/refresh_stop_groups_use_case.dart';
+import 'package:pid_oict/src/features/stops/domain/usecases/remote_supplement_stop_search_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/save_stops_cache_use_case.dart';
-import 'package:pid_oict/src/features/stops/domain/usecases/search_stop_groups_use_case.dart';
 import 'package:pid_oict/src/features/stops/domain/usecases/toggle_favorite_stop_use_case.dart';
 
 void main() {
   group('stops orchestration use cases', () {
     test(
-      'load, refresh, and search use cases build expected stop queries',
+      'load, refresh, and remote supplement use cases build expected queries',
       () async {
         final repository = _RecordingStopsRepository();
         final getStops = GetStopsUseCase(repository);
 
         await LoadStopGroupsUseCase(getStops)(limit: 500, offset: 1000);
         await RefreshStopGroupsUseCase(getStops)(limit: 500);
-        await SearchStopGroupsUseCase(getStops)(query: 'Flo', limit: 100);
+        await RemoteSupplementStopSearchUseCase(getStops)(
+          query: 'Flo',
+          limit: 100,
+        );
 
         expect(repository.queries, hasLength(3));
         expect(repository.queries[0].limit, 500);
