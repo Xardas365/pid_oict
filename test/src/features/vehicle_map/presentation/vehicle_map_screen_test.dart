@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
@@ -41,10 +42,8 @@ void main() {
         tester,
         repository: _QueueVehiclePositionRepository([
           _VehiclePositionSuccess(
-            VehiclePosition(
-              vehicleId: 'vehicle-123',
-              latitude: 50.0755,
-              longitude: 14.4378,
+            _position(
+              'vehicle-123',
               lastUpdated: DateTime(2026, 6, 22, 10, 20),
             ),
           ),
@@ -55,13 +54,26 @@ void main() {
 
       expect(find.text('10 – Sidliste Repy'), findsWidgets);
       expect(find.byTooltip('Zpět na odjezdy'), findsOneWidget);
-      expect(find.byIcon(Icons.directions_bus), findsOneWidget);
+      expect(find.byTooltip('Vycentrovat vozidlo'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate((widget) => widget is PolylineLayer),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate((widget) => widget is CircleLayer),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
+      expect(find.text('Zpoždění +1 min'), findsOneWidget);
       expect(find.text('Poslední aktualizace 10:20:00'), findsOneWidget);
       expect(
         find.text('Mapová data (c) přispěvatelé OpenStreetMap'),
         findsOneWidget,
       );
+
+      await tester.tap(find.byTooltip('Vycentrovat vozidlo'));
+      await tester.pump();
     });
 
     testWidgets('shows no-position state for invalid data', (
@@ -139,7 +151,7 @@ void main() {
       await bloc.stream.firstWhere((state) => state.isRefreshing);
       await tester.pump();
 
-      expect(find.byIcon(Icons.directions_bus), findsOneWidget);
+      expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
 
@@ -177,7 +189,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repository.callCount, 2);
-      expect(find.byIcon(Icons.directions_bus), findsOneWidget);
+      expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
       expect(
         find.text(
@@ -227,12 +239,57 @@ VehicleMapArgs _vehicleMapArgs() {
   );
 }
 
-VehiclePosition _position(String vehicleId, {double latitude = 50.0755}) {
+VehiclePosition _position(
+  String vehicleId, {
+  double latitude = 50.0755,
+  DateTime? lastUpdated,
+}) {
   return VehiclePosition(
     vehicleId: vehicleId,
     latitude: latitude,
     longitude: 14.4378,
-    lastUpdated: DateTime(2026, 6, 22, 10, 20),
+    routeShortName: '10',
+    routeType: 'tram',
+    headsign: 'Sidliste Repy',
+    delaySeconds: 60,
+    shapeDistTraveled: 1200,
+    lastStopSequence: 2,
+    routePoints: const [
+      VehicleRoutePoint(
+        latitude: 50.0748,
+        longitude: 14.4358,
+        shapeDistTraveled: 900,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0755,
+        longitude: 14.4378,
+        shapeDistTraveled: 1200,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0763,
+        longitude: 14.4402,
+        shapeDistTraveled: 1500,
+      ),
+    ],
+    stopTimes: const [
+      VehicleRouteStop(
+        name: 'Andel',
+        latitude: 50.0748,
+        longitude: 14.4358,
+        stopSequence: 1,
+        zoneId: 'P',
+        shapeDistTraveled: 900,
+      ),
+      VehicleRouteStop(
+        name: 'Zborovska',
+        latitude: 50.0755,
+        longitude: 14.4378,
+        stopSequence: 2,
+        zoneId: 'P',
+        shapeDistTraveled: 1200,
+      ),
+    ],
+    lastUpdated: lastUpdated ?? DateTime(2026, 6, 22, 10, 20),
   );
 }
 

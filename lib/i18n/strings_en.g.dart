@@ -195,7 +195,9 @@ class _Translations$vehicleMap$en extends Translations$vehicleMap$cs {
 	@override String get loadFailed => 'Could not load the vehicle position. Please try again.';
 	@override String get invalidData => 'The current vehicle position is not available.';
 	@override String vehicleLabel({required Object vehicleId}) => 'Vehicle ${vehicleId}';
+	@override String vehicleMarkerSemantic({required Object line}) => 'Current position of line ${line}';
 	@override String lastUpdated({required Object time}) => 'Last updated ${time}';
+	@override String get recenterTooltip => 'Recenter vehicle';
 	@override String get attribution => 'Map data (c) OpenStreetMap contributors';
 }
 
@@ -349,7 +351,9 @@ extension on TranslationsEn {
 			'vehicleMap.loadFailed' => 'Could not load the vehicle position. Please try again.',
 			'vehicleMap.invalidData' => 'The current vehicle position is not available.',
 			'vehicleMap.vehicleLabel' => ({required Object vehicleId}) => 'Vehicle ${vehicleId}',
+			'vehicleMap.vehicleMarkerSemantic' => ({required Object line}) => 'Current position of line ${line}',
 			'vehicleMap.lastUpdated' => ({required Object time}) => 'Last updated ${time}',
+			'vehicleMap.recenterTooltip' => 'Recenter vehicle',
 			'vehicleMap.attribution' => 'Map data (c) OpenStreetMap contributors',
 			'format.noDelay' => 'No delay',
 			'format.delayMinutes' => ({required Object minutes}) => 'Delay +${minutes} min',

@@ -113,7 +113,9 @@
     "loadFailed": "Polohu vozidla se nepodařilo načíst. Zkuste to prosím znovu.",
     "invalidData": "Aktuální poloha vozidla není dostupná.",
     "vehicleLabel": "Vozidlo $vehicleId",
+    "vehicleMarkerSemantic": "Aktuální poloha linky $line",
     "lastUpdated": "Poslední aktualizace $time",
+    "recenterTooltip": "Vycentrovat vozidlo",
     "attribution": "Mapová data (c) přispěvatelé OpenStreetMap"
   },
   "format": {

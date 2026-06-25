@@ -68,6 +68,47 @@ VehiclePosition andelVehiclePosition({
     vehicleId: vehicleId,
     latitude: latitude,
     longitude: longitude,
+    routeShortName: '10',
+    routeType: 'tram',
+    headsign: 'Sidliste Repy',
+    delaySeconds: 60,
+    shapeDistTraveled: 1200,
+    lastStopSequence: 2,
+    routePoints: const [
+      VehicleRoutePoint(
+        latitude: 50.0748,
+        longitude: 14.4358,
+        shapeDistTraveled: 900,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0755,
+        longitude: 14.4378,
+        shapeDistTraveled: 1200,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0763,
+        longitude: 14.4402,
+        shapeDistTraveled: 1500,
+      ),
+    ],
+    stopTimes: const [
+      VehicleRouteStop(
+        name: 'Andel',
+        latitude: 50.0748,
+        longitude: 14.4358,
+        stopSequence: 1,
+        zoneId: 'P',
+        shapeDistTraveled: 900,
+      ),
+      VehicleRouteStop(
+        name: 'Zborovska',
+        latitude: 50.0755,
+        longitude: 14.4378,
+        stopSequence: 2,
+        zoneId: 'P',
+        shapeDistTraveled: 1200,
+      ),
+    ],
     lastUpdated: DateTime(2026, 6, 22, 10, 20),
   );
 }

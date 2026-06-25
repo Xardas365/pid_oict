@@ -345,8 +345,14 @@ class Translations$vehicleMap$cs {
 	/// cs: 'Vozidlo $vehicleId'
 	String vehicleLabel({required Object vehicleId}) => 'Vozidlo ${vehicleId}';
 
+	/// cs: 'Aktuální poloha linky $line'
+	String vehicleMarkerSemantic({required Object line}) => 'Aktuální poloha linky ${line}';
+
 	/// cs: 'Poslední aktualizace $time'
 	String lastUpdated({required Object time}) => 'Poslední aktualizace ${time}';
+
+	/// cs: 'Vycentrovat vozidlo'
+	String get recenterTooltip => 'Vycentrovat vozidlo';
 
 	/// cs: 'Mapová data (c) přispěvatelé OpenStreetMap'
 	String get attribution => 'Mapová data (c) přispěvatelé OpenStreetMap';
@@ -556,7 +562,9 @@ extension on Translations {
 			'vehicleMap.loadFailed' => 'Polohu vozidla se nepodařilo načíst. Zkuste to prosím znovu.',
 			'vehicleMap.invalidData' => 'Aktuální poloha vozidla není dostupná.',
 			'vehicleMap.vehicleLabel' => ({required Object vehicleId}) => 'Vozidlo ${vehicleId}',
+			'vehicleMap.vehicleMarkerSemantic' => ({required Object line}) => 'Aktuální poloha linky ${line}',
 			'vehicleMap.lastUpdated' => ({required Object time}) => 'Poslední aktualizace ${time}',
+			'vehicleMap.recenterTooltip' => 'Vycentrovat vozidlo',
 			'vehicleMap.attribution' => 'Mapová data (c) přispěvatelé OpenStreetMap',
 			'format.noDelay' => 'Bez zpoždění',
 			'format.delayMinutes' => ({required Object minutes}) => 'Zpoždění +${minutes} min',

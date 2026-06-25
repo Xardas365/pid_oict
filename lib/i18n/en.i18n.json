@@ -113,7 +113,9 @@
     "loadFailed": "Could not load the vehicle position. Please try again.",
     "invalidData": "The current vehicle position is not available.",
     "vehicleLabel": "Vehicle $vehicleId",
+    "vehicleMarkerSemantic": "Current position of line $line",
     "lastUpdated": "Last updated $time",
+    "recenterTooltip": "Recenter vehicle",
     "attribution": "Map data (c) OpenStreetMap contributors"
   },
   "format": {
