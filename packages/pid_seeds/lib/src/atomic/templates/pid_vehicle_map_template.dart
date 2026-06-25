@@ -27,21 +27,24 @@ class PidVehicleMapTemplate extends StatelessWidget {
     this.onTabSelected,
   })  : _vehicle = vehicle,
         screenTitle = null,
+        screenBackTooltip = null,
         screenContent = null;
 
   const PidVehicleMapTemplate.screen({
     super.key,
     required String title,
     required Widget content,
+    String? backTooltip,
+    this.onBack,
   })  : _vehicle = null,
         mapContent = null,
         showDefaultMarker = true,
-        onBack = null,
         onLocatePressed = null,
         onRefresh = null,
         selectedTab = PidNavigationTab.map,
         onTabSelected = null,
         screenTitle = title,
+        screenBackTooltip = backTooltip,
         screenContent = content;
 
   final PidVehiclePositionData? _vehicle;
@@ -53,6 +56,7 @@ class PidVehicleMapTemplate extends StatelessWidget {
   final PidNavigationTab selectedTab;
   final ValueChanged<PidNavigationTab>? onTabSelected;
   final String? screenTitle;
+  final String? screenBackTooltip;
   final Widget? screenContent;
 
   PidVehiclePositionData get vehicle => _vehicle!;
@@ -62,7 +66,17 @@ class PidVehicleMapTemplate extends StatelessWidget {
     final screenContent = this.screenContent;
     if (screenContent != null) {
       return Scaffold(
-        appBar: AppBar(title: Text(screenTitle ?? '')),
+        appBar: AppBar(
+          leading: onBack == null
+              ? null
+              : IconButton(
+                  tooltip:
+                      screenBackTooltip ?? t.templates.vehicleMap.backTooltip,
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                ),
+          title: Text(screenTitle ?? ''),
+        ),
         body: SafeArea(child: screenContent),
       );
     }

@@ -107,7 +107,8 @@
   },
   "vehicleMap": {
     "emptyTabMessage": "Vyberte odjezd s dostupnou polohou vozidla.",
-    "title": "Poloha vozidla",
+    "title": "Mapa vozidla",
+    "backToDepartures": "Zpět na odjezdy",
     "loading": "Načítání polohy vozidla...",
     "loadFailed": "Polohu vozidla se nepodařilo načíst. Zkuste to prosím znovu.",
     "invalidData": "Aktuální poloha vozidla není dostupná.",

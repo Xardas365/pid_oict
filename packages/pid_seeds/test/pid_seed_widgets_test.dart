@@ -311,4 +311,28 @@ void main() {
     expect(find.text('Mapa vozidla'), findsOneWidget);
     expect(find.text('Map content'), findsOneWidget);
   });
+
+  testWidgets('PidVehicleMapTemplate.screen supports explicit back action', (
+    tester,
+  ) async {
+    var backPressed = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: PidVehicleMapTemplate.screen(
+          title: 'Mapa vozidla',
+          backTooltip: 'Zpět na odjezdy',
+          onBack: () {
+            backPressed = true;
+          },
+          content: const Text('Map content'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byTooltip('Zpět na odjezdy'));
+
+    expect(backPressed, isTrue);
+  });
 }

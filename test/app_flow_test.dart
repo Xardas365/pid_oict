@@ -55,9 +55,14 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(receivedVehicleIds, ['service-3-1001']);
-        expect(find.text('Poloha vozidla'), findsOneWidget);
+        expect(find.text('10 – Sidliste Repy'), findsWidgets);
         expect(find.text('Vozidlo vehicle-from-api'), findsOneWidget);
         expect(find.byIcon(Icons.directions_bus), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Zpět na odjezdy'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Sidliste Repy'), findsOneWidget);
       },
     );
 
@@ -123,6 +128,7 @@ void main() {
         await tester.tap(find.text('Sidliste Repy'));
         await tester.pumpAndSettle();
 
+        expect(find.text('10 – Sidliste Repy'), findsWidgets);
         expect(find.text('Vozidlo vehicle-before-stale'), findsOneWidget);
         expect(find.byIcon(Icons.directions_bus), findsOneWidget);
 
@@ -131,6 +137,7 @@ void main() {
         await tester.pump();
 
         expect(vehiclePositionCalls, greaterThanOrEqualTo(2));
+        expect(find.text('10 – Sidliste Repy'), findsWidgets);
         expect(find.text('Vozidlo vehicle-before-stale'), findsOneWidget);
         expect(find.byIcon(Icons.directions_bus), findsOneWidget);
         expect(

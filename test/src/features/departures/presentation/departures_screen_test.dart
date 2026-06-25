@@ -251,6 +251,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(selectedArgs?.vehicleId.value, 'service-3-1001');
+      expect(selectedArgs?.routeShortName, '22');
+      expect(selectedArgs?.headsign, 'Nadrazi Hostivar');
+      expect(selectedArgs?.title, '22 – Nadrazi Hostivar');
     });
 
     testWidgets('hides vehicle map action when vehicleId is missing', (

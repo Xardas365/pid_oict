@@ -107,7 +107,8 @@
   },
   "vehicleMap": {
     "emptyTabMessage": "Select a departure with an available vehicle position.",
-    "title": "Vehicle position",
+    "title": "Vehicle map",
+    "backToDepartures": "Back to departures",
     "loading": "Loading vehicle position...",
     "loadFailed": "Could not load the vehicle position. Please try again.",
     "invalidData": "The current vehicle position is not available.",

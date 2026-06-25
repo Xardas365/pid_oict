@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
@@ -298,7 +299,13 @@ Widget _vehicleMapScreen(
   VehiclePositionRepository repository, {
   void Function(VehicleMapBloc bloc)? onBlocCreated,
 }) {
-  final args = VehicleMapArgs(vehicleId: VehicleId('service-3-1001'));
+  final args = VehicleMapArgs(
+    vehicleId: VehicleId('service-3-1001'),
+    routeShortName: '10',
+    headsign: 'Sidliste Repy',
+    routeType: 'tram',
+    lineType: PidLineType.tram,
+  );
 
   return BlocProvider(
     create: (_) {

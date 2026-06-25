@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
@@ -52,7 +53,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Poloha vozidla'), findsOneWidget);
+      expect(find.text('10 – Sidliste Repy'), findsWidgets);
+      expect(find.byTooltip('Zpět na odjezdy'), findsOneWidget);
       expect(find.byIcon(Icons.directions_bus), findsOneWidget);
       expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
       expect(find.text('Poslední aktualizace 10:20:00'), findsOneWidget);
@@ -197,9 +199,7 @@ Future<void> _pumpVehicleMapScreen(
     localizedTestApp(
       home: BlocProvider(
         create: (_) {
-          final args = VehicleMapArgs(
-            vehicleId: VehicleId('service-3-1001'),
-          );
+          final args = _vehicleMapArgs();
           final bloc = VehicleMapBloc(
             GetVehiclePositionForVehicleUseCase(repository),
             pollingInterval: Duration.zero,
@@ -209,11 +209,21 @@ Future<void> _pumpVehicleMapScreen(
           return bloc;
         },
         child: VehicleMapScreen(
-          args: VehicleMapArgs(vehicleId: VehicleId('service-3-1001')),
+          args: _vehicleMapArgs(),
           showMapTiles: false,
         ),
       ),
     ),
+  );
+}
+
+VehicleMapArgs _vehicleMapArgs() {
+  return VehicleMapArgs(
+    vehicleId: VehicleId('service-3-1001'),
+    routeShortName: '10',
+    headsign: 'Sidliste Repy',
+    routeType: 'tram',
+    lineType: PidLineType.tram,
   );
 }
 

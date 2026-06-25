@@ -189,7 +189,8 @@ class _Translations$vehicleMap$en extends Translations$vehicleMap$cs {
 
 	// Translations
 	@override String get emptyTabMessage => 'Select a departure with an available vehicle position.';
-	@override String get title => 'Vehicle position';
+	@override String get title => 'Vehicle map';
+	@override String get backToDepartures => 'Back to departures';
 	@override String get loading => 'Loading vehicle position...';
 	@override String get loadFailed => 'Could not load the vehicle position. Please try again.';
 	@override String get invalidData => 'The current vehicle position is not available.';
@@ -342,7 +343,8 @@ extension on TranslationsEn {
 			'departures.showVehicleTooltip' => 'Show vehicle position',
 			'departures.wheelchairAccessible' => 'Wheelchair-accessible departure',
 			'vehicleMap.emptyTabMessage' => 'Select a departure with an available vehicle position.',
-			'vehicleMap.title' => 'Vehicle position',
+			'vehicleMap.title' => 'Vehicle map',
+			'vehicleMap.backToDepartures' => 'Back to departures',
 			'vehicleMap.loading' => 'Loading vehicle position...',
 			'vehicleMap.loadFailed' => 'Could not load the vehicle position. Please try again.',
 			'vehicleMap.invalidData' => 'The current vehicle position is not available.',

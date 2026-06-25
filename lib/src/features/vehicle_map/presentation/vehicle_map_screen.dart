@@ -22,15 +22,19 @@ class VehicleMapScreen extends StatelessWidget {
     required this.args,
     super.key,
     this.showMapTiles = true,
+    this.onBack,
   });
 
   final VehicleMapArgs args;
   final bool showMapTiles;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
     return PidVehicleMapTemplate.screen(
-      title: context.t.vehicleMap.title,
+      title: args.title ?? context.t.vehicleMap.title,
+      backTooltip: context.t.vehicleMap.backToDepartures,
+      onBack: onBack ?? () => Navigator.of(context).maybePop(),
       content: BlocBuilder<VehicleMapBloc, VehicleMapState>(
         builder: _buildBody,
       ),
@@ -71,6 +75,7 @@ class VehicleMapScreen extends StatelessWidget {
     }
 
     return _MapState(
+      args: args,
       position: position,
       staleError: state.staleError,
       isRefreshing: state.isRefreshing,
@@ -81,12 +86,14 @@ class VehicleMapScreen extends StatelessWidget {
 
 class _MapState extends StatelessWidget {
   const _MapState({
+    required this.args,
     required this.position,
     required this.staleError,
     required this.isRefreshing,
     required this.showMapTiles,
   });
 
+  final VehicleMapArgs args;
   final VehiclePosition position;
   final AppFailure? staleError;
   final bool isRefreshing;
@@ -133,7 +140,11 @@ class _MapState extends StatelessWidget {
           ),
         ),
         if (isRefreshing) const LinearProgressIndicator(),
-        _VehiclePositionStatus(position: position, staleError: staleError),
+        _VehiclePositionStatus(
+          args: args,
+          position: position,
+          staleError: staleError,
+        ),
       ],
     );
   }
@@ -141,10 +152,12 @@ class _MapState extends StatelessWidget {
 
 class _VehiclePositionStatus extends StatelessWidget {
   const _VehiclePositionStatus({
+    required this.args,
     required this.position,
     required this.staleError,
   });
 
+  final VehicleMapArgs args;
   final VehiclePosition position;
   final AppFailure? staleError;
 
@@ -152,6 +165,10 @@ class _VehiclePositionStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     final lastUpdated = position.lastUpdated;
     final staleError = this.staleError;
+    final title = args.title;
+    final vehicleLabel = context.t.vehicleMap.vehicleLabel(
+      vehicleId: position.vehicleId,
+    );
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -159,8 +176,20 @@ class _VehiclePositionStatus extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            context.t.vehicleMap.vehicleLabel(vehicleId: position.vehicleId),
+            title ?? vehicleLabel,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
           ),
+          if (title != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              vehicleLabel,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
           if (lastUpdated != null)
             Text(
               context.t.vehicleMap.lastUpdated(

@@ -327,8 +327,11 @@ class Translations$vehicleMap$cs {
 	/// cs: 'Vyberte odjezd s dostupnou polohou vozidla.'
 	String get emptyTabMessage => 'Vyberte odjezd s dostupnou polohou vozidla.';
 
-	/// cs: 'Poloha vozidla'
-	String get title => 'Poloha vozidla';
+	/// cs: 'Mapa vozidla'
+	String get title => 'Mapa vozidla';
+
+	/// cs: 'Zpět na odjezdy'
+	String get backToDepartures => 'Zpět na odjezdy';
 
 	/// cs: 'Načítání polohy vozidla...'
 	String get loading => 'Načítání polohy vozidla...';
@@ -547,7 +550,8 @@ extension on Translations {
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',
 			'departures.wheelchairAccessible' => 'Bezbariérový odjezd',
 			'vehicleMap.emptyTabMessage' => 'Vyberte odjezd s dostupnou polohou vozidla.',
-			'vehicleMap.title' => 'Poloha vozidla',
+			'vehicleMap.title' => 'Mapa vozidla',
+			'vehicleMap.backToDepartures' => 'Zpět na odjezdy',
 			'vehicleMap.loading' => 'Načítání polohy vozidla...',
 			'vehicleMap.loadFailed' => 'Polohu vozidla se nepodařilo načíst. Zkuste to prosím znovu.',
 			'vehicleMap.invalidData' => 'Aktuální poloha vozidla není dostupná.',

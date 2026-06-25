@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pid_seeds/pid_seeds.dart';
 
-import '../../i18n/strings.g.dart';
 import '../features/departures/domain/usecases/load_departure_board_use_case.dart';
 import '../features/departures/presentation/bloc/departures_bloc.dart';
 import '../features/departures/presentation/bloc/departures_event.dart';
@@ -27,7 +25,8 @@ import '../features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import '../features/vehicle_map/presentation/vehicle_map_args.dart';
 import '../features/vehicle_map/presentation/vehicle_map_screen.dart';
-import '../shared/widgets/empty_state_view.dart';
+
+enum _ShellPage { stops, departures }
 
 class PidOictShell extends StatefulWidget {
   const PidOictShell({
@@ -46,67 +45,37 @@ class PidOictShell extends StatefulWidget {
 }
 
 class _PidOictShellState extends State<PidOictShell> {
-  PidNavigationTab _selectedTab = PidNavigationTab.stops;
+  _ShellPage _selectedPage = _ShellPage.stops;
   StopGroup? _selectedStop;
-  VehicleMapArgs? _selectedVehicleMapArgs;
 
   void _selectStop(StopGroup stop) {
     setState(() {
       _selectedStop = stop;
-      _selectedTab = PidNavigationTab.departures;
-    });
-  }
-
-  void _selectVehicle(VehicleMapArgs args) {
-    setState(() {
-      _selectedVehicleMapArgs = args;
-      _selectedTab = PidNavigationTab.map;
+      _selectedPage = _ShellPage.departures;
     });
   }
 
   void _showStops() {
     setState(() {
-      _selectedTab = PidNavigationTab.stops;
+      _selectedPage = _ShellPage.stops;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final strings = context.t;
-
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedTab.index,
-        children: [
-          _StopsTab(onStopSelected: _selectStop),
-          _DeparturesTab(
-            selectedStop: _selectedStop,
-            refreshInterval: widget.departureRefreshInterval,
-            onVehicleSelected: _selectVehicle,
-            onBackToStops: _showStops,
-            isActive: _selectedTab == PidNavigationTab.departures,
-          ),
-          _MapTab(
-            args: _selectedVehicleMapArgs,
-            refreshInterval: widget.vehicleMapRefreshInterval,
-            showMapTiles: widget.showMapTiles,
-            isActive: _selectedTab == PidNavigationTab.map,
-          ),
-        ],
-      ),
-      bottomNavigationBar: PidBottomNavigation(
-        selectedTab: _selectedTab,
-        labelBuilder: (tab) => switch (tab) {
-          PidNavigationTab.stops => strings.navigation.stops,
-          PidNavigationTab.departures => strings.navigation.departures,
-          PidNavigationTab.map => strings.navigation.map,
-        },
-        onTabSelected: (tab) {
-          setState(() {
-            _selectedTab = tab;
-          });
-        },
-      ),
+    return IndexedStack(
+      index: _selectedPage.index,
+      children: [
+        _StopsTab(onStopSelected: _selectStop),
+        _DeparturesTab(
+          selectedStop: _selectedStop,
+          departureRefreshInterval: widget.departureRefreshInterval,
+          vehicleMapRefreshInterval: widget.vehicleMapRefreshInterval,
+          showMapTiles: widget.showMapTiles,
+          onBackToStops: _showStops,
+          isActive: _selectedPage == _ShellPage.departures,
+        ),
+      ],
     );
   }
 }
@@ -144,15 +113,17 @@ class _StopsTab extends StatelessWidget {
 class _DeparturesTab extends StatelessWidget {
   const _DeparturesTab({
     required this.selectedStop,
-    required this.refreshInterval,
-    required this.onVehicleSelected,
+    required this.departureRefreshInterval,
+    required this.vehicleMapRefreshInterval,
+    required this.showMapTiles,
     required this.onBackToStops,
     required this.isActive,
   });
 
   final StopGroup? selectedStop;
-  final Duration refreshInterval;
-  final ValueChanged<VehicleMapArgs> onVehicleSelected;
+  final Duration departureRefreshInterval;
+  final Duration vehicleMapRefreshInterval;
+  final bool showMapTiles;
   final VoidCallback onBackToStops;
   final bool isActive;
 
@@ -164,88 +135,38 @@ class _DeparturesTab extends StatelessWidget {
 
     final stop = selectedStop;
     if (stop == null) {
-      final strings = context.t;
-
-      return _ShellEmptyTab(
-        title: strings.navigation.departures,
-        message: strings.departures.emptyTabMessage,
-        icon: Icons.departure_board_outlined,
-      );
+      return const SizedBox.shrink();
     }
 
     return BlocProvider(
       key: ValueKey(stop.id),
       create: (context) => DeparturesBloc(
         context.read<LoadDepartureBoardUseCase>(),
-        refreshInterval: refreshInterval,
+        refreshInterval: departureRefreshInterval,
       )..add(DeparturesStarted(stop)),
       child: DeparturesScreen(
         stop: stop,
-        onVehicleSelected: onVehicleSelected,
+        onVehicleSelected: (args) => _openVehicleMap(context, args),
         onBackToStops: onBackToStops,
       ),
     );
   }
-}
 
-class _MapTab extends StatelessWidget {
-  const _MapTab({
-    required this.args,
-    required this.refreshInterval,
-    required this.showMapTiles,
-    required this.isActive,
-  });
+  void _openVehicleMap(BuildContext context, VehicleMapArgs args) {
+    final getVehiclePosition = context
+        .read<GetVehiclePositionForVehicleUseCase>();
 
-  final VehicleMapArgs? args;
-  final Duration refreshInterval;
-  final bool showMapTiles;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    final args = this.args;
-    if (args == null) {
-      final strings = context.t;
-
-      return _ShellEmptyTab(
-        title: strings.navigation.map,
-        message: strings.vehicleMap.emptyTabMessage,
-        icon: Icons.map_outlined,
-      );
-    }
-
-    if (!isActive) {
-      return const SizedBox.shrink();
-    }
-
-    return BlocProvider(
-      key: ValueKey(args.vehicleId.value),
-      create: (context) => VehicleMapBloc(
-        context.read<GetVehiclePositionForVehicleUseCase>(),
-        pollingInterval: refreshInterval,
-      )..add(VehicleMapStarted(args.vehicleId)),
-      child: VehicleMapScreen(args: args, showMapTiles: showMapTiles),
-    );
-  }
-}
-
-class _ShellEmptyTab extends StatelessWidget {
-  const _ShellEmptyTab({
-    required this.title,
-    required this.message,
-    required this.icon,
-  });
-
-  final String title;
-  final String message;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: SafeArea(
-        child: EmptyStateView(message: message, icon: icon),
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (_) => VehicleMapBloc(
+              getVehiclePosition,
+              pollingInterval: vehicleMapRefreshInterval,
+            )..add(VehicleMapStarted(args.vehicleId)),
+            child: VehicleMapScreen(args: args, showMapTiles: showMapTiles),
+          ),
+        ),
       ),
     );
   }

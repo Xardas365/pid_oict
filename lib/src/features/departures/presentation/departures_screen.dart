@@ -55,12 +55,15 @@ class DeparturesScreen extends StatelessWidget {
       return;
     }
 
+    final getVehiclePosition = context
+        .read<GetVehiclePositionForVehicleUseCase>();
+
     unawaited(
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => BlocProvider(
-            create: (context) => VehicleMapBloc(
-              context.read<GetVehiclePositionForVehicleUseCase>(),
+            create: (_) => VehicleMapBloc(
+              getVehiclePosition,
             )..add(VehicleMapStarted(args.vehicleId)),
             child: VehicleMapScreen(args: args),
           ),
@@ -372,7 +375,7 @@ class _DeparturesList extends StatelessWidget {
         final departure = departures[index - headerCount];
         // Departure boards can omit vehicle.id. A separate lookup would be
         // needed; do not fake vehicle tracking from gtfsTripId.
-        final mapArgs = VehicleMapArgs.tryParseVehicleId(departure.vehicleId);
+        final mapArgs = VehicleMapArgs.fromDeparture(departure);
 
         return DepartureTile(
           departure: departure,

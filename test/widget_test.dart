@@ -23,9 +23,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Zastávky'), findsOneWidget);
-    expect(find.text('Odjezdy'), findsOneWidget);
-    expect(find.text('Mapa'), findsOneWidget);
+    expect(find.text('Zastávky'), findsNothing);
+    expect(find.text('Odjezdy'), findsNothing);
+    expect(find.text('Mapa'), findsNothing);
     expect(find.text('PID zastávky'), findsOneWidget);
     expect(find.text('Staromestska'), findsOneWidget);
     expect(find.text('Andel'), findsOneWidget);
@@ -38,20 +38,6 @@ void main() {
     expect(find.text('Andel'), findsOneWidget);
   });
 
-  testWidgets('departures tab asks for a selected stop first', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      PidOictTestApp(loadStops: () async => const <Stop>[]),
-    );
-
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Odjezdy'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Nejdříve vyberte zastávku ze seznamu.'), findsOneWidget);
-  });
-
   testWidgets('app can render English locale', (tester) async {
     await tester.pumpWidget(
       PidOictTestApp(
@@ -62,30 +48,13 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Stops'), findsOneWidget);
-    expect(find.text('Departures'), findsOneWidget);
-    expect(find.text('Map'), findsOneWidget);
+    expect(find.text('Stops'), findsNothing);
+    expect(find.text('Departures'), findsNothing);
+    expect(find.text('Map'), findsNothing);
     expect(find.text('PID stops'), findsOneWidget);
   });
 
-  testWidgets('map tab asks for a selected vehicle first', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      PidOictTestApp(loadStops: () async => const <Stop>[]),
-    );
-
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Mapa'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Vyberte odjezd s dostupnou polohou vozidla.'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('selecting a stop switches to departures tab', (
+  testWidgets('selecting a stop opens departures', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -109,7 +78,7 @@ void main() {
     expect(find.text('10:15'), findsOneWidget);
   });
 
-  testWidgets('selecting a departure vehicle switches to map tab', (
+  testWidgets('selecting a departure vehicle opens nested map detail', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -144,8 +113,13 @@ void main() {
     await tester.tap(find.text('Nadrazi Hostivar'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Poloha vozidla'), findsOneWidget);
+    expect(find.text('22 – Nadrazi Hostivar'), findsWidgets);
     expect(find.text('Vozidlo vehicle-123'), findsOneWidget);
     expect(find.byIcon(Icons.directions_bus), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Zpět na odjezdy'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nadrazi Hostivar'), findsOneWidget);
   });
 }
