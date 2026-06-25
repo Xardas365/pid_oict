@@ -6,10 +6,7 @@ import 'package:pid_seeds/pid_seeds.dart';
 import 'i18n/strings.g.dart';
 import 'src/app/app_dependencies.dart';
 import 'src/app/pid_oict_shell.dart';
-import 'src/features/departures/domain/departure.dart';
 import 'src/features/departures/presentation/bloc/departures_bloc.dart';
-import 'src/features/stops/domain/stop.dart';
-import 'src/features/vehicle_map/domain/vehicle_position.dart';
 
 void main() {
   runApp(const PidOictApp());
@@ -19,18 +16,12 @@ class PidOictApp extends StatefulWidget {
   const PidOictApp({
     super.key,
     this.locale = AppLocale.cs,
-    this.loadStops,
-    this.loadDepartures,
-    this.loadVehiclePosition,
     this.departureRefreshInterval = departureBoardRefreshInterval,
     this.vehicleMapRefreshInterval = const Duration(seconds: 15),
     this.showMapTiles = true,
   });
 
   final AppLocale locale;
-  final Future<List<Stop>> Function()? loadStops;
-  final Future<List<Departure>> Function(Stop stop)? loadDepartures;
-  final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
   final Duration departureRefreshInterval;
   final Duration vehicleMapRefreshInterval;
   final bool showMapTiles;
@@ -74,9 +65,6 @@ class _PidOictAppState extends State<PidOictApp> {
             localizationsDelegates: GlobalMaterialLocalizations.delegates,
             home: AppDependencies(
               child: PidOictShell(
-                loadStops: widget.loadStops,
-                loadDepartures: widget.loadDepartures,
-                loadVehiclePosition: widget.loadVehiclePosition,
                 departureRefreshInterval: widget.departureRefreshInterval,
                 vehicleMapRefreshInterval: widget.vehicleMapRefreshInterval,
                 showMapTiles: widget.showMapTiles,

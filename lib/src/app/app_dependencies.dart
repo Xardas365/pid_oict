@@ -32,10 +32,24 @@ import '../features/vehicle_map/domain/repositories/vehicle_position_repository.
 import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 
 class AppDependencies extends StatelessWidget {
-  const AppDependencies({required this.child, super.key, this.apiClient});
+  const AppDependencies({
+    required this.child,
+    super.key,
+    this.apiClient,
+    this.stopsRepository,
+    this.departuresRepository,
+    this.vehiclePositionRepository,
+    this.stopsCacheDataSource,
+    this.savedStopsDataSource,
+  });
 
   final Widget child;
   final GolemioApiClient? apiClient;
+  final StopsRepository? stopsRepository;
+  final DeparturesRepository? departuresRepository;
+  final VehiclePositionRepository? vehiclePositionRepository;
+  final StopsCacheDataSource? stopsCacheDataSource;
+  final SavedStopsDataSource? savedStopsDataSource;
 
   @override
   Widget build(BuildContext context) {
@@ -66,26 +80,33 @@ class AppDependencies extends StatelessWidget {
         ),
         RepositoryProvider<StopsRepository>(
           create: (context) =>
+              stopsRepository ??
               GolemioStopsRepository(context.read<StopsRemoteDataSource>()),
         ),
         RepositoryProvider<DeparturesRepository>(
-          create: (context) => GolemioDeparturesRepository(
-            context.read<DeparturesRemoteDataSource>(),
-          ),
+          create: (context) =>
+              departuresRepository ??
+              GolemioDeparturesRepository(
+                context.read<DeparturesRemoteDataSource>(),
+              ),
         ),
         RepositoryProvider<VehiclePositionRepository>(
-          create: (context) => GolemioVehiclePositionRepository(
-            context.read<VehiclePositionsRemoteDataSource>(),
-          ),
+          create: (context) =>
+              vehiclePositionRepository ??
+              GolemioVehiclePositionRepository(
+                context.read<VehiclePositionsRemoteDataSource>(),
+              ),
         ),
         RepositoryProvider<GetStopsUseCase>(
           create: (context) => GetStopsUseCase(context.read<StopsRepository>()),
         ),
         RepositoryProvider<StopsCacheDataSource>(
-          create: (_) => const AppStopsCacheDataSource(),
+          create: (_) =>
+              stopsCacheDataSource ?? const AppStopsCacheDataSource(),
         ),
         RepositoryProvider<SavedStopsDataSource>(
-          create: (_) => const AppSavedStopsDataSource(),
+          create: (_) =>
+              savedStopsDataSource ?? const AppSavedStopsDataSource(),
         ),
         RepositoryProvider<StopsCacheRepository>(
           create: (context) => StopsCacheRepositoryImpl(

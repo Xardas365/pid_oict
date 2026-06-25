@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pid_oict/main.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 
+import 'helpers/pid_oict_test_app.dart';
 import 'helpers/test_data.dart';
 
 void main() {
@@ -15,7 +15,7 @@ void main() {
         final receivedVehicleIds = <String>[];
 
         await tester.pumpWidget(
-          PidOictApp(
+          PidOictTestApp(
             showMapTiles: false,
             vehicleMapRefreshInterval: Duration.zero,
             loadStops: () async => const [
@@ -67,7 +67,7 @@ void main() {
       var vehiclePositionWasRequested = false;
 
       await tester.pumpWidget(
-        PidOictApp(
+        PidOictTestApp(
           showMapTiles: false,
           loadStops: () async => const [andelStop],
           loadDepartures: (_) async => [
@@ -98,7 +98,7 @@ void main() {
         var vehiclePositionCalls = 0;
 
         await tester.pumpWidget(
-          PidOictApp(
+          PidOictTestApp(
             showMapTiles: false,
             vehicleMapRefreshInterval: const Duration(milliseconds: 50),
             loadStops: () async => const [andelStop],

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/i18n/strings.g.dart';
-import 'package:pid_oict/main.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
+
+import 'helpers/pid_oict_test_app.dart';
 
 void main() {
   testWidgets('app opens the stops screen and filters loaded stops', (
     tester,
   ) async {
     await tester.pumpWidget(
-      PidOictApp(
+      PidOictTestApp(
         loadStops: () async => const [
           Stop(id: '1', name: 'Staromestska'),
           Stop(id: '2', name: 'Andel'),
@@ -40,7 +41,9 @@ void main() {
   testWidgets('departures tab asks for a selected stop first', (
     tester,
   ) async {
-    await tester.pumpWidget(PidOictApp(loadStops: () async => const <Stop>[]));
+    await tester.pumpWidget(
+      PidOictTestApp(loadStops: () async => const <Stop>[]),
+    );
 
     await tester.pumpAndSettle();
     await tester.tap(find.text('Odjezdy'));
@@ -51,7 +54,10 @@ void main() {
 
   testWidgets('app can render English locale', (tester) async {
     await tester.pumpWidget(
-      PidOictApp(locale: AppLocale.en, loadStops: () async => const <Stop>[]),
+      PidOictTestApp(
+        locale: AppLocale.en,
+        loadStops: () async => const <Stop>[],
+      ),
     );
 
     await tester.pumpAndSettle();
@@ -65,7 +71,9 @@ void main() {
   testWidgets('map tab asks for a selected vehicle first', (
     tester,
   ) async {
-    await tester.pumpWidget(PidOictApp(loadStops: () async => const <Stop>[]));
+    await tester.pumpWidget(
+      PidOictTestApp(loadStops: () async => const <Stop>[]),
+    );
 
     await tester.pumpAndSettle();
     await tester.tap(find.text('Mapa'));
@@ -81,7 +89,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      PidOictApp(
+      PidOictTestApp(
         loadStops: () async => const [Stop(id: '1', name: 'Andel')],
         loadDepartures: (_) async => [
           Departure(
@@ -105,7 +113,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      PidOictApp(
+      PidOictTestApp(
         showMapTiles: false,
         vehicleMapRefreshInterval: Duration.zero,
         loadStops: () async => const [Stop(id: '1', name: 'Andel')],
