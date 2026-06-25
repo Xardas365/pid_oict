@@ -1,19 +1,18 @@
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/logging/golemio_debug_logger.dart';
-import '../../../../core/network/golemio_api_client.dart';
 import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../domain/gtfs_stops_query.dart';
 import '../../domain/repositories/stops_repository.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_visibility.dart';
 import '../../domain/stops_page.dart';
-import '../gtfs_stops_query_parameters.dart';
+import '../datasources/stops_remote_data_source.dart';
 import '../models/stop_dto.dart';
 
 class GolemioStopsRepository implements PaginatedStopsRepository {
-  const GolemioStopsRepository(this._apiClient);
+  const GolemioStopsRepository(this._remoteDataSource);
 
-  final GolemioApiClient _apiClient;
+  final StopsRemoteDataSource _remoteDataSource;
 
   @override
   Future<List<Stop>> fetchStops() async {
@@ -50,7 +49,7 @@ class GolemioStopsRepository implements PaginatedStopsRepository {
   Future<ParsedResult<Stop>> fetchStopsWithDiagnostics([
     GtfsStopsQuery query = const GtfsStopsQuery(),
   ]) async {
-    final response = await _apiClient.getJson(gtfsStopsPathWithQuery(query));
+    final response = await _remoteDataSource.fetchStops(StopsRequest(query));
     final parsed = StopDto.parseWithDiagnostics(response);
     final parsedStops = parsed.items.map((dto) => dto.toDomain()).toList();
     final stops = sortedUserFacingStops(parsedStops);

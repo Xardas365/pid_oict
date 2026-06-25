@@ -1,23 +1,17 @@
-import 'dart:convert';
-
 import '../../../../core/errors/app_exception.dart';
 import '../../../../core/logging/golemio_debug_logger.dart';
-import '../../../../core/network/golemio_api_client.dart';
 import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 import '../../domain/departure_aggregation.dart';
 import '../../domain/repositories/departures_repository.dart';
+import '../datasources/departures_remote_data_source.dart';
 import '../models/departure_dto.dart';
 
-// Golemio OpenAPI for /v2/public/departureboards expects stop groups encoded
-// as repeated stopIds={"0":["U717Z5P"]} query values.
-const departureBoardsStopFilterParameter = 'stopIds';
-
 class GolemioDeparturesRepository implements DeparturesRepository {
-  const GolemioDeparturesRepository(this._apiClient);
+  const GolemioDeparturesRepository(this._remoteDataSource);
 
-  final GolemioApiClient _apiClient;
+  final DeparturesRemoteDataSource _remoteDataSource;
 
   @override
   Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) async {
@@ -52,19 +46,15 @@ class GolemioDeparturesRepository implements DeparturesRepository {
       );
     }
 
-    final stopIdsValue = departureBoardStopIdsValue(stopIds);
+    final request = DepartureBoardRequest(stopIds: stopIds);
 
     logGolemioDebug(
       'Departures request stopGroup=${stop.id} stopName="${stop.name}" '
       'stopIds=${stopIds.join('|')} '
-      '$departureBoardsStopFilterParameter=$stopIdsValue',
+      '$departureBoardsStopFilterParameter=${request.stopIdsValue}',
     );
 
-    final response = await _apiClient.getJson(
-      '/v2/public/departureboards',
-      queryParameters: {departureBoardsStopFilterParameter: stopIdsValue},
-      notFoundEmptyListAsSuccess: true,
-    );
+    final response = await _remoteDataSource.fetchDepartureBoard(request);
     final parsed = DepartureDto.parseWithDiagnostics(response);
     final parsedDepartures = parsed.items.map((dto) => dto.toDomain()).toList();
     final departures = aggregateDepartures(parsedDepartures);
@@ -83,10 +73,6 @@ class GolemioDeparturesRepository implements DeparturesRepository {
       diagnostics: diagnostics,
     );
   }
-}
-
-String departureBoardStopIdsValue(List<String> stopIds) {
-  return jsonEncode({'0': stopIds});
 }
 
 String _sampleDepartures(List<Departure> departures) {

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
 import 'package:pid_oict/src/features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
 
 import '../../../fakes/fake_golemio_api_client.dart';
@@ -27,7 +28,7 @@ void main() {
           ],
         },
       );
-      final repository = GolemioVehiclePositionRepository(apiClient);
+      final repository = _repository(apiClient);
 
       final position = await repository.fetchVehiclePosition('service-3-1001');
 
@@ -55,7 +56,7 @@ void main() {
           'properties': {'vehicle_id': 'vehicle/with slash'},
         },
       );
-      final repository = GolemioVehiclePositionRepository(apiClient);
+      final repository = _repository(apiClient);
 
       await repository.fetchVehiclePosition('service/with slash');
 
@@ -87,7 +88,7 @@ void main() {
             'origin_timestamp': '2023-12-06T12:00:00+01:00',
           },
         );
-        final repository = GolemioVehiclePositionRepository(apiClient);
+        final repository = _repository(apiClient);
 
         final position = await repository.fetchVehiclePosition(
           'service-3-1001',
@@ -105,9 +106,7 @@ void main() {
     );
 
     test('throws controlled error when vehicleId is blank', () async {
-      final repository = GolemioVehiclePositionRepository(
-        mockGolemioApiClient(),
-      );
+      final repository = _repository(mockGolemioApiClient());
 
       await expectLater(
         repository.fetchVehiclePosition('  '),
@@ -124,7 +123,7 @@ void main() {
     test(
       'throws controlled error when no valid position is returned',
       () async {
-        final repository = GolemioVehiclePositionRepository(
+        final repository = _repository(
           mockGolemioApiClient(
             response: {
               'features': [
@@ -150,9 +149,7 @@ void main() {
     );
 
     test('throws controlled error for empty API response object', () async {
-      final repository = GolemioVehiclePositionRepository(
-        mockGolemioApiClient(response: {}),
-      );
+      final repository = _repository(mockGolemioApiClient(response: {}));
 
       await expectLater(
         repository.fetchVehiclePosition('service-3-1001'),
@@ -171,7 +168,7 @@ void main() {
         type: AppExceptionType.timeout,
         message: 'Timeout.',
       );
-      final repository = GolemioVehiclePositionRepository(
+      final repository = _repository(
         mockGolemioApiClient(error: expectedError),
       );
 
@@ -181,4 +178,10 @@ void main() {
       );
     });
   });
+}
+
+GolemioVehiclePositionRepository _repository(MockGolemioApiClient apiClient) {
+  return GolemioVehiclePositionRepository(
+    VehiclePositionsRemoteDataSource(apiClient),
+  );
 }

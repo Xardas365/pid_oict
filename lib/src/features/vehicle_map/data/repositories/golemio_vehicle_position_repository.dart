@@ -1,14 +1,14 @@
 import '../../../../core/errors/app_exception.dart';
-import '../../../../core/network/golemio_api_client.dart';
 import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../domain/repositories/vehicle_position_repository.dart';
 import '../../domain/vehicle_position.dart';
+import '../datasources/vehicle_positions_remote_data_source.dart';
 import '../models/vehicle_position_dto.dart';
 
 class GolemioVehiclePositionRepository implements VehiclePositionRepository {
-  const GolemioVehiclePositionRepository(this._apiClient);
+  const GolemioVehiclePositionRepository(this._remoteDataSource);
 
-  final GolemioApiClient _apiClient;
+  final VehiclePositionsRemoteDataSource _remoteDataSource;
 
   @override
   Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
@@ -36,9 +36,8 @@ class GolemioVehiclePositionRepository implements VehiclePositionRepository {
       );
     }
 
-    final response = await _apiClient.getJson(
-      '/v2/public/vehiclepositions/${Uri.encodeComponent(trimmedVehicleId)}',
-      queryParameters: const {'scopes': 'info'},
+    final response = await _remoteDataSource.fetchVehiclePosition(
+      VehiclePositionRequest(vehicleId: trimmedVehicleId),
     );
     final parsed = VehiclePositionDto.parseWithDiagnostics(
       response,

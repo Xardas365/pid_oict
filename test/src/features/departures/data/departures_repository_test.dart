@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/features/departures/data/datasources/departures_remote_data_source.dart';
 import 'package:pid_oict/src/features/departures/data/repositories/golemio_departures_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
@@ -31,7 +32,7 @@ void main() {
             ],
           ],
         );
-        final repository = GolemioDeparturesRepository(apiClient);
+        final repository = _repository(apiClient);
 
         final departures = await repository.fetchDeparturesForStop(stop);
 
@@ -88,7 +89,7 @@ void main() {
             ],
           ],
         );
-        final repository = GolemioDeparturesRepository(apiClient);
+        final repository = _repository(apiClient);
 
         final departures = await repository.fetchDeparturesForStop(stop);
 
@@ -110,7 +111,7 @@ void main() {
 
     test('sends all grouped stop ids to departure board', () async {
       final apiClient = mockGolemioApiClient(response: <Object?>[]);
-      final repository = GolemioDeparturesRepository(apiClient);
+      final repository = _repository(apiClient);
       const group = StopGroup(
         id: 'U118S1',
         name: 'Flora',
@@ -142,7 +143,7 @@ void main() {
     test(
       'throws controlled error when no valid departures are returned',
       () async {
-        final repository = GolemioDeparturesRepository(
+        final repository = _repository(
           mockGolemioApiClient(
             response: {
               'departures': [
@@ -166,7 +167,7 @@ void main() {
     );
 
     test('returns empty departures for empty response', () async {
-      final repository = GolemioDeparturesRepository(
+      final repository = _repository(
         mockGolemioApiClient(response: {'departures': <Object?>[]}),
       );
 
@@ -177,7 +178,7 @@ void main() {
       'returns empty departures for public departureboards 404 [] body',
       () async {
         final apiClient = mockGolemioApiClient(response: <Object?>[]);
-        final repository = GolemioDeparturesRepository(apiClient);
+        final repository = _repository(apiClient);
 
         final departures = await repository.fetchDeparturesForStop(stop);
 
@@ -195,7 +196,7 @@ void main() {
         type: AppExceptionType.unauthorized,
         message: 'Unauthorized.',
       );
-      final repository = GolemioDeparturesRepository(
+      final repository = _repository(
         mockGolemioApiClient(error: expectedError),
       );
 
@@ -205,4 +206,8 @@ void main() {
       );
     });
   });
+}
+
+GolemioDeparturesRepository _repository(MockGolemioApiClient apiClient) {
+  return GolemioDeparturesRepository(DeparturesRemoteDataSource(apiClient));
 }

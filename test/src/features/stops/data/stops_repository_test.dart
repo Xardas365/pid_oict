@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/features/stops/data/datasources/stops_remote_data_source.dart';
 import 'package:pid_oict/src/features/stops/data/repositories/golemio_stops_repository.dart';
 import 'package:pid_oict/src/features/stops/domain/gtfs_stops_query.dart';
 
@@ -116,7 +117,7 @@ void main() {
             ],
           },
         );
-        final repository = GolemioStopsRepository(apiClient);
+        final repository = _repository(apiClient);
 
         final stops = await repository.fetchStops();
 
@@ -150,7 +151,7 @@ void main() {
           ],
         },
       );
-      final repository = GolemioStopsRepository(apiClient);
+      final repository = _repository(apiClient);
 
       final page = await repository.fetchStopsPage(
         const GtfsStopsQuery(limit: 2, offset: 10),
@@ -177,7 +178,7 @@ void main() {
           ],
         },
       );
-      final repository = GolemioStopsRepository(apiClient);
+      final repository = _repository(apiClient);
 
       final page = await repository.fetchStopsPage(
         const GtfsStopsQuery(limit: 100, offset: 0, names: ['Flora']),
@@ -195,7 +196,7 @@ void main() {
     });
 
     test('throws controlled error when no valid stops are returned', () async {
-      final repository = GolemioStopsRepository(
+      final repository = _repository(
         mockGolemioApiClient(
           response: {
             'features': [
@@ -222,7 +223,7 @@ void main() {
     test(
       'throws controlled error when only technical stops are returned',
       () async {
-        final repository = GolemioStopsRepository(
+        final repository = _repository(
           mockGolemioApiClient(
             response: {
               'features': [
@@ -257,9 +258,7 @@ void main() {
     );
 
     test('throws controlled error for empty API response object', () async {
-      final repository = GolemioStopsRepository(
-        mockGolemioApiClient(response: {}),
-      );
+      final repository = _repository(mockGolemioApiClient(response: {}));
 
       await expectLater(
         repository.fetchStops(),
@@ -278,13 +277,17 @@ void main() {
         type: AppExceptionType.missingToken,
         message: 'Missing token.',
       );
-      final repository = GolemioStopsRepository(
+      final repository = _repository(
         mockGolemioApiClient(error: expectedError),
       );
 
       await expectLater(repository.fetchStops(), throwsA(same(expectedError)));
     });
   });
+}
+
+GolemioStopsRepository _repository(MockGolemioApiClient apiClient) {
+  return GolemioStopsRepository(StopsRemoteDataSource(apiClient));
 }
 
 Map<String, Object?> _stopFeature({
