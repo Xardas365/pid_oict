@@ -8,7 +8,6 @@ import '../../i18n/strings.g.dart';
 import '../features/departures/domain/departure.dart';
 import '../features/departures/domain/repositories/departures_repository.dart';
 import '../features/departures/domain/usecases/load_departure_board_use_case.dart';
-import '../features/departures/domain/usecases/refresh_departure_board_use_case.dart';
 import '../features/departures/presentation/bloc/departures_bloc.dart';
 import '../features/departures/presentation/bloc/departures_event.dart';
 import '../features/departures/presentation/departures_screen.dart';
@@ -219,7 +218,6 @@ class _DeparturesTab extends StatelessWidget {
       key: ValueKey(stop.id),
       create: (context) => DeparturesBloc(
         _loadDepartureBoardUseCase(context),
-        refreshDepartureBoard: _refreshDepartureBoardUseCase(context),
         refreshInterval: refreshInterval,
       )..add(DeparturesStarted(stop)),
       child: DeparturesScreen(
@@ -239,19 +237,6 @@ class _DeparturesTab extends StatelessWidget {
     }
 
     return context.read<LoadDepartureBoardUseCase>();
-  }
-
-  RefreshDepartureBoardUseCase _refreshDepartureBoardUseCase(
-    BuildContext context,
-  ) {
-    final loadDepartures = this.loadDepartures;
-    if (loadDepartures != null) {
-      return RefreshDepartureBoardUseCase(
-        _CallbackDeparturesRepository(loadDepartures),
-      );
-    }
-
-    return context.read<RefreshDepartureBoardUseCase>();
   }
 }
 

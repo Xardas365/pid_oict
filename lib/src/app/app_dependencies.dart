@@ -5,9 +5,7 @@ import '../core/network/golemio_api_client.dart';
 import '../features/departures/data/datasources/departures_remote_data_source.dart';
 import '../features/departures/data/repositories/golemio_departures_repository.dart';
 import '../features/departures/domain/repositories/departures_repository.dart';
-import '../features/departures/domain/usecases/get_departures_for_stop_use_case.dart';
 import '../features/departures/domain/usecases/load_departure_board_use_case.dart';
-import '../features/departures/domain/usecases/refresh_departure_board_use_case.dart';
 import '../features/stops/data/datasources/app_saved_stops_data_source.dart';
 import '../features/stops/data/datasources/app_stops_cache_data_source.dart';
 import '../features/stops/data/datasources/saved_stops_data_source.dart';
@@ -131,18 +129,9 @@ class AppDependencies extends StatelessWidget {
           create: (context) =>
               RecordRecentStopUseCase(context.read<SavedStopsRepository>()),
         ),
-        RepositoryProvider<GetDeparturesForStopUseCase>(
-          create: (context) =>
-              GetDeparturesForStopUseCase(context.read<DeparturesRepository>()),
-        ),
         RepositoryProvider<LoadDepartureBoardUseCase>(
           create: (context) =>
               LoadDepartureBoardUseCase(context.read<DeparturesRepository>()),
-        ),
-        RepositoryProvider<RefreshDepartureBoardUseCase>(
-          create: (context) => RefreshDepartureBoardUseCase(
-            context.read<DeparturesRepository>(),
-          ),
         ),
         RepositoryProvider<GetVehiclePositionForVehicleUseCase>(
           create: (context) => GetVehiclePositionForVehicleUseCase(

@@ -7,7 +7,6 @@ import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
 import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_board_use_case.dart';
-import 'package:pid_oict/src/features/departures/domain/usecases/refresh_departure_board_use_case.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bloc.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
 import 'package:pid_oict/src/features/departures/presentation/departures_screen.dart';
@@ -283,7 +282,6 @@ Widget _departuresScreen(
     create: (_) {
       final bloc = DeparturesBloc(
         LoadDepartureBoardUseCase(repository),
-        refreshDepartureBoard: RefreshDepartureBoardUseCase(repository),
         refreshInterval: Duration.zero,
       )..add(DeparturesStarted(andelStopGroup));
       onBlocCreated?.call(bloc);

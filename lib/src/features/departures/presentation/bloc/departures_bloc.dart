@@ -6,7 +6,6 @@ import '../../../../shared/utils/refresh_ticker.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 import '../../domain/usecases/load_departure_board_use_case.dart';
-import '../../domain/usecases/refresh_departure_board_use_case.dart';
 import '../departure_transport_filter.dart';
 import 'departure_board_refresh_policy.dart';
 import 'departures_event.dart';
@@ -17,7 +16,6 @@ const departureBoardRefreshInterval = Duration(seconds: 30);
 class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
   DeparturesBloc(
     this._loadDepartureBoard, {
-    required RefreshDepartureBoardUseCase refreshDepartureBoard,
     this.refreshInterval = departureBoardRefreshInterval,
     DepartureTransportFilterPolicy filterPolicy =
         departureTransportFilterPolicy,
@@ -26,7 +24,6 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     RefreshTicker? refreshTicker,
     DateTime Function()? now,
   }) : super(const DeparturesState.loading()) {
-    _refreshDepartureBoard = refreshDepartureBoard;
     _filterPolicy = filterPolicy;
     _refreshPolicy = refreshPolicy;
     _refreshTicker = refreshTicker ?? TimerRefreshTicker();
@@ -39,7 +36,6 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
 
   final LoadDepartureBoardUseCase _loadDepartureBoard;
   final Duration refreshInterval;
-  late final RefreshDepartureBoardUseCase _refreshDepartureBoard;
   late final DepartureTransportFilterPolicy _filterPolicy;
   late final DepartureBoardRefreshPolicy _refreshPolicy;
   late final RefreshTicker _refreshTicker;
@@ -90,7 +86,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
       }
 
       try {
-        final departures = await _refreshDepartureBoard(stop);
+        final departures = await _loadDepartureBoard(stop);
         emit(
           _stateFromDepartures(
             stop,
