@@ -21,7 +21,7 @@ void main() {
       expect(dto!.routeShortName, '22');
       expect(dto.routeType, 'tram');
       expect(dto.headsign, 'Nadrazi Hostivar');
-      expect(dto.departureTime, DateTime.parse('2026-06-22T10:15:30+02:00'));
+      expect(dto.departureTime, DateTime(2026, 6, 22, 10, 15, 30));
       expect(dto.delaySeconds, 120);
       expect(dto.platform, '3');
       expect(dto.stopId, 'U123Z1');
@@ -61,7 +61,21 @@ void main() {
       });
 
       expect(dto, isNotNull);
-      expect(dto!.departureTime, DateTime.parse('2026-06-22T10:17:00+02:00'));
+      expect(dto!.departureTime, DateTime(2026, 6, 22, 10, 17));
+    });
+
+    test('keeps Prague wall-clock time from offset timestamps', () {
+      final dto = DepartureDto.fromJson({
+        'route': {'short_name': 'S7', 'type': 'train'},
+        'trip': {'headsign': 'Beroun'},
+        'departure': {
+          'timestamp_predicted': '2026-06-25T23:16:00+02:00',
+        },
+      });
+
+      expect(dto, isNotNull);
+      expect(dto!.departureTime, DateTime(2026, 6, 25, 23, 16));
+      expect(dto.departureTime.isUtc, isFalse);
     });
 
     test('tolerates missing optional fields', () {

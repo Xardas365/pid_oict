@@ -30,7 +30,7 @@ class DepartureDto {
   static DepartureDto? fromJson(JsonMap json) {
     final routeShortName = readString(json, _routeShortNamePaths);
     final headsign = readString(json, _headsignPaths);
-    final departureTime = readDateTime(json, _departureTimePaths);
+    final departureTime = _readDepartureBoardTime(json);
 
     if (routeShortName == null || headsign == null || departureTime == null) {
       return null;
@@ -67,7 +67,7 @@ class DepartureDto {
       return 'missing headsign';
     }
 
-    if (readDateTime(json, _departureTimePaths) == null) {
+    if (_readDepartureBoardTime(json) == null) {
       return 'missing or invalid departure time';
     }
 
@@ -253,3 +253,100 @@ const _wheelchairAccessiblePaths = [
   ['properties', 'departure', 'vehicle', 'is_wheelchair_accessible'],
   ['properties', 'departure', 'vehicle', 'isWheelchairAccessible'],
 ];
+
+DateTime? _readDepartureBoardTime(JsonMap json) {
+  final value = readJsonValue(json, _departureTimePaths);
+  return _departureTimeFromValue(value);
+}
+
+DateTime? _departureTimeFromValue(Object? value) {
+  if (value is String) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    return _parseIsoWallClockTime(trimmed) ??
+        DateTime.tryParse(trimmed) ??
+        _epochDateTimeFromString(trimmed);
+  }
+
+  if (value is DateTime) {
+    return value;
+  }
+
+  if (value is num) {
+    return _dateTimeFromEpoch(value);
+  }
+
+  return null;
+}
+
+// Public departure boards return Prague-local ISO strings with an explicit
+// offset, for example 23:16:00+02:00. Dart converts that to a UTC instant when
+// using DateTime.parse, which can show 21:16 on devices configured to UTC. For
+// timetable rows the user-facing value is the civil clock time from the API.
+DateTime? _parseIsoWallClockTime(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) {
+    return null;
+  }
+
+  final match = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})[Tt\s](\d{2}):(\d{2})'
+    r'(?::(\d{2})(?:[.,](\d{1,6}))?)?',
+  ).firstMatch(trimmed);
+
+  if (match == null) {
+    return null;
+  }
+
+  final year = int.tryParse(match.group(1)!);
+  final month = int.tryParse(match.group(2)!);
+  final day = int.tryParse(match.group(3)!);
+  final hour = int.tryParse(match.group(4)!);
+  final minute = int.tryParse(match.group(5)!);
+  final second = int.tryParse(match.group(6) ?? '0');
+  final fraction = (match.group(7) ?? '').padRight(6, '0');
+  final microseconds = int.tryParse(fraction.isEmpty ? '0' : fraction);
+
+  if (year == null ||
+      month == null ||
+      day == null ||
+      hour == null ||
+      minute == null ||
+      second == null ||
+      microseconds == null) {
+    return null;
+  }
+
+  return DateTime(
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    microseconds ~/ 1000,
+    microseconds.remainder(1000),
+  );
+}
+
+DateTime? _epochDateTimeFromString(String value) {
+  final parsedNumber = num.tryParse(value);
+  if (parsedNumber == null) {
+    return null;
+  }
+
+  return _dateTimeFromEpoch(parsedNumber);
+}
+
+DateTime _dateTimeFromEpoch(num value) {
+  final rounded = value.round();
+
+  if (rounded.abs() >= 100000000000) {
+    return DateTime.fromMillisecondsSinceEpoch(rounded, isUtc: true);
+  }
+
+  return DateTime.fromMillisecondsSinceEpoch(rounded * 1000, isUtc: true);
+}

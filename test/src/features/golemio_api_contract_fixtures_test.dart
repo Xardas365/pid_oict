@@ -53,10 +53,7 @@ void main() {
         expect(tracked.routeShortName, '10');
         expect(tracked.routeType, 'tram');
         expect(tracked.headsign, 'Sidliste Repy');
-        expect(
-          tracked.departureTime,
-          DateTime.parse('2026-06-22T10:15:30+02:00'),
-        );
+        expect(tracked.departureTime, DateTime(2026, 6, 22, 10, 15, 30));
         expect(tracked.delaySeconds, 90);
         expect(tracked.platform, 'A');
         expect(tracked.stopId, 'U118Z101P');
