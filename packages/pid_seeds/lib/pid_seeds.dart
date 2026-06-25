@@ -17,6 +17,7 @@ export 'src/atomic/molecules/pid_stop_card.dart';
 export 'src/atomic/organisms/pid_departure_list.dart';
 export 'src/atomic/organisms/pid_home_header.dart';
 export 'src/atomic/organisms/pid_map_preview.dart';
+export 'src/atomic/organisms/pid_sectioned_stop_list.dart';
 export 'src/atomic/organisms/pid_stop_list.dart';
 export 'src/atomic/organisms/pid_vehicle_map_panel.dart';
 export 'src/atomic/templates/pid_departures_template.dart';

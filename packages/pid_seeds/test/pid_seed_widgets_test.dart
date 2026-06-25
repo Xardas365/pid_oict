@@ -82,4 +82,71 @@ void main() {
 
     expect(find.text('Žádné zastávky'), findsOneWidget);
   });
+
+  testWidgets('PidSectionedStopList renders sections and back to top action', (
+    tester,
+  ) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    var selectedStopId = '';
+    var backToTopPressed = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: Scaffold(
+          body: PidSectionedStopList(
+            controller: controller,
+            showBackToTopButton: true,
+            backToTopTooltip: 'Nahoru',
+            onScrollToTop: () {
+              backToTopPressed = true;
+            },
+            sections: [
+              PidStopListSection(
+                title: 'Oblíbené zastávky',
+                items: [
+                  PidStopListItem(
+                    stop: const PidStopData(
+                      id: 'U1',
+                      name: 'Anděl',
+                      subtitle: 'Nástupiště A • zóna P',
+                    ),
+                    onTap: () {
+                      selectedStopId = 'U1';
+                    },
+                  ),
+                ],
+              ),
+              const PidStopListSection(
+                items: [
+                  PidStopListItem(
+                    stop: PidStopData(
+                      id: 'U2',
+                      name: 'Flora',
+                      subtitle: 'Nástupiště B • zóna P',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Oblíbené zastávky'), findsOneWidget);
+    expect(find.text('Anděl'), findsOneWidget);
+    expect(find.text('Flora'), findsOneWidget);
+
+    await tester.tap(find.text('Anděl'));
+    await tester.pumpAndSettle();
+
+    expect(selectedStopId, 'U1');
+
+    await tester.tap(find.byTooltip('Nahoru'));
+    await tester.pumpAndSettle();
+
+    expect(backToTopPressed, isTrue);
+  });
 }

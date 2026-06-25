@@ -329,180 +329,60 @@ class _StopsList extends StatelessWidget {
               .where((group) => !pinnedGroupIds.contains(group.id))
               .toList(growable: false);
 
-    return Stack(
-      children: [
-        Scrollbar(
-          controller: controller,
-          interactive: false,
-          radius: const Radius.circular(999),
-          thickness: 4,
-          child: ListView.builder(
-            controller: controller,
-            padding: const EdgeInsets.only(bottom: 88),
-            itemCount:
-                _sectionItemCount(favoriteGroups) +
-                _sectionItemCount(recentGroups) +
-                mainGroups.length +
-                (isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              var cursor = 0;
-
-              if (favoriteGroups.isNotEmpty) {
-                if (index == cursor) {
-                  return _SectionHeader(title: strings.stops.favoriteStops);
-                }
-                cursor++;
-
-                final localIndex = index - cursor;
-                if (localIndex >= 0 && localIndex < favoriteGroups.length) {
-                  final stop = favoriteGroups[localIndex];
-                  return _StopGroupCard(
-                    stop: stop,
-                    isFavorite: state.isFavorite(stop),
-                    onTap: () => onOpenDepartures(stop),
-                    onToggleFavorite: () => onToggleFavorite(stop),
-                  );
-                }
-                cursor += favoriteGroups.length;
-              }
-
-              if (recentGroups.isNotEmpty) {
-                if (index == cursor) {
-                  return _SectionHeader(
-                    title: strings.stops.recentStops,
-                    topPadding: favoriteGroups.isEmpty ? 0 : 14,
-                  );
-                }
-                cursor++;
-
-                final localIndex = index - cursor;
-                if (localIndex >= 0 && localIndex < recentGroups.length) {
-                  final stop = recentGroups[localIndex];
-                  return _StopGroupCard(
-                    stop: stop,
-                    isFavorite: state.isFavorite(stop),
-                    onTap: () => onOpenDepartures(stop),
-                    onToggleFavorite: () => onToggleFavorite(stop),
-                  );
-                }
-                cursor += recentGroups.length;
-              }
-
-              final mainIndex = index - cursor;
-              if (mainIndex >= 0 && mainIndex < mainGroups.length) {
-                final stop = mainGroups[mainIndex];
-                return _StopGroupCard(
-                  stop: stop,
-                  isFavorite: state.isFavorite(stop),
-                  onTap: () => onOpenDepartures(stop),
-                  onToggleFavorite: () => onToggleFavorite(stop),
-                );
-              }
-
-              if (isLoadingMore) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              return const SizedBox.shrink();
-            },
+    return PidSectionedStopList(
+      controller: controller,
+      isLoadingMore: isLoadingMore,
+      showBackToTopButton: showBackToTopButton,
+      backToTopTooltip: strings.stops.backToTop,
+      onScrollToTop: onScrollToTop,
+      sections: [
+        if (favoriteGroups.isNotEmpty)
+          PidStopListSection(
+            title: strings.stops.favoriteStops,
+            items: _stopItems(context, favoriteGroups),
           ),
-        ),
-        Positioned(
-          right: 0,
-          bottom: 16,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: showBackToTopButton
-                ? _BackToTopButton(onPressed: onScrollToTop)
-                : const SizedBox.shrink(),
+        if (recentGroups.isNotEmpty)
+          PidStopListSection(
+            title: strings.stops.recentStops,
+            topPadding: favoriteGroups.isEmpty ? 0 : 14,
+            items: _stopItems(context, recentGroups),
           ),
-        ),
+        PidStopListSection(items: _stopItems(context, mainGroups)),
       ],
     );
   }
 
-  int _sectionItemCount(List<StopGroup> groups) {
-    return groups.isEmpty ? 0 : groups.length + 1;
-  }
-}
-
-class _BackToTopButton extends StatelessWidget {
-  const _BackToTopButton({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
+  List<PidStopListItem> _stopItems(
+    BuildContext context,
+    List<StopGroup> groups,
+  ) {
     final strings = context.t;
 
-    return Tooltip(
-      message: strings.stops.backToTop,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: PidSeedShadows.card,
+    return [
+      for (final stop in groups)
+        PidStopListItem(
+          stop: stop
+              .toPidStopData(strings)
+              .copyWith(isHighlighted: state.isFavorite(stop)),
+          semanticLabel: strings.stops.stopSemantic(name: stop.name),
+          onTap: () => onOpenDepartures(stop),
+          trailingAction: _favoriteAction(context, stop),
         ),
-        child: IconButton.filled(
-          key: const ValueKey('stops-back-to-top'),
-          onPressed: onPressed,
-          icon: const Icon(Icons.keyboard_arrow_up_rounded),
-        ),
-      ),
-    );
+    ];
   }
-}
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, this.topPadding = 0});
-
-  final String title;
-  final double topPadding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: topPadding, bottom: 8),
-      child: PidSectionTitle(title: title),
-    );
-  }
-}
-
-class _StopGroupCard extends StatelessWidget {
-  const _StopGroupCard({
-    required this.stop,
-    required this.isFavorite,
-    required this.onTap,
-    required this.onToggleFavorite,
-  });
-
-  final StopGroup stop;
-  final bool isFavorite;
-  final VoidCallback onTap;
-  final VoidCallback onToggleFavorite;
-
-  @override
-  Widget build(BuildContext context) {
+  PidStopCardAction _favoriteAction(BuildContext context, StopGroup stop) {
     final strings = context.t;
+    final isFavorite = state.isFavorite(stop);
     final favoriteLabel = isFavorite
         ? strings.stops.removeFavorite
         : strings.stops.addFavorite;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: PidStopCard(
-        stop: stop.toPidStopData(strings).copyWith(isHighlighted: isFavorite),
-        semanticLabel: strings.stops.stopSemantic(name: stop.name),
-        onTap: onTap,
-        trailingAction: PidStopCardAction(
-          tooltip: favoriteLabel,
-          onPressed: onToggleFavorite,
-          icon: isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
-          color: isFavorite ? PidSeedColors.primary : PidSeedColors.textMuted,
-        ),
-      ),
+    return PidStopCardAction(
+      tooltip: favoriteLabel,
+      onPressed: () => onToggleFavorite(stop),
+      icon: isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+      color: isFavorite ? PidSeedColors.primary : PidSeedColors.textMuted,
     );
   }
 }
