@@ -17,8 +17,10 @@ import '../../domain/usecases/refresh_stop_groups_use_case.dart';
 import '../../domain/usecases/save_stops_cache_use_case.dart';
 import '../../domain/usecases/search_stop_groups_use_case.dart';
 import '../../domain/usecases/toggle_favorite_stop_use_case.dart';
-import '../stop_filter.dart';
+import 'stops_search_coordinator.dart';
+import 'stops_sorting.dart';
 import 'stops_state.dart';
+import 'stops_state_factory.dart';
 
 const gtfsStopsPageSize = 500;
 const gtfsStopsSearchLimit = 100;
@@ -39,6 +41,7 @@ class StopsCubit extends Cubit<StopsState> {
     this.loadSavedStopGroups,
     this.toggleFavoriteStop,
     this.recordRecentStopUseCase,
+    StopsSearchCoordinator? searchCoordinator,
     DateTime Function()? now,
   }) : _loadStopGroups = loadStopGroups ?? LoadStopGroupsUseCase(getStops),
        _refreshStopGroups =
@@ -49,11 +52,20 @@ class StopsCubit extends Cubit<StopsState> {
              getStops,
            ),
        _now = now ?? DateTime.now,
-       super(const StopsState.loading());
+       super(const StopsState.loading()) {
+    _searchCoordinator =
+        searchCoordinator ??
+        StopsSearchCoordinator(
+          searchStops: _searchStopGroups.call,
+          searchLimit: searchLimit,
+          minApiSearchLength: minGtfsStopsApiSearchLength,
+        );
+  }
 
   final LoadStopGroupsUseCase _loadStopGroups;
   final RefreshStopGroupsUseCase _refreshStopGroups;
   final SearchStopGroupsUseCase _searchStopGroups;
+  final StopsStateFactory _stateFactory = const StopsStateFactory();
   final LoadCachedStopsUseCase? loadCachedStops;
   final SaveStopsCacheUseCase? saveStopsCache;
   final LoadSavedStopGroupsUseCase? loadSavedStopGroups;
@@ -63,18 +75,18 @@ class StopsCubit extends Cubit<StopsState> {
   final int pageSize;
   final int searchLimit;
   final Duration searchDebounceDuration;
+  late final StopsSearchCoordinator _searchCoordinator;
   final _stopsById = <String, Stop>{};
   var _favoriteGroupIds = const <String>[];
   var _recentGroupIds = const <String>[];
 
   Timer? _searchDebounceTimer;
-  var _lastRequestedSearch = '';
   var _initialRefreshInProgress = false;
 
   Future<void> loadStops() async {
     _searchDebounceTimer?.cancel();
     _stopsById.clear();
-    _lastRequestedSearch = '';
+    _searchCoordinator.resetLastRequestedSearch();
 
     await _readSavedStops();
 
@@ -104,8 +116,7 @@ class StopsCubit extends Cubit<StopsState> {
 
   Future<void> _loadNetworkFirst() async {
     emit(
-      StopsState(
-        status: StopsStatus.loading,
+      _stateFactory.loading(
         favoriteGroupIds: _favoriteGroupIds,
         recentGroupIds: _recentGroupIds,
       ),
@@ -128,8 +139,7 @@ class StopsCubit extends Cubit<StopsState> {
       );
     } on Object catch (error) {
       emit(
-        StopsState(
-          status: StopsStatus.error,
+        _stateFactory.initialError(
           error: AppFailure.fromObject(error),
           favoriteGroupIds: _favoriteGroupIds,
           recentGroupIds: _recentGroupIds,
@@ -224,7 +234,7 @@ class StopsCubit extends Cubit<StopsState> {
         current.isLoadingMore ||
         current.isSearching ||
         !current.hasMore ||
-        _shouldUseApiSearch(current.searchQuery)) {
+        _searchCoordinator.shouldUseApiSearch(current.searchQuery)) {
       return;
     }
 
@@ -269,8 +279,8 @@ class StopsCubit extends Cubit<StopsState> {
 
     _searchDebounceTimer?.cancel();
 
-    if (!_shouldUseApiSearch(query)) {
-      _lastRequestedSearch = '';
+    if (!_searchCoordinator.shouldUseApiSearch(query)) {
+      _searchCoordinator.resetLastRequestedSearch();
       emit(
         _stateFromStops(
           _sortedStops,
@@ -308,33 +318,20 @@ class StopsCubit extends Cubit<StopsState> {
   }
 
   Future<void> _searchStops(String query) async {
-    final normalizedQuery = query.trim();
-    if (!_shouldUseApiSearch(normalizedQuery) ||
-        normalizedQuery == _lastRequestedSearch) {
-      return;
-    }
-
-    _lastRequestedSearch = normalizedQuery;
-
     try {
-      final page = await _searchStopGroups(
-        query: normalizedQuery,
-        limit: searchLimit,
+      final result = await _searchCoordinator.search(
+        query: query,
+        loadedStops: _sortedStops,
       );
-      final stopsById = <String, Stop>{};
-      for (final stop in page.stops) {
-        stopsById[stop.id] = stop;
-      }
-      final searchStops = _sortStops(stopsById.values);
-      final shouldUseLocalFallback =
-          searchStops.isEmpty &&
-          filterStopGroupsByName(groupStops(_sortedStops), query).isNotEmpty;
-
-      if (state.searchQuery.trim() != normalizedQuery) {
+      if (result == null) {
         return;
       }
 
-      if (shouldUseLocalFallback) {
+      if (state.searchQuery.trim() != result.normalizedQuery) {
+        return;
+      }
+
+      if (result.useLocalFallback) {
         emit(
           _stateFromStops(
             _sortedStops,
@@ -351,7 +348,7 @@ class StopsCubit extends Cubit<StopsState> {
 
       emit(
         _stateFromStops(
-          searchStops,
+          result.stops,
           searchQuery: query,
           hasMore: state.hasMore,
           nextOffset: state.nextOffset,
@@ -362,32 +359,18 @@ class StopsCubit extends Cubit<StopsState> {
         ),
       );
     } on Object catch (error) {
-      if (state.searchQuery.trim() != normalizedQuery) {
+      if (state.searchQuery.trim() != query.trim()) {
         return;
       }
 
       emit(
-        StopsState(
-          status: StopsStatus.error,
-          allStops: _sortedStops,
-          searchQuery: query,
+        _stateFactory.searchError(
           error: AppFailure.fromObject(error),
-          allGroups: groupStops(_sortedStops),
-          hasMore: state.hasMore,
-          nextOffset: state.nextOffset,
-          isFromCache: state.isFromCache,
-          isCacheStale: state.isCacheStale,
-          cacheRefreshError: state.cacheRefreshError,
+          allStops: _sortedStops,
+          current: state,
+          searchQuery: query,
           favoriteGroupIds: _favoriteGroupIds,
           recentGroupIds: _recentGroupIds,
-          favoriteGroups: _resolveGroups(
-            groupStops(_sortedStops),
-            _favoriteGroupIds,
-          ),
-          recentGroups: _resolveGroups(
-            groupStops(_sortedStops),
-            _recentGroupIds,
-          ),
         ),
       );
     }
@@ -406,22 +389,8 @@ class StopsCubit extends Cubit<StopsState> {
     AppFailure? cacheRefreshError,
     bool clearCacheRefreshError = false,
   }) {
-    final allStops = List<Stop>.unmodifiable(stops);
-    final allGroups = groupStops(allStops);
-    final filteredGroups = useProvidedStopsDirectly
-        ? allGroups
-        : filterStopGroupsByName(allGroups, searchQuery);
-    final filteredStops = _representativeStops(filteredGroups);
-    final status = filteredGroups.isEmpty
-        ? StopsStatus.empty
-        : StopsStatus.loaded;
-
-    return StopsState(
-      status: status,
-      allStops: allStops,
-      filteredStops: filteredStops,
-      allGroups: allGroups,
-      filteredGroups: filteredGroups,
+    return _stateFactory.fromStops(
+      stops,
       searchQuery: searchQuery,
       hasMore: hasMore,
       nextOffset: nextOffset,
@@ -429,11 +398,10 @@ class StopsCubit extends Cubit<StopsState> {
       isSearching: isSearching,
       isFromCache: isFromCache,
       isCacheStale: isCacheStale,
-      cacheRefreshError: clearCacheRefreshError ? null : cacheRefreshError,
+      cacheRefreshError: cacheRefreshError,
+      clearCacheRefreshError: clearCacheRefreshError,
       favoriteGroupIds: _favoriteGroupIds,
       recentGroupIds: _recentGroupIds,
-      favoriteGroups: _resolveGroups(allGroups, _favoriteGroupIds),
-      recentGroups: _resolveGroups(allGroups, _recentGroupIds),
     );
   }
 
@@ -456,30 +424,12 @@ class StopsCubit extends Cubit<StopsState> {
     }
 
     emit(
-      state.copyWith(
+      _stateFactory.withSavedStops(
+        current: state,
         favoriteGroupIds: _favoriteGroupIds,
         recentGroupIds: _recentGroupIds,
-        favoriteGroups: _resolveGroups(state.allGroups, _favoriteGroupIds),
-        recentGroups: _resolveGroups(state.allGroups, _recentGroupIds),
       ),
     );
-  }
-
-  List<StopGroup> _resolveGroups(
-    List<StopGroup> groups,
-    List<String> groupIds,
-  ) {
-    final groupsById = {for (final group in groups) group.id: group};
-    final resolvedGroups = <StopGroup>[];
-
-    for (final groupId in groupIds) {
-      final group = groupsById[groupId];
-      if (group != null) {
-        resolvedGroups.add(group);
-      }
-    }
-
-    return List<StopGroup>.unmodifiable(resolvedGroups);
   }
 
   Future<StopsCacheSnapshot?> _readCache() async {
@@ -513,48 +463,13 @@ class StopsCubit extends Cubit<StopsState> {
     );
   }
 
-  List<Stop> _representativeStops(List<StopGroup> groups) {
-    return List<Stop>.unmodifiable(
-      groups.map((group) => group.representativeStop),
-    );
-  }
-
-  bool _shouldUseApiSearch(String query) {
-    return query.trim().length >= minGtfsStopsApiSearchLength;
-  }
-
   void _upsertStops(Iterable<Stop> stops) {
     for (final stop in stops) {
       _stopsById[stop.id] = stop;
     }
   }
 
-  List<Stop> get _sortedStops => _sortStops(_stopsById.values);
-
-  List<Stop> _sortStops(Iterable<Stop> stops) {
-    final sortedStops = stops.toList(growable: false)
-      ..sort(_compareStopsByPublicName);
-
-    return List<Stop>.unmodifiable(sortedStops);
-  }
-
-  int _compareStopsByPublicName(Stop first, Stop second) {
-    final nameComparison = first.name.toLowerCase().compareTo(
-      second.name.toLowerCase(),
-    );
-    if (nameComparison != 0) {
-      return nameComparison;
-    }
-
-    final platformComparison = (first.platformCode ?? '').compareTo(
-      second.platformCode ?? '',
-    );
-    if (platformComparison != 0) {
-      return platformComparison;
-    }
-
-    return first.id.compareTo(second.id);
-  }
+  List<Stop> get _sortedStops => sortStopsByPublicName(_stopsById.values);
 
   @override
   Future<void> close() {
