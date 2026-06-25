@@ -72,6 +72,8 @@ Data code owns infrastructure details:
   `VehiclePositionRequest`) build paths and query parameters,
 - request objects expose queries through `GolemioQueryParameters` rather than
   hand-built endpoint strings,
+- request objects guard documented API limits where the contract is known,
+  such as departure board group, stop-count, limit, and time-window bounds,
 - DTOs parse external JSON shapes,
 - repository implementations map DTOs into domain entities,
 - local data sources persist public stops cache and saved favorite/recent stop
