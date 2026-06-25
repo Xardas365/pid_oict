@@ -10,6 +10,7 @@ import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_state.dart';
+import 'package:pid_oict/src/shared/utils/refresh_ticker.dart';
 
 void main() {
   group('VehicleMapBloc', () {
@@ -172,31 +173,45 @@ void main() {
       },
     );
 
-    test('polling subscription is cancelled on close', () async {
-      var isTickerCancelled = false;
-      final tickerController = StreamController<void>(
-        onCancel: () {
-          isTickerCancelled = true;
-        },
-      );
+    test('starts polling through the shared refresh ticker', () async {
+      final refreshTicker = _FakeRefreshTicker();
       final repository = _QueueVehiclePositionRepository([
         _VehiclePositionSuccess(_position('vehicle-1')),
       ]);
       final bloc = VehicleMapBloc(
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
-        tickerFactory: (_) => tickerController.stream,
+        refreshTicker: refreshTicker,
+      )..add(_started());
+      addTearDown(bloc.close);
+
+      await _waitForStatus(bloc, VehicleMapStatus.loaded);
+
+      expect(refreshTicker.startCount, 1);
+      expect(refreshTicker.lastInterval, const Duration(seconds: 1));
+      expect(refreshTicker.hasActiveCallback, isTrue);
+    });
+
+    test('stops shared refresh ticker on close', () async {
+      final refreshTicker = _FakeRefreshTicker();
+      final repository = _QueueVehiclePositionRepository([
+        _VehiclePositionSuccess(_position('vehicle-1')),
+      ]);
+      final bloc = VehicleMapBloc(
+        GetVehiclePositionForVehicleUseCase(repository),
+        pollingInterval: const Duration(seconds: 1),
+        refreshTicker: refreshTicker,
       )..add(_started());
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       await bloc.close();
 
-      expect(isTickerCancelled, isTrue);
-      await tickerController.close();
+      expect(refreshTicker.stopCount, 1);
+      expect(refreshTicker.hasActiveCallback, isFalse);
     });
 
     test('ticker triggers refresh with same vehicleId', () async {
-      final tickerController = StreamController<void>();
+      final refreshTicker = _FakeRefreshTicker();
       final repository = _QueueVehiclePositionRepository([
         _VehiclePositionSuccess(_position('vehicle-1')),
         _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.08)),
@@ -204,17 +219,46 @@ void main() {
       final bloc = VehicleMapBloc(
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
-        tickerFactory: (_) => tickerController.stream,
+        refreshTicker: refreshTicker,
       )..add(_started());
       addTearDown(bloc.close);
-      addTearDown(tickerController.close);
 
       await _waitForLatitude(bloc, 50.0755);
 
-      tickerController.add(null);
+      refreshTicker.tick();
       await _waitForLatitude(bloc, 50.08);
 
       expect(repository.receivedVehicleIds, ['service-1', 'service-1']);
+    });
+
+    test('restarting polling keeps a single active ticker callback', () async {
+      final refreshTicker = _FakeRefreshTicker();
+      final repository = _QueueVehiclePositionRepository([
+        _VehiclePositionSuccess(_position('vehicle-1')),
+        _VehiclePositionSuccess(_position('vehicle-2', latitude: 50.08)),
+        _VehiclePositionSuccess(_position('vehicle-3', latitude: 50.09)),
+      ]);
+      final bloc = VehicleMapBloc(
+        GetVehiclePositionForVehicleUseCase(repository),
+        pollingInterval: const Duration(seconds: 1),
+        refreshTicker: refreshTicker,
+      )..add(_started());
+      addTearDown(bloc.close);
+
+      await _waitForLatitude(bloc, 50.0755);
+
+      bloc.add(_started('service-2'));
+      await _waitForLatitude(bloc, 50.08);
+
+      refreshTicker.tick();
+      await _waitForLatitude(bloc, 50.09);
+
+      expect(refreshTicker.startCount, 2);
+      expect(repository.receivedVehicleIds, [
+        'service-1',
+        'service-2',
+        'service-2',
+      ]);
     });
   });
 }
@@ -280,6 +324,35 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
       _VehiclePositionFailure(:final error) => _throwTestError(error),
       _VehiclePositionPending(:final completer) => completer.future,
     };
+  }
+}
+
+class _FakeRefreshTicker implements RefreshTicker {
+  Duration? lastInterval;
+  RefreshTickCallback? _onTick;
+  int startCount = 0;
+  int stopCount = 0;
+
+  bool get hasActiveCallback => _onTick != null;
+
+  @override
+  void start({
+    required Duration interval,
+    required RefreshTickCallback onTick,
+  }) {
+    startCount++;
+    lastInterval = interval;
+    _onTick = interval <= Duration.zero ? null : onTick;
+  }
+
+  @override
+  void stop() {
+    stopCount++;
+    _onTick = null;
+  }
+
+  void tick() {
+    _onTick?.call();
   }
 }
 
