@@ -1,0 +1,49 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [14.4633, 50.07827]
+      },
+      "properties": {
+        "location_type": 0,
+        "parent_station": "U118S1",
+        "platform_code": "A",
+        "stop_id": "U118Z101P",
+        "stop_name": "Flora",
+        "wheelchair_boarding": 2,
+        "zone_id": "P",
+        "level_id": "U118L2"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [14.40312, 50.07128]
+      },
+      "properties": {
+        "location_type": 0,
+        "parent_station": "U299S1",
+        "platform_code": "B",
+        "stop_id": "U299Z102P",
+        "stop_name": "Andel",
+        "zone_id": "P"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [14.5, 50.1]
+      },
+      "properties": {
+        "location_type": 0,
+        "stop_id": "U999Z1P",
+        "zone_id": "P"
+      }
+    }
+  ]
+}

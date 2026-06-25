@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:pid_oict/src/core/config/app_config.dart';
+import 'package:pid_oict/src/features/departures/data/datasources/departures_remote_data_source.dart';
+import 'package:pid_oict/src/features/stops/data/datasources/stops_remote_data_source.dart';
+import 'package:pid_oict/src/features/stops/domain/gtfs_stops_query.dart';
+import 'package:pid_oict/src/features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
 
 const _outputDirectory = '.debug/golemio_samples';
 const _defaultRecordLimit = 20;
-const _departureBoardsStopFilterParameter = 'ids[]';
 
 Future<void> main(List<String> args) async {
   final options = _SampleToolOptions.parse(args);
@@ -29,7 +32,9 @@ Future<void> main(List<String> args) async {
   writtenFiles.add(
     await _fetchAndWriteSample(
       token: token,
-      path: '/v2/gtfs/stops',
+      path: StopsRequest(
+        GtfsStopsQuery(limit: options.recordLimit, offset: 0),
+      ).path,
       outputPath: '$_outputDirectory/${timestamp}_stops.json',
       recordLimit: options.recordLimit,
     ),
@@ -37,11 +42,12 @@ Future<void> main(List<String> args) async {
 
   final stopId = options.stopId;
   if (stopId != null && stopId.isNotEmpty) {
+    final request = DepartureBoardRequest(stopIds: [stopId]);
     writtenFiles.add(
       await _fetchAndWriteSample(
         token: token,
-        path: '/v2/public/departureboards',
-        queryParameters: {_departureBoardsStopFilterParameter: stopId},
+        path: request.path,
+        queryParameters: request.queryParameters,
         outputPath: '$_outputDirectory/${timestamp}_departures.json',
         recordLimit: options.recordLimit,
       ),
@@ -54,11 +60,12 @@ Future<void> main(List<String> args) async {
 
   final vehicleId = options.vehicleId;
   if (vehicleId != null && vehicleId.isNotEmpty) {
+    final request = VehiclePositionRequest(vehicleId: vehicleId);
     writtenFiles.add(
       await _fetchAndWriteSample(
         token: token,
-        path: '/v2/public/vehiclepositions/${Uri.encodeComponent(vehicleId)}',
-        queryParameters: const {'scopes': 'info'},
+        path: request.path,
+        queryParameters: request.queryParameters,
         outputPath: '$_outputDirectory/${timestamp}_vehicle_position.json',
         recordLimit: options.recordLimit,
       ),
@@ -81,7 +88,7 @@ Future<String> _fetchAndWriteSample({
   required String path,
   required String outputPath,
   required int recordLimit,
-  Map<String, String> queryParameters = const {},
+  Map<String, String?> queryParameters = const {},
 }) async {
   final uri = Uri.parse(
     '$golemioBaseUrl$path',

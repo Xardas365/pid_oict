@@ -1,0 +1,14 @@
+{
+  "gtfs_trip_id": "115_107_180501",
+  "route_type": "bus",
+  "route_short_name": "22",
+  "trip_headsign": "Bila Hora",
+  "geometry": {
+    "coordinates": [14.441252, 50.109318],
+    "type": "Point"
+  },
+  "bearing": 45,
+  "delay": 10,
+  "state_position": "at_stop",
+  "origin_timestamp": "2023-12-06T12:00:00+01:00"
+}

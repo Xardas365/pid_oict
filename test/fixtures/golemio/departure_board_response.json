@@ -1,0 +1,68 @@
+[
+  [
+    {
+      "departure": {
+        "timestamp_scheduled": "2026-06-22T10:14:00+02:00",
+        "timestamp_predicted": "2026-06-22T10:15:30+02:00",
+        "delay_seconds": 90,
+        "minutes": 2
+      },
+      "stop": {
+        "id": "U118Z101P",
+        "sequence": 8,
+        "platform_code": "A"
+      },
+      "route": {
+        "type": "tram",
+        "short_name": "10"
+      },
+      "trip": {
+        "id": "10_1234_260622",
+        "headsign": "Sidliste Repy",
+        "is_canceled": false
+      },
+      "vehicle": {
+        "id": "service-3-1001",
+        "is_wheelchair_accessible": true,
+        "is_air_conditioned": false,
+        "has_charger": true
+      }
+    },
+    {
+      "departure": {
+        "timestamp_scheduled": "2026-06-22T10:20:00+02:00",
+        "timestamp_predicted": "2026-06-22T10:20:00+02:00",
+        "delay_seconds": 0,
+        "minutes": 7
+      },
+      "stop": {
+        "id": "U118Z102P",
+        "sequence": 9,
+        "platform_code": "B"
+      },
+      "route": {
+        "type": "bus",
+        "short_name": "136"
+      },
+      "trip": {
+        "id": "136_5678_260622",
+        "headsign": "Bohnice",
+        "is_canceled": false
+      }
+    }
+  ],
+  [
+    {
+      "departure": {
+        "timestamp_scheduled": "not-a-date"
+      },
+      "route": {
+        "type": "tram",
+        "short_name": "9"
+      },
+      "trip": {
+        "headsign": "Invalid time"
+      }
+    }
+  ]
+]
