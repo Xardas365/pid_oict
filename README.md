@@ -2,8 +2,8 @@
 
 Flutter showcase app for the OICT Praha public transport assignment. The app
 uses the Golemio PID API to browse public Prague transit stops, show grouped
-departure boards, and display the current position of a selected vehicle trip
-on a map.
+departure boards, and display the current position of a selected vehicle on a
+map.
 
 The repository is intentionally Android-focused. Non-Android Flutter platform
 folders are not maintained for this assignment.
@@ -213,7 +213,7 @@ trade-offs, `pid_seeds` Atomic Design usage, and test strategy, see
 State flow is intentionally explicit:
 
 ```text
-UI -> Cubit/Bloc -> Use case -> Domain repository -> Data implementation -> Dio
+UI -> Bloc/Cubit -> UseCase -> Repository Interface -> Repository Impl -> RemoteDataSource -> GolemioApiClient -> Golemio API
 ```
 
 Constructor injection and Flutter Bloc providers are used instead of service

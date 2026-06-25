@@ -53,8 +53,11 @@ near each other. Shared code is kept only when it is genuinely cross-feature.
 
 - configuration and `String.fromEnvironment` access for `GOLEMIO_API_TOKEN`,
 - the Dio-based `GolemioApiClient`,
+- `GolemioQueryParameters` for deterministic query serialization, including
+  repeated array-style keys such as `names[]`,
 - safe debug HTTP logging with token redaction,
-- app-level exceptions and presentation failure mapping,
+- `AppException` for API/data errors and `AppFailure` for typed presentation
+  errors,
 - PID transport line classification and transport visual mapping.
 
 The API token is never hardcoded. Runtime requests send it through the
@@ -65,7 +68,10 @@ The API token is never hardcoded. Runtime requests send it through the
 Data code owns infrastructure details:
 
 - `RemoteDataSource` classes contain endpoint paths and request serialization,
-- typed request/value objects build query parameters,
+- typed request/value objects (`StopsRequest`, `DepartureBoardRequest`,
+  `VehiclePositionRequest`) build paths and query parameters,
+- request objects expose queries through `GolemioQueryParameters` rather than
+  hand-built endpoint strings,
 - DTOs parse external JSON shapes,
 - repository implementations map DTOs into domain entities,
 - local data sources persist public stops cache and saved favorite/recent stop
@@ -88,6 +94,10 @@ Dio:
 - pure helpers for stop visibility, stop grouping, departure aggregation, and
   PID line classification.
 
+Domain entities and Bloc/Cubit states are handwritten immutable value types with
+manual equality where that improves tests and state comparisons. The project
+does not currently use Freezed, `json_serializable`, or `build_runner`.
+
 Some use cases are intentionally thin. That is a trade-off: thin use cases keep
 presentation isolated from repositories and make later behavior changes safer
 without forcing screens or blocs to import data-layer types.
@@ -103,15 +113,33 @@ Presentation uses `flutter_bloc` as the single app state-management approach:
 - `VehicleMapBloc` handles vehicle-position loading, polling, retry,
   no-position state, and stale marker behavior.
 
+Realtime flows share the `RefreshTicker` abstraction. Production code uses
+`TimerRefreshTicker`; tests inject fakes to avoid real timers. Departure refresh
+state is further shaped by `DepartureBoardRefreshPolicy` so refresh failures
+with previous data stay non-destructive.
+
 Screens are responsible for binding bloc state to widgets and navigation
 callbacks. Business and API decisions stay in use cases, repositories, data
 sources, or pure helpers.
+
+## Error Boundaries
+
+The Dio client and data layer throw or propagate `AppException` for operational
+failures such as missing token, unauthorized responses, timeout, network
+failure, invalid JSON, invalid data, empty responses, and unexpected status
+codes.
+
+Bloc/Cubit code maps those failures into `AppFailure`. `AppFailure` carries a
+category, message key, debug message, retryability, and optional status code.
+That keeps UI states typed without exposing Dio or raw exception details to
+widgets.
 
 ## API Flows
 
 ### Stops
 
-`StopsRemoteDataSource` calls `GET /v2/gtfs/stops` with typed query parameters:
+`StopsRemoteDataSource` receives a `StopsRequest` and calls
+`GET /v2/gtfs/stops` with typed query parameters:
 
 - `limit`,
 - `offset`,
@@ -131,10 +159,10 @@ filtering, cache restore, stale cache warnings, favorites, and recent stops.
 
 ### Departures
 
-`DeparturesRemoteDataSource` calls `GET /v2/public/departureboards` with grouped
-stop IDs from the selected `StopGroup`. The request intentionally uses the
-`stopIds` query parameter, not `stopIds[]`, with a JSON value such as
-`{"0":["U118Z101P","U118Z102P"]}`.
+`DeparturesRemoteDataSource` receives a `DepartureBoardRequest` and calls
+`GET /v2/public/departureboards` with grouped stop IDs from the selected
+`StopGroup`. The request intentionally uses the `stopIds` query parameter, not
+`stopIds[]`, with a JSON value such as `{"0":["U118Z101P","U118Z102P"]}`.
 
 Departures are parsed, deduplicated, sorted by the best available departure
 time, and enriched with route type classification. A 404 response with an empty
@@ -147,9 +175,13 @@ full-screen error.
 ### Vehicle Position
 
 Vehicle tracking uses the real `vehicleId` from the departure board response.
-It does not use `gtfsTripId` as the tracking path parameter.
+It does not use `gtfsTripId` as the tracking path parameter. Navigation accepts
+or parses a raw string at the edge, converts it into `VehicleId` through
+`VehicleMapArgs`, and passes the typed value through `VehicleMapBloc`, the use
+case, repository, and remote data source.
 
-`VehiclePositionsRemoteDataSource` calls:
+`VehiclePositionsRemoteDataSource` receives a `VehiclePositionRequest` and
+calls:
 
 ```text
 GET /v2/public/vehiclepositions/{vehicleId}?scopes=info
@@ -159,6 +191,17 @@ The response parser reads coordinates from `geometry.coordinates`, maps
 metadata into `VehiclePosition`, and falls back to the request vehicle ID when
 the response body does not include one. The map keeps the last known valid
 marker visible if a polling refresh fails.
+
+## Query Serialization
+
+All Golemio request objects expose query data through
+`GolemioQueryParameters`. This centralizes encoding instead of letting each
+repository or request object build ad hoc query strings.
+
+The helper supports nullable entries, deterministic encoded output for tests,
+and Golemio's bracketed array parameter names. It preserves `[]` in keys such
+as `names[]`, while still URL-encoding query values. Repositories do not know
+endpoint strings or query formatting details.
 
 ## Local Cache And Saved Stops
 
