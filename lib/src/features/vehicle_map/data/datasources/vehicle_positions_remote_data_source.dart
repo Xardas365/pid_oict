@@ -1,16 +1,18 @@
 import '../../../../core/network/golemio_api_client.dart';
+import '../../domain/vehicle_id.dart';
 
 const vehiclePositionsPath = '/v2/public/vehiclepositions';
 const vehiclePositionScopesParameter = 'scopes';
 const vehiclePositionInfoScope = 'info';
 
 class VehiclePositionRequest {
-  VehiclePositionRequest({required String vehicleId})
-    : vehicleId = vehicleId.trim();
+  const VehiclePositionRequest({required this.vehicleId});
 
-  final String vehicleId;
+  final VehicleId vehicleId;
 
-  String get path => '$vehiclePositionsPath/${Uri.encodeComponent(vehicleId)}';
+  String get path {
+    return '$vehiclePositionsPath/${Uri.encodeComponent(vehicleId.value)}';
+  }
 
   Map<String, String?> get queryParameters => const <String, String?>{
     vehiclePositionScopesParameter: vehiclePositionInfoScope,

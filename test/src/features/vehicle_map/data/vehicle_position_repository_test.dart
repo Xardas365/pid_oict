@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
 import 'package:pid_oict/src/features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 
 import '../../../fakes/fake_golemio_api_client.dart';
 
@@ -30,7 +31,9 @@ void main() {
       );
       final repository = _repository(apiClient);
 
-      final position = await repository.fetchVehiclePosition('service-3-1001');
+      final position = await repository.fetchVehiclePosition(
+        VehicleId('service-3-1001'),
+      );
 
       final queryParameters = verifySingleGetJson(
         apiClient,
@@ -58,7 +61,7 @@ void main() {
       );
       final repository = _repository(apiClient);
 
-      await repository.fetchVehiclePosition('service/with slash');
+      await repository.fetchVehiclePosition(VehicleId('service/with slash'));
 
       expect(
         verifySingleGetJson(
@@ -91,7 +94,7 @@ void main() {
         final repository = _repository(apiClient);
 
         final position = await repository.fetchVehiclePosition(
-          'service-3-1001',
+          VehicleId('service-3-1001'),
         );
 
         expect(position.vehicleId, 'service-3-1001');
@@ -104,21 +107,6 @@ void main() {
         );
       },
     );
-
-    test('throws controlled error when vehicleId is blank', () async {
-      final repository = _repository(mockGolemioApiClient());
-
-      await expectLater(
-        repository.fetchVehiclePosition('  '),
-        throwsA(
-          isA<AppException>().having(
-            (error) => error.type,
-            'type',
-            AppExceptionType.invalidData,
-          ),
-        ),
-      );
-    });
 
     test(
       'throws controlled error when no valid position is returned',
@@ -136,7 +124,7 @@ void main() {
         );
 
         await expectLater(
-          repository.fetchVehiclePosition('service-3-1001'),
+          repository.fetchVehiclePosition(VehicleId('service-3-1001')),
           throwsA(
             isA<AppException>().having(
               (error) => error.type,
@@ -152,7 +140,7 @@ void main() {
       final repository = _repository(mockGolemioApiClient(response: {}));
 
       await expectLater(
-        repository.fetchVehiclePosition('service-3-1001'),
+        repository.fetchVehiclePosition(VehicleId('service-3-1001')),
         throwsA(
           isA<AppException>().having(
             (error) => error.type,
@@ -173,7 +161,7 @@ void main() {
       );
 
       await expectLater(
-        repository.fetchVehiclePosition('service-3-1001'),
+        repository.fetchVehiclePosition(VehicleId('service-3-1001')),
         throwsA(same(expectedError)),
       );
     });

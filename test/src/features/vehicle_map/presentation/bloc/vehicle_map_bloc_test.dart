@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -23,6 +24,20 @@ void main() {
 
       expect(bloc.state.position?.vehicleId, 'vehicle-1');
       expect(repository.receivedVehicleIds, ['service-1']);
+    });
+
+    test('normalizes route vehicleId before loading position', () async {
+      final repository = _QueueVehiclePositionRepository([
+        _VehiclePositionSuccess(_position('vehicle-1')),
+      ]);
+      final bloc = _createBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(const VehicleMapStarted(' service-3-1001 '));
+      await _waitForStatus(bloc, VehicleMapStatus.loaded);
+
+      expect(repository.receivedVehicleIds, ['service-3-1001']);
+      expect(bloc.state.vehicleId, 'service-3-1001');
     });
 
     test('maps initial invalid data to no-position state', () async {
@@ -248,8 +263,8 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
   int callCount = 0;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
-    receivedVehicleIds.add(vehicleId);
+  Future<VehiclePosition> fetchVehiclePosition(VehicleId vehicleId) async {
+    receivedVehicleIds.add(vehicleId.value);
     final response = _responses[callCount];
     callCount++;
 

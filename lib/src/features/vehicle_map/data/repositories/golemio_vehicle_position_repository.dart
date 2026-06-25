@@ -1,6 +1,7 @@
 import '../../../../core/errors/app_exception.dart';
 import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../domain/repositories/vehicle_position_repository.dart';
+import '../../domain/vehicle_id.dart';
 import '../../domain/vehicle_position.dart';
 import '../datasources/vehicle_positions_remote_data_source.dart';
 import '../models/vehicle_position_dto.dart';
@@ -11,7 +12,7 @@ class GolemioVehiclePositionRepository implements VehiclePositionRepository {
   final VehiclePositionsRemoteDataSource _remoteDataSource;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
+  Future<VehiclePosition> fetchVehiclePosition(VehicleId vehicleId) async {
     final result = await fetchVehiclePositionsWithDiagnostics(vehicleId);
     final position = result.items.isEmpty ? null : result.items.first;
 
@@ -26,22 +27,14 @@ class GolemioVehiclePositionRepository implements VehiclePositionRepository {
   }
 
   Future<ParsedResult<VehiclePosition>> fetchVehiclePositionsWithDiagnostics(
-    String vehicleId,
+    VehicleId vehicleId,
   ) async {
-    final trimmedVehicleId = vehicleId.trim();
-    if (trimmedVehicleId.isEmpty) {
-      throw const AppException(
-        type: AppExceptionType.invalidData,
-        message: 'Vehicle ID is required to load vehicle position.',
-      );
-    }
-
     final response = await _remoteDataSource.fetchVehiclePosition(
-      VehiclePositionRequest(vehicleId: trimmedVehicleId),
+      VehiclePositionRequest(vehicleId: vehicleId),
     );
     final parsed = VehiclePositionDto.parseWithDiagnostics(
       response,
-      fallbackVehicleId: trimmedVehicleId,
+      fallbackVehicleId: vehicleId.value,
     );
     final positions = parsed.items.map((dto) => dto.toDomain()).toList();
 

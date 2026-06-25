@@ -6,6 +6,7 @@ import 'package:pid_oict/src/features/stops/domain/repositories/stops_repository
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 
 sealed class RepositoryResponse<T> {
@@ -86,8 +87,8 @@ class QueueVehiclePositionRepository implements VehiclePositionRepository {
   int callCount = 0;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) {
-    receivedVehicleIds.add(vehicleId);
+  Future<VehiclePosition> fetchVehiclePosition(VehicleId vehicleId) {
+    receivedVehicleIds.add(vehicleId.value);
     return _next(_responses);
   }
 

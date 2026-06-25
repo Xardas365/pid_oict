@@ -6,6 +6,7 @@ import 'package:pid_oict/src/features/departures/data/datasources/departures_rem
 import 'package:pid_oict/src/features/stops/data/datasources/stops_remote_data_source.dart';
 import 'package:pid_oict/src/features/stops/domain/gtfs_stops_query.dart';
 import 'package:pid_oict/src/features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 
 const _outputDirectory = '.debug/golemio_samples';
 const _defaultRecordLimit = 20;
@@ -60,7 +61,7 @@ Future<void> main(List<String> args) async {
 
   final vehicleId = options.vehicleId;
   if (vehicleId != null && vehicleId.isNotEmpty) {
-    final request = VehiclePositionRequest(vehicleId: vehicleId);
+    final request = VehiclePositionRequest(vehicleId: VehicleId(vehicleId));
     writtenFiles.add(
       await _fetchAndWriteSample(
         token: token,

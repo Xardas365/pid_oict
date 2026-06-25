@@ -28,6 +28,7 @@ import '../features/stops/presentation/cubit/stops_cubit.dart';
 import '../features/stops/presentation/stops_screen.dart';
 import '../features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
+import '../features/vehicle_map/domain/vehicle_id.dart';
 import '../features/vehicle_map/domain/vehicle_position.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -338,8 +339,8 @@ class _CallbackVehiclePositionRepository implements VehiclePositionRepository {
   final Future<VehiclePosition> Function(String vehicleId) _loadVehiclePosition;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) {
-    return _loadVehiclePosition(vehicleId);
+  Future<VehiclePosition> fetchVehiclePosition(VehicleId vehicleId) {
+    return _loadVehiclePosition(vehicleId.value);
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
+import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
@@ -227,7 +228,7 @@ class _FutureVehiclePositionRepository implements VehiclePositionRepository {
   final Future<VehiclePosition> _future;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) {
+  Future<VehiclePosition> fetchVehiclePosition(VehicleId vehicleId) {
     return _future;
   }
 }
@@ -239,7 +240,7 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
   int callCount = 0;
 
   @override
-  Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
+  Future<VehiclePosition> fetchVehiclePosition(VehicleId vehicleId) async {
     final response = _responses[callCount];
     callCount++;
 
