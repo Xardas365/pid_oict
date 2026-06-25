@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../domain/saved_stop_groups.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
@@ -129,7 +130,7 @@ class StopsCubit extends Cubit<StopsState> {
       emit(
         StopsState(
           status: StopsStatus.error,
-          error: error,
+          error: AppFailure.fromObject(error),
           favoriteGroupIds: _favoriteGroupIds,
           recentGroupIds: _recentGroupIds,
         ),
@@ -176,7 +177,7 @@ class StopsCubit extends Cubit<StopsState> {
       emit(
         state.copyWith(
           isFromCache: true,
-          cacheRefreshError: error,
+          cacheRefreshError: AppFailure.fromObject(error),
           isLoadingMore: false,
           isSearching: false,
         ),
@@ -250,7 +251,12 @@ class StopsCubit extends Cubit<StopsState> {
         nextOffset: current.nextOffset + page.rawReturnedCount,
       );
     } on Object catch (error) {
-      emit(current.copyWith(isLoadingMore: false, error: error));
+      emit(
+        current.copyWith(
+          isLoadingMore: false,
+          error: AppFailure.fromObject(error),
+        ),
+      );
     }
   }
 
@@ -365,7 +371,7 @@ class StopsCubit extends Cubit<StopsState> {
           status: StopsStatus.error,
           allStops: _sortedStops,
           searchQuery: query,
-          error: error,
+          error: AppFailure.fromObject(error),
           allGroups: groupStops(_sortedStops),
           hasMore: state.hasMore,
           nextOffset: state.nextOffset,
@@ -397,7 +403,7 @@ class StopsCubit extends Cubit<StopsState> {
     bool useProvidedStopsDirectly = false,
     bool isFromCache = false,
     bool isCacheStale = false,
-    Object? cacheRefreshError,
+    AppFailure? cacheRefreshError,
     bool clearCacheRefreshError = false,
   }) {
     final allStops = List<Stop>.unmodifiable(stops);

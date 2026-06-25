@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/core/errors/app_failure.dart';
 import 'package:pid_oict/src/features/stops/data/models/cached_stops.dart';
 import 'package:pid_oict/src/features/stops/data/models/saved_stops.dart';
 import 'package:pid_oict/src/features/stops/domain/gtfs_stops_query.dart';
@@ -55,7 +56,8 @@ void main() {
       await cubit.loadStops();
 
       expect(cubit.state.status, StopsStatus.error);
-      expect(cubit.state.error, same(expectedError));
+      expect(cubit.state.error?.category, AppFailureCategory.network);
+      expect(cubit.state.error?.debugMessage, expectedError.message);
       expect(cubit.state.filteredStops, isEmpty);
     });
 
@@ -598,7 +600,8 @@ void main() {
       await cubit.loadStops();
 
       expect(cubit.state.status, StopsStatus.error);
-      expect(cubit.state.error, same(expectedError));
+      expect(cubit.state.error?.category, AppFailureCategory.network);
+      expect(cubit.state.error?.debugMessage, expectedError.message);
       expect(await cache.read(), isNull);
     });
 
@@ -679,7 +682,14 @@ void main() {
       expect(cubit.state.status, StopsStatus.loaded);
       expect(cubit.state.filteredGroups.single.name, 'Andel');
       expect(cubit.state.isFromCache, isTrue);
-      expect(cubit.state.cacheRefreshError, same(expectedError));
+      expect(
+        cubit.state.cacheRefreshError?.category,
+        AppFailureCategory.timeout,
+      );
+      expect(
+        cubit.state.cacheRefreshError?.debugMessage,
+        expectedError.message,
+      );
       expect(cubit.state.hasCacheWarning, isTrue);
     });
 
@@ -787,7 +797,14 @@ void main() {
       expect(cubit.state.status, StopsStatus.loaded);
       expect(cubit.state.isFromCache, isTrue);
       expect(cubit.state.isCacheStale, isTrue);
-      expect(cubit.state.cacheRefreshError, same(expectedError));
+      expect(
+        cubit.state.cacheRefreshError?.category,
+        AppFailureCategory.timeout,
+      );
+      expect(
+        cubit.state.cacheRefreshError?.debugMessage,
+        expectedError.message,
+      );
       expect(cubit.state.filteredGroups.single.name, 'Andel');
     });
 

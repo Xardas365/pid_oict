@@ -1,3 +1,4 @@
+import '../../../../core/errors/app_failure.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
 
@@ -33,14 +34,14 @@ class StopsState {
   final List<StopGroup> allGroups;
   final List<StopGroup> filteredGroups;
   final String searchQuery;
-  final Object? error;
+  final AppFailure? error;
   final bool hasMore;
   final int nextOffset;
   final bool isLoadingMore;
   final bool isSearching;
   final bool isFromCache;
   final bool isCacheStale;
-  final Object? cacheRefreshError;
+  final AppFailure? cacheRefreshError;
   final List<String> favoriteGroupIds;
   final List<String> recentGroupIds;
   final List<StopGroup> favoriteGroups;
@@ -60,14 +61,14 @@ class StopsState {
     List<StopGroup>? allGroups,
     List<StopGroup>? filteredGroups,
     String? searchQuery,
-    Object? error,
+    AppFailure? error,
     bool? hasMore,
     int? nextOffset,
     bool? isLoadingMore,
     bool? isSearching,
     bool? isFromCache,
     bool? isCacheStale,
-    Object? cacheRefreshError,
+    AppFailure? cacheRefreshError,
     List<String>? favoriteGroupIds,
     List<String>? recentGroupIds,
     List<StopGroup>? favoriteGroups,

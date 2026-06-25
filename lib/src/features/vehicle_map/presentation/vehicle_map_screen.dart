@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../i18n/strings.g.dart';
+import '../../../core/errors/app_failure.dart';
 import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/utils/date_time_formatters.dart';
 import '../../../shared/widgets/empty_state_view.dart';
@@ -87,7 +88,7 @@ class _MapState extends StatelessWidget {
   });
 
   final VehiclePosition position;
-  final Object? staleError;
+  final AppFailure? staleError;
   final bool isRefreshing;
   final bool showMapTiles;
 
@@ -145,7 +146,7 @@ class _VehiclePositionStatus extends StatelessWidget {
   });
 
   final VehiclePosition position;
-  final Object? staleError;
+  final AppFailure? staleError;
 
   @override
   Widget build(BuildContext context) {

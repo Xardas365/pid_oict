@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/core/errors/app_failure.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
@@ -53,7 +54,7 @@ void main() {
       await _waitForStatus(bloc, VehicleMapStatus.noPosition);
 
       expect(bloc.state.position, isNull);
-      expect(bloc.state.error, isA<AppException>());
+      expect(bloc.state.error?.category, AppFailureCategory.invalidData);
     });
 
     test('maps initial network failure to error state', () async {
@@ -70,7 +71,8 @@ void main() {
       bloc.add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.error);
 
-      expect(bloc.state.error, same(expectedError));
+      expect(bloc.state.error?.category, AppFailureCategory.network);
+      expect(bloc.state.error?.debugMessage, expectedError.message);
       expect(bloc.state.position, isNull);
     });
 
@@ -132,7 +134,8 @@ void main() {
 
       expect(bloc.state.status, VehicleMapStatus.loaded);
       expect(bloc.state.position?.latitude, 50.0755);
-      expect(bloc.state.staleError, same(expectedError));
+      expect(bloc.state.staleError?.category, AppFailureCategory.timeout);
+      expect(bloc.state.staleError?.debugMessage, expectedError.message);
       expect(bloc.state.isRefreshing, isFalse);
     });
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/app_exception.dart';
+import '../../../../core/errors/app_failure.dart';
 import '../../domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import '../../domain/vehicle_id.dart';
 import 'vehicle_map_event.dart';
@@ -45,9 +46,9 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     final vehicleId = VehicleId.tryParse(event.vehicleId);
     if (vehicleId == null) {
       emit(
-        const VehicleMapState(
+        VehicleMapState(
           status: VehicleMapStatus.noPosition,
-          error: _missingVehicleIdException,
+          error: AppFailure.fromException(_missingVehicleIdException),
         ),
       );
       return;
@@ -132,21 +133,22 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
         ),
       );
     } on Object catch (error) {
+      final failure = AppFailure.fromObject(error);
       if (previousPosition != null) {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.loaded,
             vehicleId: vehicleId.value,
             position: previousPosition,
-            staleError: error,
+            staleError: failure,
           ),
         );
-      } else if (_isNoPositionError(error)) {
+      } else if (_isNoPositionFailure(failure)) {
         emit(
           VehicleMapState(
             status: VehicleMapStatus.noPosition,
             vehicleId: vehicleId.value,
-            error: error,
+            error: failure,
           ),
         );
       } else {
@@ -154,7 +156,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
           VehicleMapState(
             status: VehicleMapStatus.error,
             vehicleId: vehicleId.value,
-            error: error,
+            error: failure,
           ),
         );
       }
@@ -163,8 +165,8 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
     }
   }
 
-  bool _isNoPositionError(Object error) {
-    return error is AppException && error.type == AppExceptionType.invalidData;
+  bool _isNoPositionFailure(AppFailure failure) {
+    return failure.category == AppFailureCategory.invalidData;
   }
 
   @override

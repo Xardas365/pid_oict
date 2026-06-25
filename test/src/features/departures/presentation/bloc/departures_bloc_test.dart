@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/core/errors/app_failure.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
 import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_board_use_case.dart';
@@ -46,7 +47,8 @@ void main() {
       bloc.add(DeparturesStarted(stop));
       await _waitForStatus(bloc, DeparturesStatus.error);
 
-      expect(bloc.state.error, same(expectedError));
+      expect(bloc.state.error?.category, AppFailureCategory.network);
+      expect(bloc.state.error?.debugMessage, expectedError.message);
       expect(bloc.state.departures, isEmpty);
     });
 
@@ -187,7 +189,8 @@ void main() {
 
       expect(bloc.state.status, DeparturesStatus.loaded);
       expect(bloc.state.departures.single.headsign, 'Nadrazi Hostivar');
-      expect(bloc.state.refreshError, same(expectedError));
+      expect(bloc.state.refreshError?.category, AppFailureCategory.network);
+      expect(bloc.state.refreshError?.debugMessage, expectedError.message);
       expect(bloc.state.isRefreshing, isFalse);
     });
 

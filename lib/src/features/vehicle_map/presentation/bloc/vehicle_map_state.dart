@@ -1,3 +1,4 @@
+import '../../../../core/errors/app_failure.dart';
 import '../../domain/vehicle_position.dart';
 
 enum VehicleMapStatus { loading, loaded, noPosition, error }
@@ -18,8 +19,8 @@ class VehicleMapState {
   final VehicleMapStatus status;
   final String? vehicleId;
   final VehiclePosition? position;
-  final Object? error;
-  final Object? staleError;
+  final AppFailure? error;
+  final AppFailure? staleError;
   final bool isRefreshing;
 
   bool get hasPosition => position != null;
@@ -28,8 +29,8 @@ class VehicleMapState {
     VehicleMapStatus? status,
     String? vehicleId,
     VehiclePosition? position,
-    Object? error,
-    Object? staleError,
+    AppFailure? error,
+    AppFailure? staleError,
     bool? isRefreshing,
     bool clearError = false,
     bool clearStaleError = false,

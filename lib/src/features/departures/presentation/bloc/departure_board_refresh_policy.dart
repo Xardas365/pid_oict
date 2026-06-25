@@ -1,3 +1,4 @@
+import '../../../../core/errors/app_failure.dart';
 import '../../../stops/domain/stop_group.dart';
 import 'departures_state.dart';
 
@@ -30,11 +31,12 @@ class DepartureBoardRefreshPolicy {
     required StopGroup stop,
     required Object error,
   }) {
+    final failure = AppFailure.fromObject(error);
     if (shouldKeepDeparturesVisible(previousState)) {
       return previousState.copyWith(
         status: DeparturesStatus.loaded,
         departures: previousState.departures,
-        refreshError: error,
+        refreshError: failure,
         isRefreshing: false,
         clearError: true,
       );
@@ -43,7 +45,7 @@ class DepartureBoardRefreshPolicy {
     return DeparturesState(
       status: DeparturesStatus.error,
       stop: stop,
-      error: error,
+      error: failure,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/core/errors/app_failure.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departure_board_refresh_policy.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_state.dart';
@@ -25,7 +26,7 @@ void main() {
         status: DeparturesStatus.loaded,
         stop: stop,
         departures: [departure],
-        refreshError: error,
+        refreshError: AppFailure.fromException(error),
       );
 
       final refreshingState = policy.refreshingWithPreviousData(state);
@@ -51,7 +52,8 @@ void main() {
 
       expect(failureState.status, DeparturesStatus.loaded);
       expect(failureState.departures, [departure]);
-      expect(failureState.refreshError, same(error));
+      expect(failureState.refreshError?.category, AppFailureCategory.network);
+      expect(failureState.refreshError?.debugMessage, error.message);
       expect(failureState.isRefreshing, isFalse);
     });
 
@@ -66,7 +68,8 @@ void main() {
 
       expect(failureState.status, DeparturesStatus.error);
       expect(failureState.departures, isEmpty);
-      expect(failureState.error, same(error));
+      expect(failureState.error?.category, AppFailureCategory.network);
+      expect(failureState.error?.debugMessage, error.message);
     });
   });
 }

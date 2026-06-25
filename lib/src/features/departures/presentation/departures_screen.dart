@@ -6,6 +6,7 @@ import 'package:pid_seeds/pid_seeds.dart';
 
 import '../../../../i18n/strings.g.dart';
 import '../../../core/domain/pid_line_type.dart';
+import '../../../core/errors/app_failure.dart';
 import '../../../core/presentation/widgets/pid_transport_icon.dart';
 import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/utils/date_time_formatters.dart';
@@ -405,7 +406,7 @@ String _transportModeLabel(BuildContext context, PidTransportMode mode) {
 class _RefreshWarning extends StatelessWidget {
   const _RefreshWarning({required this.error});
 
-  final Object? error;
+  final AppFailure? error;
 
   @override
   Widget build(BuildContext context) {

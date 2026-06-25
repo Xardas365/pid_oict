@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/domain/pid_line_type.dart';
+import '../../../../core/errors/app_failure.dart';
 import '../../../../shared/utils/refresh_ticker.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
@@ -157,7 +158,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
         DeparturesState(
           status: DeparturesStatus.error,
           stop: stop,
-          error: error,
+          error: AppFailure.fromObject(error),
         ),
       );
     }

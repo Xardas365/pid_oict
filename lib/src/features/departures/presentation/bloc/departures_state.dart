@@ -1,4 +1,5 @@
 import '../../../../core/domain/pid_line_type.dart';
+import '../../../../core/errors/app_failure.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 import '../departure_transport_filter.dart';
@@ -23,8 +24,8 @@ class DeparturesState {
   final DeparturesStatus status;
   final StopGroup? stop;
   final List<Departure> departures;
-  final Object? error;
-  final Object? refreshError;
+  final AppFailure? error;
+  final AppFailure? refreshError;
   final bool isRefreshing;
   final PidTransportMode? selectedTransportMode;
   final DateTime? lastUpdated;
@@ -46,8 +47,8 @@ class DeparturesState {
     DeparturesStatus? status,
     StopGroup? stop,
     List<Departure>? departures,
-    Object? error,
-    Object? refreshError,
+    AppFailure? error,
+    AppFailure? refreshError,
     bool? isRefreshing,
     PidTransportMode? selectedTransportMode,
     DateTime? lastUpdated,
