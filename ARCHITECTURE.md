@@ -205,16 +205,43 @@ and Golemio's bracketed array parameter names. It preserves `[]` in keys such
 as `names[]`, while still URL-encoding query values. Repositories do not know
 endpoint strings or query formatting details.
 
-## Local Cache And Saved Stops
+## App Cache And Stale Data Strategy
 
-The public stops cache stores filtered public stop records needed to rebuild
-`StopGroup` values. It does not cache real-time departures or vehicle
-positions.
+The app-level cache policy is separate from HTTP cache headers returned by
+Golemio. The app uses its own local persistence only where stale data is useful
+and safe for the user experience.
 
-Runtime cache storage uses app-specific storage through `path_provider`.
-Favorites and recent stops store stable group IDs and small metadata instead of
-duplicating the full stops dataset. Unknown saved group IDs are tolerated when
-the corresponding group is not currently loaded.
+Public GTFS stops are cached locally because the stop list changes relatively
+slowly compared with departures or vehicle positions. The cache stores only
+filtered public stop records needed to rebuild `StopGroup` values. It uses a
+24-hour TTL, app-specific support storage through `path_provider`, and ignores
+corrupted or unsupported cache payloads safely.
+
+When the stops screen opens, `StopsCubit` tries to restore cached stops first.
+If usable cached stops exist, it emits grouped stops immediately. Expired cache
+is marked as stale, then a background API refresh is started. A successful
+refresh merges fresh public stops by stop ID, rebuilds groups, updates the
+cache, and clears stale warnings. If that refresh fails, cached groups remain
+visible with a non-blocking warning. If no cache exists, the flow stays
+network-first and an initial network failure becomes the normal retryable error
+state.
+
+Departure boards and vehicle positions are treated as real-time-like data and
+are not persisted as long-term local cache. Their latest successful values live
+only in Bloc state while the screen is active. Manual or periodic refreshes do
+not clear useful previous data: `DeparturesBloc` keeps the previous board
+visible and surfaces a stale refresh warning, while `VehicleMapBloc` keeps the
+last known marker visible after a polling failure. Initial failures with no
+previous data still show normal loading/error/no-position states.
+
+Favorites and recent stops are a separate local persistence concern. They store
+stable stop group IDs and small metadata instead of duplicating the full stops
+dataset. Unknown saved group IDs are tolerated when the corresponding group is
+not currently loaded.
+
+Debug request logging and parser diagnostics remain developer-facing and token
+safe. They do not persist API tokens, `.env.local` values, or runtime response
+samples into the app cache.
 
 ## UI Composition And pid_seeds
 
