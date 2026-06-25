@@ -1,10 +1,7 @@
-import '../../domain/search/stop_search_index.dart';
-import '../../domain/search/stop_search_matcher.dart';
-import '../../domain/search/stop_search_query.dart';
-import '../../domain/stop.dart';
-import '../../domain/stop_group.dart';
-import '../../domain/stops_page.dart';
-import 'stops_sorting.dart';
+import '../stop.dart';
+import '../stops_page.dart';
+import 'stop_search_index.dart';
+import 'stop_search_query.dart';
 
 typedef StopsApiSearch =
     Future<StopsPage> Function({
@@ -22,13 +19,19 @@ class StopsSearchCoordinator {
   final StopsApiSearch searchStops;
   final int searchLimit;
   final int minApiSearchLength;
-  final StopSearchMatcher _searchMatcher = const StopSearchMatcher();
 
   var _lastRequestedSearch = '';
 
-  bool shouldUseApiSearch(String query) {
+  bool isRemoteSearchQuery(String query) {
     return StopSearchQuery.parse(query).normalizedInput.length >=
         minApiSearchLength;
+  }
+
+  bool shouldUseRemoteSupplement(String query, StopSearchIndex index) {
+    final normalizedQuery = StopSearchQuery.parse(query).normalizedInput;
+    return !index.isComplete &&
+        normalizedQuery.length >= minApiSearchLength &&
+        normalizedQuery != _lastRequestedSearch;
   }
 
   void resetLastRequestedSearch() {
@@ -37,13 +40,12 @@ class StopsSearchCoordinator {
 
   Future<StopsSearchResult?> search({
     required String query,
-    required List<Stop> loadedStops,
+    required StopSearchIndex index,
   }) async {
     final searchQuery = StopSearchQuery.parse(query);
     final requestQuery = query.trim();
 
-    if (!shouldUseApiSearch(query) ||
-        searchQuery.normalizedInput == _lastRequestedSearch) {
+    if (!shouldUseRemoteSupplement(query, index)) {
       return null;
     }
 
@@ -55,26 +57,37 @@ class StopsSearchCoordinator {
       searchStopsById[stop.id] = stop;
     }
 
-    final remoteStops = sortStopsByPublicName(searchStopsById.values);
-    final localFallbackGroups = _searchMatcher.matchGroups(
-      StopSearchIndex.fromGroups(groupStops(loadedStops)),
-      searchQuery,
-    );
-
-    if (remoteStops.isEmpty && localFallbackGroups.isNotEmpty) {
-      return StopsSearchResult.localFallback(
-        normalizedQuery: searchQuery.normalizedInput,
-      );
-    }
-
     return StopsSearchResult.remote(
       normalizedQuery: searchQuery.normalizedInput,
-      stops: remoteStops,
+      stops: _sortStopsByPublicName(searchStopsById.values),
     );
   }
 
   String normalizeQuery(String query) {
     return StopSearchQuery.parse(query).normalizedInput;
+  }
+
+  List<Stop> _sortStopsByPublicName(Iterable<Stop> stops) {
+    final sortedStops = stops.toList(growable: false)
+      ..sort((first, second) {
+        final nameComparison = first.name.toLowerCase().compareTo(
+          second.name.toLowerCase(),
+        );
+        if (nameComparison != 0) {
+          return nameComparison;
+        }
+
+        final platformComparison = (first.platformCode ?? '').compareTo(
+          second.platformCode ?? '',
+        );
+        if (platformComparison != 0) {
+          return platformComparison;
+        }
+
+        return first.id.compareTo(second.id);
+      });
+
+    return List<Stop>.unmodifiable(sortedStops);
   }
 }
 
@@ -82,7 +95,6 @@ class StopsSearchResult {
   const StopsSearchResult._({
     required this.normalizedQuery,
     required this.stops,
-    required this.useLocalFallback,
   });
 
   factory StopsSearchResult.remote({
@@ -92,19 +104,9 @@ class StopsSearchResult {
     return StopsSearchResult._(
       normalizedQuery: normalizedQuery,
       stops: List<Stop>.unmodifiable(stops),
-      useLocalFallback: false,
-    );
-  }
-
-  factory StopsSearchResult.localFallback({required String normalizedQuery}) {
-    return StopsSearchResult._(
-      normalizedQuery: normalizedQuery,
-      stops: const <Stop>[],
-      useLocalFallback: true,
     );
   }
 
   final String normalizedQuery;
   final List<Stop> stops;
-  final bool useLocalFallback;
 }

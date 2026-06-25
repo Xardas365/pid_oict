@@ -411,65 +411,74 @@ void main() {
       },
     );
 
-    test('API search results are grouped before display', () async {
-      final repository = _FakePaginatedStopsRepository([
-        const _StopsPageSuccess(
-          StopsPage(
-            stops: [
-              Stop(id: 'U1Z1', name: 'Andel'),
-              Stop(id: 'U2Z1', name: 'Flora'),
-            ],
-            limit: 2,
-            offset: 0,
-            rawReturnedCount: 2,
-            hasMore: true,
+    test(
+      'remote supplement results are merged and grouped before display',
+      () async {
+        final repository = _FakePaginatedStopsRepository([
+          const _StopsPageSuccess(
+            StopsPage(
+              stops: [
+                _andelPublicStop,
+                _staromestskaPublicStop,
+              ],
+              limit: 2,
+              offset: 0,
+              rawReturnedCount: 2,
+              hasMore: true,
+            ),
           ),
-        ),
-        const _StopsPageSuccess(
-          StopsPage(
-            stops: [
-              Stop(
-                id: 'U118Z101P',
-                name: 'Flora',
-                platformCode: 'A',
-                zoneId: 'P',
-                parentStationId: 'U118S1',
-              ),
-              Stop(
-                id: 'U118Z102P',
-                name: 'Flora',
-                platformCode: 'B',
-                zoneId: 'P',
-                parentStationId: 'U118S1',
-              ),
-            ],
-            limit: 100,
-            offset: 0,
-            rawReturnedCount: 2,
-            hasMore: false,
+          const _StopsPageSuccess(
+            StopsPage(
+              stops: [
+                Stop(
+                  id: 'U118Z101P',
+                  name: 'Flora',
+                  platformCode: 'A',
+                  zoneId: 'P',
+                  parentStationId: 'U118S1',
+                ),
+                Stop(
+                  id: 'U118Z102P',
+                  name: 'Flora',
+                  platformCode: 'B',
+                  zoneId: 'P',
+                  parentStationId: 'U118S1',
+                ),
+              ],
+              limit: 100,
+              offset: 0,
+              rawReturnedCount: 2,
+              hasMore: false,
+            ),
           ),
-        ),
-      ]);
-      final cubit = testStopsCubit(
-        GetStopsUseCase(repository),
-        pageSize: 2,
-        searchDebounceDuration: Duration.zero,
-      );
-      addTearDown(cubit.close);
+        ]);
+        final cubit = testStopsCubit(
+          GetStopsUseCase(repository),
+          pageSize: 2,
+          searchDebounceDuration: Duration.zero,
+        );
+        addTearDown(cubit.close);
 
-      await cubit.loadStops();
-      cubit.searchChanged('Flo');
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+        await cubit.loadStops();
+        cubit.searchChanged('Flo');
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(cubit.state.filteredGroups, hasLength(1));
-      expect(cubit.state.filteredGroups.single.name, 'Flora');
-      expect(cubit.state.filteredGroups.single.stopIds, [
-        'U118Z101P',
-        'U118Z102P',
-      ]);
-      expect(cubit.state.filteredGroups.single.platformCodes, ['A', 'B']);
-    });
+        expect(cubit.state.filteredGroups, hasLength(1));
+        expect(cubit.state.filteredGroups.single.name, 'Flora');
+        expect(cubit.state.filteredGroups.single.stopIds, [
+          'U118Z101P',
+          'U118Z102P',
+        ]);
+        expect(cubit.state.filteredGroups.single.platformCodes, ['A', 'B']);
+        expect(cubit.state.allStops.map((stop) => stop.id), [
+          _andelPublicStop.id,
+          _floraPublicStop.id,
+          _floraPlatformBPublicStop.id,
+          _staromestskaPublicStop.id,
+        ]);
+      },
+    );
 
     test(
       'API search empty result keeps diacritics-insensitive local matches',
@@ -548,6 +557,159 @@ void main() {
         expect(cubit.state.filteredStops.single.name, 'Andel');
       },
     );
+
+    test('complete local index does not call remote names search', () async {
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_floraPublicStop, _andelPublicStop],
+            limit: 2,
+            offset: 0,
+            rawReturnedCount: 2,
+            hasMore: false,
+          ),
+        ),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 2,
+        searchDebounceDuration: Duration.zero,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+      cubit.searchChanged('Flo');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.queries, hasLength(1));
+      expect(cubit.state.isSearching, isFalse);
+      expect(cubit.state.filteredGroups.single.name, 'Flora');
+    });
+
+    test('local search is used before remote supplement completes', () async {
+      final remoteSearchCompleter = Completer<StopsPage>();
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_floraPublicStop, _andelPublicStop],
+            limit: 2,
+            offset: 0,
+            rawReturnedCount: 2,
+            hasMore: true,
+          ),
+        ),
+        _StopsPagePending(remoteSearchCompleter),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 2,
+        searchDebounceDuration: Duration.zero,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+      cubit.searchChanged('Flo');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.isSearching, isTrue);
+      expect(cubit.state.filteredGroups.single.name, 'Flora');
+
+      remoteSearchCompleter.complete(
+        const StopsPage(
+          stops: [],
+          limit: 100,
+          offset: 0,
+          rawReturnedCount: 0,
+          hasMore: false,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.isSearching, isFalse);
+      expect(cubit.state.filteredGroups.single.name, 'Flora');
+    });
+
+    test('stale remote supplement does not overwrite a newer query', () async {
+      final remoteSearchCompleter = Completer<StopsPage>();
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [_floraPublicStop, _andelPublicStop],
+            limit: 2,
+            offset: 0,
+            rawReturnedCount: 2,
+            hasMore: true,
+          ),
+        ),
+        _StopsPagePending(remoteSearchCompleter),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 2,
+        searchDebounceDuration: Duration.zero,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+      cubit.searchChanged('Flo');
+      await Future<void>.delayed(Duration.zero);
+      cubit.searchChanged('An');
+
+      remoteSearchCompleter.complete(
+        const StopsPage(
+          stops: [_floraPlatformBPublicStop],
+          limit: 100,
+          offset: 0,
+          rawReturnedCount: 1,
+          hasMore: false,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.searchQuery, 'An');
+      expect(cubit.state.filteredGroups.single.name, 'Andel');
+      expect(
+        cubit.state.allStops.map((stop) => stop.id),
+        isNot(contains(_floraPlatformBPublicStop.id)),
+      );
+    });
+
+    test('local search handles diacritics and station abbreviations', () async {
+      final repository = _FakePaginatedStopsRepository([
+        const _StopsPageSuccess(
+          StopsPage(
+            stops: [
+              _budejovickaPublicStop,
+              _vozovnaPankracPublicStop,
+              _hlavniNadraziPublicStop,
+              _prahaHlavniNadraziAliasStop,
+            ],
+            limit: 4,
+            offset: 0,
+            rawReturnedCount: 4,
+            hasMore: false,
+          ),
+        ),
+      ]);
+      final cubit = testStopsCubit(
+        GetStopsUseCase(repository),
+        pageSize: 4,
+        searchDebounceDuration: Duration.zero,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.loadStops();
+
+      cubit.searchChanged('budejovicka');
+      expect(cubit.state.filteredGroups.single.name, 'Budějovická');
+
+      cubit.searchChanged('vozovna pankrac');
+      expect(cubit.state.filteredGroups.single.name, 'Vozovna Pankrác');
+
+      cubit.searchChanged('praha hl');
+      expect(cubit.state.filteredGroups.single.name, 'Hlavní nádraží');
+      expect(repository.queries, hasLength(1));
+    });
 
     test('writes cache after network-first load succeeds', () async {
       final cache = InMemoryStopsCacheDataSource();
@@ -1240,8 +1402,10 @@ void main() {
 
       expect(cubit.state.favoriteGroupIds, ['U123S1']);
       expect(cubit.state.recentGroupIds, ['U456S1']);
-      expect(cubit.state.favoriteGroups, isEmpty);
-      expect(cubit.state.recentGroups, isEmpty);
+      expect(cubit.state.favoriteGroups.map((group) => group.name), ['Andel']);
+      expect(cubit.state.recentGroups.map((group) => group.name), [
+        'Staromestska',
+      ]);
     });
 
     test('cache refresh keeps favorite and recent IDs', () async {
@@ -1373,6 +1537,50 @@ const _cernyMostPublicStop = Stop(
   parentStationId: 'U122S1',
   latitude: 50.10878,
   longitude: 14.57792,
+);
+
+const _budejovickaPublicStop = Stop(
+  id: 'U200Z101P',
+  name: 'Budějovická',
+  platformCode: 'A',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U200S1',
+  latitude: 50.04435,
+  longitude: 14.44859,
+);
+
+const _vozovnaPankracPublicStop = Stop(
+  id: 'U201Z101P',
+  name: 'Vozovna Pankrác',
+  platformCode: 'A',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U201S1',
+  latitude: 50.05281,
+  longitude: 14.44071,
+);
+
+const _hlavniNadraziPublicStop = Stop(
+  id: 'U202Z101P',
+  name: 'Hlavní nádraží',
+  platformCode: 'A',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U202S1',
+  latitude: 50.08361,
+  longitude: 14.43528,
+);
+
+const _prahaHlavniNadraziAliasStop = Stop(
+  id: 'U202Z102P',
+  name: 'Praha hlavní nádraží',
+  platformCode: 'B',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U202S1',
+  latitude: 50.08362,
+  longitude: 14.43529,
 );
 
 StopGroup _stopGroup(int index) {

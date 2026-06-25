@@ -42,6 +42,7 @@ class StopsStateFactory {
     required int nextOffset,
     required List<String> favoriteGroupIds,
     required List<String> recentGroupIds,
+    StopSearchIndex? searchIndex,
     bool isLoadingMore = false,
     bool isSearching = false,
     bool useProvidedStopsDirectly = false,
@@ -51,12 +52,13 @@ class StopsStateFactory {
     bool clearCacheRefreshError = false,
   }) {
     final allStops = List<Stop>.unmodifiable(stops);
-    final searchIndex = StopSearchIndex.fromGroups(groupStops(allStops));
-    final allGroups = searchIndex.groups;
+    final effectiveSearchIndex =
+        searchIndex ?? StopSearchIndex.fromGroups(groupStops(allStops));
+    final allGroups = effectiveSearchIndex.groups;
     final filteredGroups = useProvidedStopsDirectly
         ? allGroups
         : _searchMatcher.matchGroups(
-            searchIndex,
+            effectiveSearchIndex,
             StopSearchQuery.parse(searchQuery),
           );
     final filteredStops = _representativeStops(filteredGroups);

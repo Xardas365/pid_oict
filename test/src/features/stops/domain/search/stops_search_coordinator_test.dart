@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/src/features/stops/domain/search/stop_search_index.dart';
+import 'package:pid_oict/src/features/stops/domain/search/stops_search_coordinator.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/stops/domain/stops_page.dart';
-import 'package:pid_oict/src/features/stops/presentation/cubit/stops_search_coordinator.dart';
 
 void main() {
   group('StopsSearchCoordinator', () {
-    test('ignores queries below API search threshold', () async {
+    test('ignores queries below remote search threshold', () async {
       var calls = 0;
       final coordinator = StopsSearchCoordinator(
         searchLimit: 100,
@@ -18,14 +20,34 @@ void main() {
 
       final result = await coordinator.search(
         query: 'ce',
-        loadedStops: const [_cernyMost],
+        index: _index(const [_cernyMost], isComplete: false),
       );
 
       expect(result, isNull);
       expect(calls, 0);
     });
 
-    test('deduplicates and sorts API search results', () async {
+    test('does not call remote search when local index is complete', () async {
+      var calls = 0;
+      final coordinator = StopsSearchCoordinator(
+        searchLimit: 100,
+        minApiSearchLength: 3,
+        searchStops: ({required limit, required query}) async {
+          calls++;
+          return _page(const [_floraPlatformA]);
+        },
+      );
+
+      final result = await coordinator.search(
+        query: 'flo',
+        index: _index(const [_floraPlatformA], isComplete: true),
+      );
+
+      expect(result, isNull);
+      expect(calls, 0);
+    });
+
+    test('deduplicates and sorts remote supplement results', () async {
       final queries = <String>[];
       final coordinator = StopsSearchCoordinator(
         searchLimit: 100,
@@ -51,13 +73,12 @@ void main() {
 
       final result = await coordinator.search(
         query: ' flo ',
-        loadedStops: const [_andel, _floraPlatformA],
+        index: _index(const [_andel, _floraPlatformA], isComplete: false),
       );
 
       expect(queries, ['flo:100']);
       expect(result, isNotNull);
-      expect(result!.useLocalFallback, isFalse);
-      expect(result.normalizedQuery, 'flo');
+      expect(result!.normalizedQuery, 'flo');
       expect(result.stops.map((stop) => '${stop.name}:${stop.id}'), [
         'Andel:U123Z1',
         'Flora updated:U118Z102P',
@@ -65,7 +86,7 @@ void main() {
     });
 
     test(
-      'returns local fallback when API result is empty but local matches',
+      'returns an empty remote supplement without clearing local matches',
       () async {
         final coordinator = StopsSearchCoordinator(
           searchLimit: 100,
@@ -77,12 +98,11 @@ void main() {
 
         final result = await coordinator.search(
           query: 'cer',
-          loadedStops: const [_cernyMost],
+          index: _index(const [_cernyMost], isComplete: false),
         );
 
         expect(result, isNotNull);
-        expect(result!.useLocalFallback, isTrue);
-        expect(result.normalizedQuery, 'cer');
+        expect(result!.normalizedQuery, 'cer');
         expect(result.stops, isEmpty);
       },
     );
@@ -100,11 +120,11 @@ void main() {
 
       final firstResult = await coordinator.search(
         query: ' flo ',
-        loadedStops: const [],
+        index: _index(const [], isComplete: false),
       );
       final secondResult = await coordinator.search(
         query: 'flo',
-        loadedStops: const [],
+        index: _index(const [], isComplete: false),
       );
 
       expect(firstResult, isNotNull);
@@ -123,17 +143,27 @@ void main() {
         },
       );
 
-      await coordinator.search(query: 'flo', loadedStops: const []);
+      await coordinator.search(
+        query: 'flo',
+        index: _index(const [], isComplete: false),
+      );
       coordinator.resetLastRequestedSearch();
       final result = await coordinator.search(
         query: 'flo',
-        loadedStops: const [],
+        index: _index(const [], isComplete: false),
       );
 
       expect(result, isNotNull);
       expect(calls, 2);
     });
   });
+}
+
+StopSearchIndex _index(List<Stop> stops, {required bool isComplete}) {
+  return StopSearchIndex.fromGroups(
+    groupStops(stops),
+    isComplete: isComplete,
+  );
 }
 
 StopsPage _page(List<Stop> stops) {
