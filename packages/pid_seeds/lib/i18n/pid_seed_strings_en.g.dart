@@ -133,6 +133,8 @@ class _Translations$search$en extends Translations$search$cs {
   @override
   String get hint => 'Search for a stop...';
   @override
+  String get clearTooltip => 'Clear search';
+  @override
   String get filterTooltip => 'Filter';
   @override
   String get filterSemantic => 'Filter stops';
@@ -339,6 +341,7 @@ extension on TranslationsEn {
       'transport.ferry' => 'Ferry',
       'transport.unknown' => 'Service',
       'search.hint' => 'Search for a stop...',
+      'search.clearTooltip' => 'Clear search',
       'search.filterTooltip' => 'Filter',
       'search.filterSemantic' => 'Filter stops',
       'loading.generic' => 'Loading...',

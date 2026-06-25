@@ -14,6 +14,7 @@
   },
   "search": {
     "hint": "Vyhledat zastávku...",
+    "clearTooltip": "Vymazat hledání",
     "filterTooltip": "Filtrovat",
     "filterSemantic": "Filtrovat zastávky"
   },

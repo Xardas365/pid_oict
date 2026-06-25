@@ -8,6 +8,93 @@ void main() {
     LocaleSettings.setLocaleRawSync('cs');
   });
 
+  testWidgets('PidSearchField hides clear button for empty query', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: const Scaffold(body: PidSearchField()),
+      ),
+    );
+
+    expect(find.byTooltip('Vymazat hledání'), findsNothing);
+    expect(find.byIcon(Icons.search_rounded), findsOneWidget);
+  });
+
+  testWidgets('PidSearchField shows clear button for non-empty query', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: 'Anděl');
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: Scaffold(body: PidSearchField(controller: controller)),
+      ),
+    );
+
+    expect(find.byTooltip('Vymazat hledání'), findsOneWidget);
+  });
+
+  testWidgets('PidSearchField clear button empties field and notifies change', (
+    tester,
+  ) async {
+    final changes = <String>[];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: Scaffold(
+          body: PidSearchField(onChanged: changes.add),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), 'Flora');
+    await tester.pump();
+
+    expect(find.byTooltip('Vymazat hledání'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Vymazat hledání'));
+    await tester.pump();
+
+    expect(find.text('Flora'), findsNothing);
+    expect(changes, containsAllInOrder(<String>['Flora', '']));
+    expect(find.byTooltip('Vymazat hledání'), findsNothing);
+  });
+
+  testWidgets('PidSearchField keeps filter action when clear button is visible',
+      (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: 'Flor');
+    addTearDown(controller.dispose);
+    var filterTapCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: Scaffold(
+          body: PidSearchField(
+            controller: controller,
+            onFilterPressed: () => filterTapCount++,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byTooltip('Vymazat hledání'), findsOneWidget);
+    expect(find.byTooltip('Filtrovat'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Filtrovat'));
+    await tester.pumpAndSettle();
+
+    expect(filterTapCount, 1);
+    expect(controller.text, 'Flor');
+  });
+
   testWidgets('PidStopCard trailing action does not trigger row tap', (
     tester,
   ) async {
@@ -40,6 +127,8 @@ void main() {
 
     expect(actionTapCount, 1);
     expect(rowTapCount, 0);
+    expect(find.byIcon(Icons.location_on_outlined), findsNothing);
+    expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
 
     await tester.tap(find.text('Andel'));
     await tester.pumpAndSettle();

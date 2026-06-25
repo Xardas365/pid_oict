@@ -14,6 +14,7 @@
   },
   "search": {
     "hint": "Search for a stop...",
+    "clearTooltip": "Clear search",
     "filterTooltip": "Filter",
     "filterSemantic": "Filter stops"
   },

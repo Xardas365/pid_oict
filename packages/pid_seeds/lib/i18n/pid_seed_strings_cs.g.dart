@@ -120,6 +120,9 @@ class Translations$search$cs {
   /// cs: 'Vyhledat zastávku...'
   String get hint => 'Vyhledat zastávku...';
 
+  /// cs: 'Vymazat hledání'
+  String get clearTooltip => 'Vymazat hledání';
+
   /// cs: 'Filtrovat'
   String get filterTooltip => 'Filtrovat';
 
@@ -340,6 +343,7 @@ extension on Translations {
       'transport.ferry' => 'Přívoz',
       'transport.unknown' => 'Spoj',
       'search.hint' => 'Vyhledat zastávku...',
+      'search.clearTooltip' => 'Vymazat hledání',
       'search.filterTooltip' => 'Filtrovat',
       'search.filterSemantic' => 'Filtrovat zastávky',
       'loading.generic' => 'Načítání...',

@@ -26,7 +26,7 @@ class PidStopCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = stop.transportType.foreground;
-    final iconBackground = stop.transportType.background;
+    final badgeBackground = stop.transportType.background;
     final cardBackground =
         stop.isHighlighted ? PidSeedColors.primarySoft : PidSeedColors.surface;
     final borderColor =
@@ -54,20 +54,6 @@ class PidStopCard extends StatelessWidget {
                     padding: const EdgeInsets.all(PidSeedSpacing.lg),
                     child: Row(
                       children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: iconBackground,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.location_on_outlined,
-                            color: accent,
-                            size: 23,
-                          ),
-                        ),
-                        const SizedBox(width: PidSeedSpacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +83,7 @@ class PidStopCard extends StatelessWidget {
                             if (stop.lineCountText != null)
                               PidBadge(
                                 label: stop.lineCountText!,
-                                backgroundColor: iconBackground,
+                                backgroundColor: badgeBackground,
                                 foregroundColor: accent,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: PidSeedSpacing.sm,
@@ -115,11 +101,6 @@ class PidStopCard extends StatelessWidget {
                             ],
                           ],
                         ),
-                        const SizedBox(width: PidSeedSpacing.md),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: PidSeedColors.textMuted,
-                        ),
                       ],
                     ),
                   ),
@@ -127,14 +108,27 @@ class PidStopCard extends StatelessWidget {
               ),
             ),
             if (trailingAction != null)
-              Padding(
-                padding: const EdgeInsets.only(right: PidSeedSpacing.sm),
-                child: IconButton(
-                  tooltip: trailingAction!.tooltip,
-                  onPressed: trailingAction!.onPressed,
-                  icon: Icon(trailingAction!.icon),
-                  color: trailingAction!.color,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 1,
+                    height: 42,
+                    color: borderColor,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: PidSeedSpacing.xs,
+                      right: PidSeedSpacing.sm,
+                    ),
+                    child: IconButton(
+                      tooltip: trailingAction!.tooltip,
+                      onPressed: trailingAction!.onPressed,
+                      icon: Icon(trailingAction!.icon),
+                      color: trailingAction!.color,
+                    ),
+                  ),
+                ],
               ),
           ],
         ),
