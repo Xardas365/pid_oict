@@ -90,11 +90,48 @@ void main() {
         expect(position.vehicleId, 'service-3-1001');
         expect(position.latitude, 50.109318);
         expect(position.longitude, 14.441252);
+        expect(position.gtfsTripId, '115_107_180501');
+        expect(position.routeType, 'bus');
+        expect(position.routeShortName, '22');
+        expect(position.headsign, 'Bila Hora');
         expect(position.bearing, 45);
+        expect(position.delaySeconds, 10);
+        expect(position.statePosition, 'at_stop');
+        expect(position.lastStopSequence, 12);
+        expect(position.shapeDistTraveled, 4210.5);
         expect(
           position.lastUpdated,
           DateTime.parse('2023-12-06T12:00:00+01:00'),
         );
+
+        expect(position.routePoints, hasLength(3));
+        expect(position.routePoints.first.latitude, 50.109318);
+        expect(position.routePoints.first.longitude, 14.441252);
+        expect(position.routePoints.first.shapeDistTraveled, 4210.5);
+
+        expect(position.stopTimes, hasLength(2));
+        expect(position.stopTimes.first.name, 'Vypich');
+        expect(position.stopTimes.first.stopSequence, 12);
+        expect(position.stopTimes.first.zoneId, 'P');
+        expect(position.stopTimes.first.shapeDistTraveled, 4210.5);
+        expect(
+          position.stopTimes.first.arrivalTime,
+          DateTime.parse('2023-12-06T12:00:00+01:00'),
+        );
+        expect(
+          position.stopTimes.first.realtimeDepartureTime,
+          DateTime.parse('2023-12-06T12:01:10+01:00'),
+        );
+        expect(position.stopTimes.first.isWheelchairAccessible, isTrue);
+
+        final descriptor = position.vehicleDescriptor;
+        expect(descriptor, isNotNull);
+        expect(descriptor?.operator, 'DPP');
+        expect(descriptor?.vehicleType, 'bus');
+        expect(descriptor?.isWheelchairAccessible, isTrue);
+        expect(descriptor?.isAirConditioned, isTrue);
+        expect(descriptor?.hasUsbChargers, isFalse);
+        expect(descriptor?.registrationNumber, '1234');
       },
     );
 
@@ -114,6 +151,9 @@ void main() {
       expect(position.latitude, 50.0755);
       expect(position.longitude, 14.4378);
       expect(position.bearing, isNull);
+      expect(position.routePoints, isEmpty);
+      expect(position.stopTimes, isEmpty);
+      expect(position.vehicleDescriptor, isNull);
       expect(position.lastUpdated, isNull);
     });
   });

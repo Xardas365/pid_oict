@@ -5,6 +5,9 @@ import '../../domain/vehicle_id.dart';
 const vehiclePositionsPath = '/v2/public/vehiclepositions';
 const vehiclePositionScopesParameter = 'scopes';
 const vehiclePositionInfoScope = 'info';
+const vehiclePositionStopTimesScope = 'stop_times';
+const vehiclePositionShapesScope = 'shapes';
+const vehiclePositionVehicleDescriptorScope = 'vehicle_descriptor';
 
 class VehiclePositionRequest {
   const VehiclePositionRequest({required this.vehicleId});
@@ -19,6 +22,18 @@ class VehiclePositionRequest {
     GolemioQueryParameter(
       vehiclePositionScopesParameter,
       vehiclePositionInfoScope,
+    ),
+    GolemioQueryParameter(
+      vehiclePositionScopesParameter,
+      vehiclePositionStopTimesScope,
+    ),
+    GolemioQueryParameter(
+      vehiclePositionScopesParameter,
+      vehiclePositionShapesScope,
+    ),
+    GolemioQueryParameter(
+      vehiclePositionScopesParameter,
+      vehiclePositionVehicleDescriptorScope,
     ),
   ]);
 }

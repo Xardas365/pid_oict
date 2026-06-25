@@ -10,5 +10,92 @@
   "bearing": 45,
   "delay": 10,
   "state_position": "at_stop",
-  "origin_timestamp": "2023-12-06T12:00:00+01:00"
+  "last_stop_sequence": 12,
+  "shape_dist_traveled": 4210.5,
+  "origin_timestamp": "2023-12-06T12:00:00+01:00",
+  "stop_times": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "coordinates": [14.441111, 50.109111],
+          "type": "Point"
+        },
+        "properties": {
+          "stop_name": "Vypich",
+          "stop_sequence": 12,
+          "zone_id": "P",
+          "shape_dist_traveled": 4210.5,
+          "arrival_time": "2023-12-06T12:00:00+01:00",
+          "departure_time": "2023-12-06T12:01:00+01:00",
+          "realtime_arrival_time": "2023-12-06T12:00:10+01:00",
+          "realtime_departure_time": "2023-12-06T12:01:10+01:00",
+          "is_wheelchair_accessible": true
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "coordinates": [14.438222, 50.108222],
+          "type": "Point"
+        },
+        "properties": {
+          "stop_name": "Baterie",
+          "stop_sequence": 13,
+          "zone_id": "P",
+          "shape_dist_traveled": 4510.75,
+          "is_wheelchair_accessible": false
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "coordinates": [200, 50.1],
+          "type": "Point"
+        },
+        "properties": {
+          "stop_name": "Invalid coordinates",
+          "stop_sequence": 14
+        }
+      }
+    ]
+  },
+  "shapes": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "coordinates": [
+            [14.441252, 50.109318],
+            [14.440000, 50.109000],
+            [14.438750, 50.108500]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "shape_dist_traveled": 4210.5
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "coordinates": [[200, 50.1]],
+          "type": "LineString"
+        },
+        "properties": {
+          "shape_dist_traveled": 9999
+        }
+      }
+    ]
+  },
+  "vehicle_descriptor": {
+    "operator": "DPP",
+    "vehicle_type": "bus",
+    "is_wheelchair_accessible": true,
+    "is_air_conditioned": true,
+    "has_usb_chargers": false,
+    "vehicle_registration_number": "1234"
+  }
 }

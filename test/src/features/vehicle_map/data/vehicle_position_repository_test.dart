@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
+import 'package:pid_oict/src/core/network/golemio_query_parameters.dart';
 import 'package:pid_oict/src/features/vehicle_map/data/datasources/vehicle_positions_remote_data_source.dart';
 import 'package:pid_oict/src/features/vehicle_map/data/repositories/golemio_vehicle_position_repository.dart';
 import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_id.dart';
@@ -39,10 +40,7 @@ void main() {
         apiClient,
         '/v2/public/vehiclepositions/service-3-1001',
       );
-      expect(
-        queryParameters.toSingleValueMap(),
-        {'scopes': 'info'},
-      );
+      _expectVehiclePositionScopes(queryParameters);
       expect(position.vehicleId, 'tram-22-123');
       expect(position.latitude, 50.0755);
       expect(position.longitude, 14.4378);
@@ -67,8 +65,9 @@ void main() {
         verifySingleGetJson(
           apiClient,
           '/v2/public/vehiclepositions/service%2Fwith%20slash',
-        ).toSingleValueMap(),
-        {'scopes': 'info'},
+        ).encoded,
+        'scopes=info&scopes=stop_times&scopes=shapes&'
+        'scopes=vehicle_descriptor',
       );
     });
 
@@ -100,7 +99,13 @@ void main() {
         expect(position.vehicleId, 'service-3-1001');
         expect(position.latitude, 50.109318);
         expect(position.longitude, 14.441252);
+        expect(position.gtfsTripId, '115_107_180501');
+        expect(position.routeType, 'bus');
+        expect(position.routeShortName, '22');
+        expect(position.headsign, 'Bila Hora');
         expect(position.bearing, 45);
+        expect(position.delaySeconds, 10);
+        expect(position.statePosition, 'at_stop');
         expect(
           position.lastUpdated,
           DateTime.parse('2023-12-06T12:00:00+01:00'),
@@ -171,5 +176,22 @@ void main() {
 GolemioVehiclePositionRepository _repository(MockGolemioApiClient apiClient) {
   return GolemioVehiclePositionRepository(
     VehiclePositionsRemoteDataSource(apiClient),
+  );
+}
+
+void _expectVehiclePositionScopes(GolemioQueryParameters queryParameters) {
+  expect(
+    queryParameters.entries.map((entry) => (entry.key, entry.value)),
+    [
+      ('scopes', 'info'),
+      ('scopes', 'stop_times'),
+      ('scopes', 'shapes'),
+      ('scopes', 'vehicle_descriptor'),
+    ],
+  );
+  expect(
+    queryParameters.encoded,
+    'scopes=info&scopes=stop_times&scopes=shapes&'
+    'scopes=vehicle_descriptor',
   );
 }
