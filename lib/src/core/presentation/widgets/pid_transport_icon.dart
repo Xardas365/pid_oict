@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../i18n/strings.g.dart';
 import '../../domain/pid_line_type.dart';
+import '../pid_line_type_label_mapper.dart';
 import '../pid_transport_visuals.dart';
 
 class PidTransportIcon extends StatelessWidget {
@@ -19,11 +21,14 @@ class PidTransportIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visual = lineType.visual;
+    final semanticLabel = PidLineTypeLabelMapper(
+      context.t,
+    ).labelFor(lineType);
     final assetPath = visual.assetPath;
     final fallback = Icon(
       visual.fallbackIcon,
       size: size,
-      semanticLabel: visual.semanticLabel,
+      semanticLabel: semanticLabel,
     );
 
     if (!preferAsset || assetPath == null) {
@@ -34,7 +39,7 @@ class PidTransportIcon extends StatelessWidget {
       assetPath,
       width: size,
       height: size,
-      semanticsLabel: visual.semanticLabel,
+      semanticsLabel: semanticLabel,
       errorBuilder: (_, _, _) => fallback,
     );
   }

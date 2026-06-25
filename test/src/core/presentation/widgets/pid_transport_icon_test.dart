@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/i18n/strings.g.dart';
 import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/presentation/widgets/pid_transport_icon.dart';
 
@@ -9,8 +10,8 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: PidTransportIcon(lineType: PidLineType.tram)),
+      _wrapWithTranslations(
+        const PidTransportIcon(lineType: PidLineType.tram),
       ),
     );
 
@@ -22,12 +23,10 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: PidTransportIcon(
-            lineType: PidLineType.tram,
-            preferAsset: false,
-          ),
+      _wrapWithTranslations(
+        const PidTransportIcon(
+          lineType: PidLineType.tram,
+          preferAsset: false,
         ),
       ),
     );
@@ -40,8 +39,8 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: PidTransportIcon(lineType: PidLineType.unknown)),
+      _wrapWithTranslations(
+        const PidTransportIcon(lineType: PidLineType.unknown),
       ),
     );
 
@@ -51,12 +50,10 @@ void main() {
 
   testWidgets('uses semantic label on fallback icon', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: PidTransportIcon(
-            lineType: PidLineType.cityBus,
-            preferAsset: false,
-          ),
+      _wrapWithTranslations(
+        const PidTransportIcon(
+          lineType: PidLineType.cityBus,
+          preferAsset: false,
         ),
       ),
     );
@@ -64,6 +61,14 @@ void main() {
     final icon = tester.widget<Icon>(
       find.byIcon(Icons.directions_bus_outlined),
     );
-    expect(icon.semanticLabel, PidLineType.cityBus.label);
+    expect(icon.semanticLabel, 'Městský autobus');
   });
+}
+
+Widget _wrapWithTranslations(Widget child, {AppLocale locale = AppLocale.cs}) {
+  LocaleSettings.setLocaleSync(locale);
+
+  return TranslationProvider(
+    child: MaterialApp(home: Scaffold(body: child)),
+  );
 }

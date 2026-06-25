@@ -43,6 +43,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$app$cs app = Translations$app$cs.internal(_root);
 	late final Translations$navigation$cs navigation = Translations$navigation$cs.internal(_root);
 	late final Translations$common$cs common = Translations$common$cs.internal(_root);
+	late final Translations$transport$cs transport = Translations$transport$cs.internal(_root);
 	late final Translations$errors$cs errors = Translations$errors$cs.internal(_root);
 	late final Translations$stops$cs stops = Translations$stops$cs.internal(_root);
 	late final Translations$departures$cs departures = Translations$departures$cs.internal(_root);
@@ -90,6 +91,16 @@ class Translations$common$cs {
 
 	/// cs: 'Zkusit znovu'
 	String get retry => 'Zkusit znovu';
+}
+
+// Path: transport
+class Translations$transport$cs {
+	Translations$transport$cs.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$transport$lineTypes$cs lineTypes = Translations$transport$lineTypes$cs.internal(_root);
 }
 
 // Path: errors
@@ -359,6 +370,84 @@ class Translations$format$cs {
 	String delayMinutesShort({required Object minutes}) => '+${minutes} min';
 }
 
+// Path: transport.lineTypes
+class Translations$transport$lineTypes$cs {
+	Translations$transport$lineTypes$cs.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// cs: 'Metro'
+	String get metro => 'Metro';
+
+	/// cs: 'Tramvaj'
+	String get tram => 'Tramvaj';
+
+	/// cs: 'Zvláštní tramvaj'
+	String get tramSpecial => 'Zvláštní tramvaj';
+
+	/// cs: 'Noční tramvaj'
+	String get tramNight => 'Noční tramvaj';
+
+	/// cs: 'Městský autobus'
+	String get cityBus => 'Městský autobus';
+
+	/// cs: 'Noční městský autobus'
+	String get cityBusNight => 'Noční městský autobus';
+
+	/// cs: 'Regionální autobus'
+	String get regionalBus => 'Regionální autobus';
+
+	/// cs: 'Noční regionální autobus'
+	String get regionalBusNight => 'Noční regionální autobus';
+
+	/// cs: 'Trolejbus'
+	String get trolleybus => 'Trolejbus';
+
+	/// cs: 'Vlak S'
+	String get trainS => 'Vlak S';
+
+	/// cs: 'Vlak R'
+	String get trainR => 'Vlak R';
+
+	/// cs: 'Mezikrajský vlak'
+	String get trainInterregional => 'Mezikrajský vlak';
+
+	/// cs: 'Turistický vlak'
+	String get trainTourist => 'Turistický vlak';
+
+	/// cs: 'Přívoz'
+	String get ferry => 'Přívoz';
+
+	/// cs: 'Lanová dráha'
+	String get funicular => 'Lanová dráha';
+
+	/// cs: 'Náhradní doprava za metro'
+	String get replacementMetro => 'Náhradní doprava za metro';
+
+	/// cs: 'Náhradní tramvajová doprava'
+	String get replacementTram => 'Náhradní tramvajová doprava';
+
+	/// cs: 'Náhradní autobusová doprava'
+	String get replacementBus => 'Náhradní autobusová doprava';
+
+	/// cs: 'Náhradní vlaková doprava'
+	String get replacementTrain => 'Náhradní vlaková doprava';
+
+	/// cs: 'Náhradní doprava'
+	String get replacementUnknown => 'Náhradní doprava';
+
+	/// cs: 'Školní linka'
+	String get schoolBus => 'Školní linka';
+
+	/// cs: 'Ostatní / zvláštní linka'
+	String get specialOther => 'Ostatní / zvláštní linka';
+
+	/// cs: 'Neznámý typ linky'
+	String get unknown => 'Neznámý typ linky';
+}
+
 /// The flat map containing all translations for locale <cs>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -372,6 +461,29 @@ extension on Translations {
 			'navigation.departures' => 'Odjezdy',
 			'navigation.map' => 'Mapa',
 			'common.retry' => 'Zkusit znovu',
+			'transport.lineTypes.metro' => 'Metro',
+			'transport.lineTypes.tram' => 'Tramvaj',
+			'transport.lineTypes.tramSpecial' => 'Zvláštní tramvaj',
+			'transport.lineTypes.tramNight' => 'Noční tramvaj',
+			'transport.lineTypes.cityBus' => 'Městský autobus',
+			'transport.lineTypes.cityBusNight' => 'Noční městský autobus',
+			'transport.lineTypes.regionalBus' => 'Regionální autobus',
+			'transport.lineTypes.regionalBusNight' => 'Noční regionální autobus',
+			'transport.lineTypes.trolleybus' => 'Trolejbus',
+			'transport.lineTypes.trainS' => 'Vlak S',
+			'transport.lineTypes.trainR' => 'Vlak R',
+			'transport.lineTypes.trainInterregional' => 'Mezikrajský vlak',
+			'transport.lineTypes.trainTourist' => 'Turistický vlak',
+			'transport.lineTypes.ferry' => 'Přívoz',
+			'transport.lineTypes.funicular' => 'Lanová dráha',
+			'transport.lineTypes.replacementMetro' => 'Náhradní doprava za metro',
+			'transport.lineTypes.replacementTram' => 'Náhradní tramvajová doprava',
+			'transport.lineTypes.replacementBus' => 'Náhradní autobusová doprava',
+			'transport.lineTypes.replacementTrain' => 'Náhradní vlaková doprava',
+			'transport.lineTypes.replacementUnknown' => 'Náhradní doprava',
+			'transport.lineTypes.schoolBus' => 'Školní linka',
+			'transport.lineTypes.specialOther' => 'Ostatní / zvláštní linka',
+			'transport.lineTypes.unknown' => 'Neznámý typ linky',
 			'errors.missingToken' => 'Chybí Golemio API token. Spusťte aplikaci s --dart-define=GOLEMIO_API_TOKEN=vas_token.',
 			'errors.unauthorized' => 'Golemio API token je neplatný nebo nemá oprávnění. Zkontrolujte token.',
 			'errors.network' => 'Nepodařilo se připojit ke Golemio API. Zkontrolujte připojení k internetu.',

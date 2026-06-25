@@ -5,7 +5,6 @@ import '../domain/pid_line_type.dart';
 class PidTransportVisual {
   const PidTransportVisual({
     required this.fallbackIcon,
-    required this.semanticLabel,
     this.assetPath,
     this.badgeText,
     this.color,
@@ -13,34 +12,28 @@ class PidTransportVisual {
 
   final String? assetPath;
   final IconData fallbackIcon;
-  final String semanticLabel;
   final String? badgeText;
   final Color? color;
 }
 
 extension PidLineTypeVisuals on PidLineType {
   PidTransportVisual get visual {
-    final semanticLabel = label;
-
     if (isNight) {
-      return PidTransportVisual(
+      return const PidTransportVisual(
         assetPath: PidTransportAssetPaths.night,
         fallbackIcon: Icons.nightlight_round,
-        semanticLabel: semanticLabel,
         badgeText: 'N',
       );
     }
 
     return switch (this) {
-      PidLineType.metro => PidTransportVisual(
+      PidLineType.metro => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.metro,
         fallbackIcon: Icons.directions_subway_outlined,
-        semanticLabel: semanticLabel,
       ),
       PidLineType.tram || PidLineType.tramSpecial => PidTransportVisual(
         assetPath: PidTransportAssetPaths.tram,
         fallbackIcon: Icons.tram_outlined,
-        semanticLabel: semanticLabel,
         badgeText: this == PidLineType.tramSpecial ? 'S' : null,
       ),
       PidLineType.cityBus ||
@@ -50,13 +43,11 @@ extension PidLineTypeVisuals on PidLineType {
         fallbackIcon: this == PidLineType.schoolBus
             ? Icons.school_outlined
             : Icons.directions_bus_outlined,
-        semanticLabel: semanticLabel,
         badgeText: this == PidLineType.schoolBus ? 'Š' : null,
       ),
-      PidLineType.trolleybus => PidTransportVisual(
+      PidLineType.trolleybus => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.trolleybus,
         fallbackIcon: Icons.directions_bus_outlined,
-        semanticLabel: semanticLabel,
       ),
       PidLineType.trainS ||
       PidLineType.trainR ||
@@ -64,7 +55,6 @@ extension PidLineTypeVisuals on PidLineType {
       PidLineType.trainTourist => PidTransportVisual(
         assetPath: PidTransportAssetPaths.train,
         fallbackIcon: Icons.train_outlined,
-        semanticLabel: semanticLabel,
         badgeText: switch (this) {
           PidLineType.trainS => 'S',
           PidLineType.trainR => 'R',
@@ -72,47 +62,40 @@ extension PidLineTypeVisuals on PidLineType {
           _ => null,
         },
       ),
-      PidLineType.ferry => PidTransportVisual(
+      PidLineType.ferry => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.ferry,
         fallbackIcon: Icons.directions_boat_outlined,
-        semanticLabel: semanticLabel,
       ),
-      PidLineType.funicular => PidTransportVisual(
+      PidLineType.funicular => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.funicular,
         fallbackIcon: Icons.train_outlined,
-        semanticLabel: semanticLabel,
       ),
-      PidLineType.specialOther || PidLineType.unknown => PidTransportVisual(
+      PidLineType.specialOther ||
+      PidLineType.unknown => const PidTransportVisual(
         fallbackIcon: Icons.help_outline,
-        semanticLabel: semanticLabel,
       ),
-      PidLineType.replacementMetro => PidTransportVisual(
+      PidLineType.replacementMetro => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.metro,
         fallbackIcon: Icons.directions_subway_outlined,
-        semanticLabel: semanticLabel,
         badgeText: 'X',
       ),
-      PidLineType.replacementTram => PidTransportVisual(
+      PidLineType.replacementTram => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.tram,
         fallbackIcon: Icons.tram_outlined,
-        semanticLabel: semanticLabel,
         badgeText: 'X',
       ),
-      PidLineType.replacementBus => PidTransportVisual(
+      PidLineType.replacementBus => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.bus,
         fallbackIcon: Icons.directions_bus_outlined,
-        semanticLabel: semanticLabel,
         badgeText: 'X',
       ),
-      PidLineType.replacementTrain => PidTransportVisual(
+      PidLineType.replacementTrain => const PidTransportVisual(
         assetPath: PidTransportAssetPaths.train,
         fallbackIcon: Icons.train_outlined,
-        semanticLabel: semanticLabel,
         badgeText: 'X',
       ),
-      PidLineType.replacementUnknown => PidTransportVisual(
+      PidLineType.replacementUnknown => const PidTransportVisual(
         fallbackIcon: Icons.swap_horiz_outlined,
-        semanticLabel: semanticLabel,
         badgeText: 'X',
       ),
       PidLineType.tramNight ||

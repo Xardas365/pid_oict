@@ -122,10 +122,9 @@ void main() {
   });
 
   group('PidLineType metadata', () {
-    test('exposes mode service labels and flags', () {
+    test('exposes mode service and flags', () {
       expect(PidLineType.tramNight.mode, PidTransportMode.tram);
       expect(PidLineType.tramNight.service, PidServiceKind.night);
-      expect(PidLineType.tramNight.label, 'Noční tramvaj');
       expect(PidLineType.tramNight.isNight, isTrue);
       expect(PidLineType.replacementBus.isReplacement, isTrue);
     });

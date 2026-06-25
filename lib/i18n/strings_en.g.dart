@@ -42,6 +42,7 @@ class TranslationsEn extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$app$en app = _Translations$app$en._(_root);
 	@override late final _Translations$navigation$en navigation = _Translations$navigation$en._(_root);
 	@override late final _Translations$common$en common = _Translations$common$en._(_root);
+	@override late final _Translations$transport$en transport = _Translations$transport$en._(_root);
 	@override late final _Translations$errors$en errors = _Translations$errors$en._(_root);
 	@override late final _Translations$stops$en stops = _Translations$stops$en._(_root);
 	@override late final _Translations$departures$en departures = _Translations$departures$en._(_root);
@@ -79,6 +80,16 @@ class _Translations$common$en extends Translations$common$cs {
 
 	// Translations
 	@override String get retry => 'Try again';
+}
+
+// Path: transport
+class _Translations$transport$en extends Translations$transport$cs {
+	_Translations$transport$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$transport$lineTypes$en lineTypes = _Translations$transport$lineTypes$en._(_root);
 }
 
 // Path: errors
@@ -200,6 +211,38 @@ class _Translations$format$en extends Translations$format$cs {
 	@override String delayMinutesShort({required Object minutes}) => '+${minutes} min';
 }
 
+// Path: transport.lineTypes
+class _Translations$transport$lineTypes$en extends Translations$transport$lineTypes$cs {
+	_Translations$transport$lineTypes$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get metro => 'Metro';
+	@override String get tram => 'Tram';
+	@override String get tramSpecial => 'Special tram';
+	@override String get tramNight => 'Night tram';
+	@override String get cityBus => 'City bus';
+	@override String get cityBusNight => 'Night city bus';
+	@override String get regionalBus => 'Regional bus';
+	@override String get regionalBusNight => 'Night regional bus';
+	@override String get trolleybus => 'Trolleybus';
+	@override String get trainS => 'S train';
+	@override String get trainR => 'R train';
+	@override String get trainInterregional => 'Interregional train';
+	@override String get trainTourist => 'Tourist train';
+	@override String get ferry => 'Ferry';
+	@override String get funicular => 'Funicular';
+	@override String get replacementMetro => 'Metro replacement service';
+	@override String get replacementTram => 'Tram replacement service';
+	@override String get replacementBus => 'Bus replacement service';
+	@override String get replacementTrain => 'Train replacement service';
+	@override String get replacementUnknown => 'Replacement service';
+	@override String get schoolBus => 'School bus';
+	@override String get specialOther => 'Other / special line';
+	@override String get unknown => 'Unknown line type';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -213,6 +256,29 @@ extension on TranslationsEn {
 			'navigation.departures' => 'Departures',
 			'navigation.map' => 'Map',
 			'common.retry' => 'Try again',
+			'transport.lineTypes.metro' => 'Metro',
+			'transport.lineTypes.tram' => 'Tram',
+			'transport.lineTypes.tramSpecial' => 'Special tram',
+			'transport.lineTypes.tramNight' => 'Night tram',
+			'transport.lineTypes.cityBus' => 'City bus',
+			'transport.lineTypes.cityBusNight' => 'Night city bus',
+			'transport.lineTypes.regionalBus' => 'Regional bus',
+			'transport.lineTypes.regionalBusNight' => 'Night regional bus',
+			'transport.lineTypes.trolleybus' => 'Trolleybus',
+			'transport.lineTypes.trainS' => 'S train',
+			'transport.lineTypes.trainR' => 'R train',
+			'transport.lineTypes.trainInterregional' => 'Interregional train',
+			'transport.lineTypes.trainTourist' => 'Tourist train',
+			'transport.lineTypes.ferry' => 'Ferry',
+			'transport.lineTypes.funicular' => 'Funicular',
+			'transport.lineTypes.replacementMetro' => 'Metro replacement service',
+			'transport.lineTypes.replacementTram' => 'Tram replacement service',
+			'transport.lineTypes.replacementBus' => 'Bus replacement service',
+			'transport.lineTypes.replacementTrain' => 'Train replacement service',
+			'transport.lineTypes.replacementUnknown' => 'Replacement service',
+			'transport.lineTypes.schoolBus' => 'School bus',
+			'transport.lineTypes.specialOther' => 'Other / special line',
+			'transport.lineTypes.unknown' => 'Unknown line type',
 			'errors.missingToken' => 'Golemio API token is missing. Run the app with --dart-define=GOLEMIO_API_TOKEN=your_token.',
 			'errors.unauthorized' => 'The Golemio API token is invalid or unauthorized. Check the token.',
 			'errors.network' => 'Could not connect to the Golemio API. Check your internet connection.',

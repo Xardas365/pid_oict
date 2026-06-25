@@ -10,6 +10,33 @@
   "common": {
     "retry": "Zkusit znovu"
   },
+  "transport": {
+    "lineTypes": {
+      "metro": "Metro",
+      "tram": "Tramvaj",
+      "tramSpecial": "Zvláštní tramvaj",
+      "tramNight": "Noční tramvaj",
+      "cityBus": "Městský autobus",
+      "cityBusNight": "Noční městský autobus",
+      "regionalBus": "Regionální autobus",
+      "regionalBusNight": "Noční regionální autobus",
+      "trolleybus": "Trolejbus",
+      "trainS": "Vlak S",
+      "trainR": "Vlak R",
+      "trainInterregional": "Mezikrajský vlak",
+      "trainTourist": "Turistický vlak",
+      "ferry": "Přívoz",
+      "funicular": "Lanová dráha",
+      "replacementMetro": "Náhradní doprava za metro",
+      "replacementTram": "Náhradní tramvajová doprava",
+      "replacementBus": "Náhradní autobusová doprava",
+      "replacementTrain": "Náhradní vlaková doprava",
+      "replacementUnknown": "Náhradní doprava",
+      "schoolBus": "Školní linka",
+      "specialOther": "Ostatní / zvláštní linka",
+      "unknown": "Neznámý typ linky"
+    }
+  },
   "errors": {
     "missingToken": "Chybí Golemio API token. Spusťte aplikaci s --dart-define=GOLEMIO_API_TOKEN=vas_token.",
     "unauthorized": "Golemio API token je neplatný nebo nemá oprávnění. Zkontrolujte token.",

@@ -10,6 +10,33 @@
   "common": {
     "retry": "Try again"
   },
+  "transport": {
+    "lineTypes": {
+      "metro": "Metro",
+      "tram": "Tram",
+      "tramSpecial": "Special tram",
+      "tramNight": "Night tram",
+      "cityBus": "City bus",
+      "cityBusNight": "Night city bus",
+      "regionalBus": "Regional bus",
+      "regionalBusNight": "Night regional bus",
+      "trolleybus": "Trolleybus",
+      "trainS": "S train",
+      "trainR": "R train",
+      "trainInterregional": "Interregional train",
+      "trainTourist": "Tourist train",
+      "ferry": "Ferry",
+      "funicular": "Funicular",
+      "replacementMetro": "Metro replacement service",
+      "replacementTram": "Tram replacement service",
+      "replacementBus": "Bus replacement service",
+      "replacementTrain": "Train replacement service",
+      "replacementUnknown": "Replacement service",
+      "schoolBus": "School bus",
+      "specialOther": "Other / special line",
+      "unknown": "Unknown line type"
+    }
+  },
   "errors": {
     "missingToken": "Golemio API token is missing. Run the app with --dart-define=GOLEMIO_API_TOKEN=your_token.",
     "unauthorized": "The Golemio API token is invalid or unauthorized. Check the token.",

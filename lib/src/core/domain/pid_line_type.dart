@@ -111,34 +111,6 @@ extension PidLineTypeInfo on PidLineType {
     };
   }
 
-  String get label {
-    return switch (this) {
-      PidLineType.metro => 'Metro',
-      PidLineType.tram => 'Tramvaj',
-      PidLineType.tramSpecial => 'Zvláštní tramvaj',
-      PidLineType.tramNight => 'Noční tramvaj',
-      PidLineType.cityBus => 'Městský autobus',
-      PidLineType.cityBusNight => 'Noční městský autobus',
-      PidLineType.regionalBus => 'Regionální autobus',
-      PidLineType.regionalBusNight => 'Noční regionální autobus',
-      PidLineType.trolleybus => 'Trolejbus',
-      PidLineType.trainS => 'Vlak S',
-      PidLineType.trainR => 'Vlak R',
-      PidLineType.trainInterregional => 'Mezikrajský vlak',
-      PidLineType.trainTourist => 'Turistický vlak',
-      PidLineType.ferry => 'Přívoz',
-      PidLineType.funicular => 'Lanová dráha',
-      PidLineType.replacementMetro => 'Náhradní doprava za metro',
-      PidLineType.replacementTram => 'Náhradní tramvajová doprava',
-      PidLineType.replacementBus => 'Náhradní autobusová doprava',
-      PidLineType.replacementTrain => 'Náhradní vlaková doprava',
-      PidLineType.replacementUnknown => 'Náhradní doprava',
-      PidLineType.schoolBus => 'Školní linka',
-      PidLineType.specialOther => 'Ostatní / zvláštní linka',
-      PidLineType.unknown => 'Neznámý typ linky',
-    };
-  }
-
   bool get isNight => service == PidServiceKind.night;
 
   bool get isReplacement => service == PidServiceKind.replacement;
