@@ -191,6 +191,10 @@ with all related platform stop IDs.
 
 The app uses pragmatic Clean Architecture with Flutter Bloc:
 
+For a review-oriented description of the layer boundaries, API flow, SOLID
+trade-offs, `pid_seeds` Atomic Design usage, and test strategy, see
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
+
 - `lib/src/core/config`: base URL, environment configuration, token access.
 - `lib/src/core/network`: Dio API client, safe debug logging, JSON handling,
   status-code mapping, timeout and network error mapping.
