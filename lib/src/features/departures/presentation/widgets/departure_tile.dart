@@ -251,7 +251,6 @@ class _DepartureTimeBlock extends StatelessWidget {
                         bottomLabel,
                         maxLines: 1,
                         textAlign: TextAlign.right,
-                        overflow: TextOverflow.ellipsis,
                         style: textTheme.bodySmall?.copyWith(
                           color: bottomColor,
                           fontFeatures: const [FontFeature.tabularFigures()],

@@ -172,6 +172,8 @@ void main() {
       expect(find.text('za 3 min'), findsNothing);
       expect(find.text('10:15'), findsOneWidget);
       expect(find.text('+2 min'), findsOneWidget);
+      final delayText = tester.widget<Text>(find.text('+2 min'));
+      expect(delayText.overflow, isNull);
       expect(selectedArgs, isNull);
 
       await tester.tap(find.byTooltip('Přepnout zobrazení času odjezdu'));
