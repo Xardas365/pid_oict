@@ -67,7 +67,6 @@ class CachedStops {
     }
 
     return CachedStops(
-      schemaVersion: stopsCacheSchemaVersion,
       cachedAt: cachedAt,
       stops: List<Stop>.unmodifiable(stops),
       hasMore:

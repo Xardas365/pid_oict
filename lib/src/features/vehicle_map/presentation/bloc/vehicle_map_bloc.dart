@@ -112,7 +112,7 @@ class VehicleMapBloc extends Bloc<VehicleMapEvent, VehicleMapState> {
           position: position,
         ),
       );
-    } catch (error) {
+    } on Object catch (error) {
       if (previousPosition != null) {
         emit(
           VehicleMapState(

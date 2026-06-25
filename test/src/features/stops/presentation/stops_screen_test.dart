@@ -53,7 +53,8 @@ void main() {
 
     expect(
       find.text(
-        'Nepodařilo se připojit ke Golemio API. Zkontrolujte připojení k internetu.',
+        'Nepodařilo se připojit ke Golemio API. '
+        'Zkontrolujte připojení k internetu.',
       ),
       findsOneWidget,
     );
@@ -457,12 +458,16 @@ Future<void> _pumpStopsScreen(
       child: MaterialApp(
         theme: PidSeedsTheme.light(),
         home: BlocProvider(
-          create: (_) => StopsCubit(
-            GetStopsUseCase(repository),
-            cacheDataSource: cacheDataSource,
-            savedStopsDataSource: savedStopsDataSource,
-            now: now,
-          )..loadStops(),
+          create: (_) {
+            final cubit = StopsCubit(
+              GetStopsUseCase(repository),
+              cacheDataSource: cacheDataSource,
+              savedStopsDataSource: savedStopsDataSource,
+              now: now,
+            );
+            unawaited(cubit.loadStops());
+            return cubit;
+          },
           child: StopsScreen(onStopSelected: onStopSelected),
         ),
       ),
@@ -526,7 +531,7 @@ class _QueueStopsRepository implements StopsRepository {
   _QueueStopsRepository(this._responses);
 
   final List<_StopsResponse> _responses;
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<List<Stop>> fetchStops() async {
@@ -535,9 +540,21 @@ class _QueueStopsRepository implements StopsRepository {
 
     return switch (response) {
       _StopsSuccess(:final stops) => stops,
-      _StopsFailure(:final error) => throw error,
+      _StopsFailure(:final error) => _throwTestError(error),
     };
   }
+}
+
+Never _throwTestError(Object error) {
+  if (error is Exception) {
+    throw error;
+  }
+
+  if (error is Error) {
+    throw error;
+  }
+
+  throw StateError(error.toString());
 }
 
 sealed class _StopsResponse {

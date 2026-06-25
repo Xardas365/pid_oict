@@ -5,7 +5,7 @@ import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 
 void main() {
   test('GetVehiclePositionForVehicleUseCase delegates vehicle id', () async {
-    final position = VehiclePosition(
+    const position = VehiclePosition(
       vehicleId: 'service-3-1001',
       latitude: 50.0755,
       longitude: 14.4378,

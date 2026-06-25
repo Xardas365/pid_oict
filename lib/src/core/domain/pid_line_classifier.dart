@@ -238,5 +238,5 @@ bool _looksSpecialLabel(String normalized) {
 
   return normalized.startsWith('*') ||
       normalized.contains('MHD') ||
-      RegExp(r'[A-Z]').hasMatch(normalized);
+      RegExp('[A-Z]').hasMatch(normalized);
 }

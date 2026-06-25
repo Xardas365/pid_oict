@@ -103,7 +103,7 @@ class StopsCubit extends Cubit<StopsState> {
         hasMore: page.hasMore,
         nextOffset: page.offset + page.rawReturnedCount,
       );
-    } catch (error) {
+    } on Object catch (error) {
       emit(
         StopsState(
           status: StopsStatus.error,
@@ -146,15 +146,13 @@ class StopsCubit extends Cubit<StopsState> {
           searchQuery: '',
           hasMore: page.hasMore,
           nextOffset: nextOffset,
-          isFromCache: false,
-          isCacheStale: false,
         ),
       );
       await _writeCacheFromCurrentStops(
         hasMore: page.hasMore,
         nextOffset: nextOffset,
       );
-    } catch (error) {
+    } on Object catch (error) {
       emit(
         state.copyWith(
           isFromCache: true,
@@ -224,8 +222,6 @@ class StopsCubit extends Cubit<StopsState> {
           searchQuery: current.searchQuery,
           hasMore: page.hasMore,
           nextOffset: current.nextOffset + page.rawReturnedCount,
-          isFromCache: false,
-          isCacheStale: false,
           clearCacheRefreshError: true,
         ),
       );
@@ -233,7 +229,7 @@ class StopsCubit extends Cubit<StopsState> {
         hasMore: page.hasMore,
         nextOffset: current.nextOffset + page.rawReturnedCount,
       );
-    } catch (error) {
+    } on Object catch (error) {
       emit(current.copyWith(isLoadingMore: false, error: error));
     }
   }
@@ -318,7 +314,6 @@ class StopsCubit extends Cubit<StopsState> {
             searchQuery: query,
             hasMore: state.hasMore,
             nextOffset: state.nextOffset,
-            isSearching: false,
             isFromCache: state.isFromCache,
             isCacheStale: state.isCacheStale,
             cacheRefreshError: state.cacheRefreshError,
@@ -333,14 +328,13 @@ class StopsCubit extends Cubit<StopsState> {
           searchQuery: query,
           hasMore: state.hasMore,
           nextOffset: state.nextOffset,
-          isSearching: false,
           useProvidedStopsDirectly: true,
           isFromCache: state.isFromCache,
           isCacheStale: state.isCacheStale,
           cacheRefreshError: state.cacheRefreshError,
         ),
       );
-    } catch (error) {
+    } on Object catch (error) {
       if (state.searchQuery.trim() != normalizedQuery) {
         return;
       }
@@ -349,11 +343,9 @@ class StopsCubit extends Cubit<StopsState> {
         StopsState(
           status: StopsStatus.error,
           allStops: _sortedStops,
-          filteredStops: const <Stop>[],
           searchQuery: query,
           error: error,
           allGroups: groupStops(_sortedStops),
-          filteredGroups: const <StopGroup>[],
           hasMore: state.hasMore,
           nextOffset: state.nextOffset,
           isFromCache: state.isFromCache,
@@ -428,13 +420,13 @@ class StopsCubit extends Cubit<StopsState> {
 
     try {
       _favoriteGroupIds = (await dataSource.readFavorites()).favoriteGroupIds;
-    } catch (_) {
+    } on Object {
       _favoriteGroupIds = const <String>[];
     }
 
     try {
       _recentGroupIds = (await dataSource.readRecent()).recentGroupIds;
-    } catch (_) {
+    } on Object {
       _recentGroupIds = const <String>[];
     }
   }
@@ -447,7 +439,7 @@ class StopsCubit extends Cubit<StopsState> {
 
     try {
       await dataSource.writeFavorites(favorites);
-    } catch (_) {
+    } on Object {
       // Saved-stop persistence must not block the main stops flow.
     }
   }
@@ -460,7 +452,7 @@ class StopsCubit extends Cubit<StopsState> {
 
     try {
       await dataSource.writeRecent(recent);
-    } catch (_) {
+    } on Object {
       // Saved-stop persistence must not block departure navigation.
     }
   }
@@ -505,7 +497,7 @@ class StopsCubit extends Cubit<StopsState> {
 
     try {
       return await dataSource.read();
-    } catch (_) {
+    } on Object {
       return null;
     }
   }
@@ -533,7 +525,7 @@ class StopsCubit extends Cubit<StopsState> {
           nextOffset: nextOffset,
         ),
       );
-    } catch (_) {
+    } on Object {
       // Cache failures must not block live stop loading.
     }
   }

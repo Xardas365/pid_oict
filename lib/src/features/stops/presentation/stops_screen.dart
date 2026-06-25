@@ -68,7 +68,7 @@ class _StopsScreenState extends State<StopsScreen> {
 
     final remainingExtent = position.maxScrollExtent - position.pixels;
     if (remainingExtent < 480) {
-      context.read<StopsCubit>().loadMore();
+      unawaited(context.read<StopsCubit>().loadMore());
     }
   }
 
@@ -112,13 +112,15 @@ class _StopsScreenState extends State<StopsScreen> {
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-          create: (context) =>
-              DeparturesBloc(context.read<GetDeparturesForStopUseCase>())
-                ..add(DeparturesStarted(stop)),
-          child: DeparturesScreen(stop: stop),
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (context) =>
+                DeparturesBloc(context.read<GetDeparturesForStopUseCase>())
+                  ..add(DeparturesStarted(stop)),
+            child: DeparturesScreen(stop: stop),
+          ),
         ),
       ),
     );
@@ -184,7 +186,7 @@ class _StopsScreenState extends State<StopsScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: BlocBuilder<StopsCubit, StopsState>(
-                    builder: (context, state) => _buildContent(context, state),
+                    builder: _buildContent,
                   ),
                 ),
               ],

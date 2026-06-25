@@ -77,8 +77,8 @@ void main() {
       () {
         final group = groupStops([
           _stop(id: 'U1Z1', name: 'Anděl', zoneId: 'B'),
-          _stop(id: 'U1Z2', name: 'Anděl', zoneId: 'P'),
-          _stop(id: 'U1Z3', name: 'Anděl', zoneId: 'P'),
+          _stop(id: 'U1Z2', name: 'Anděl'),
+          _stop(id: 'U1Z3', name: 'Anděl'),
         ]).single;
 
         expect(group.zoneId, 'P');

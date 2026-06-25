@@ -1,5 +1,5 @@
-import '../../../../core/logging/golemio_debug_logger.dart';
 import '../../../../core/errors/app_exception.dart';
+import '../../../../core/logging/golemio_debug_logger.dart';
 import '../../../../core/network/golemio_api_client.dart';
 import '../../../../shared/utils/parser_diagnostics.dart';
 import '../../domain/gtfs_stops_query.dart';

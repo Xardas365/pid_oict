@@ -389,8 +389,7 @@ GolemioApiClient _client({
   required String apiToken,
   required _FakeDioAdapter adapter,
 }) {
-  final dio = createGolemioDio(enableLogging: false)
-    ..httpClientAdapter = adapter;
+  final dio = createGolemioDio()..httpClientAdapter = adapter;
 
   return GolemioApiClient(
     config: AppConfig(apiToken: apiToken),

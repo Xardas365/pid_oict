@@ -34,7 +34,7 @@ class QueueStopsRepository implements StopsRepository {
   QueueStopsRepository(this._responses);
 
   final List<RepositoryResponse<List<Stop>>> _responses;
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<List<Stop>> fetchStops() {
@@ -58,7 +58,7 @@ class QueueDeparturesRepository implements DeparturesRepository {
 
   final List<RepositoryResponse<List<Departure>>> _responses;
   final receivedStops = <StopGroup>[];
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) {
@@ -83,7 +83,7 @@ class QueueVehiclePositionRepository implements VehiclePositionRepository {
 
   final List<RepositoryResponse<VehiclePosition>> _responses;
   final receivedVehicleIds = <String>[];
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<VehiclePosition> fetchVehiclePosition(String vehicleId) {
@@ -108,7 +108,19 @@ class QueueVehiclePositionRepository implements VehiclePositionRepository {
 Future<T> resolveRepositoryResponse<T>(RepositoryResponse<T> response) async {
   return switch (response) {
     RepositorySuccess(:final value) => value,
-    RepositoryFailure(:final error) => throw error,
+    RepositoryFailure(:final error) => throwTestError(error),
     RepositoryPending(:final completer) => completer.future,
   };
+}
+
+Never throwTestError(Object error) {
+  if (error is Exception) {
+    throw error;
+  }
+
+  if (error is Error) {
+    throw error;
+  }
+
+  throw StateError(error.toString());
 }

@@ -12,7 +12,7 @@ void main() {
     });
 
     test('serializes square-bracket array parameters explicitly', () {
-      final query = const GtfsStopsQuery(
+      const query = GtfsStopsQuery(
         limit: 100,
         offset: 0,
         names: ['Flora', 'Anděl'],

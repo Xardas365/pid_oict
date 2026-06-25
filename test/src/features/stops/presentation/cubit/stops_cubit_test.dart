@@ -146,8 +146,8 @@ void main() {
 
     test('loads first page with pagination metadata', () async {
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(id: 'U2Z1', name: 'Flora'),
               Stop(id: 'U1Z1', name: 'Andel'),
@@ -181,8 +181,8 @@ void main() {
 
     test('initial load exposes grouped public stops', () async {
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(
                 id: 'U118Z101P',
@@ -223,8 +223,8 @@ void main() {
 
     test('load more appends pages and deduplicates by stop id', () async {
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(id: 'U2Z1', name: 'Flora'),
               Stop(id: 'U1Z1', name: 'Andel'),
@@ -235,8 +235,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(id: 'U2Z1', name: 'Flora updated'),
               Stop(id: 'U3Z1', name: 'I. P. Pavlova'),
@@ -266,8 +266,8 @@ void main() {
 
     test('load more combines grouped platforms from later pages', () async {
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(
                 id: 'U118Z101P',
@@ -283,8 +283,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(
                 id: 'U118Z102P',
@@ -321,8 +321,8 @@ void main() {
       () async {
         final completer = Completer<StopsPage>();
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [Stop(id: 'U1Z1', name: 'Andel')],
               limit: 1,
               offset: 0,
@@ -363,8 +363,8 @@ void main() {
       'search with three characters uses API names query after debounce',
       () async {
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [
                 Stop(id: 'U1Z1', name: 'Andel'),
                 Stop(id: 'U2Z1', name: 'Flora'),
@@ -375,8 +375,8 @@ void main() {
               hasMore: true,
             ),
           ),
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [Stop(id: 'U2Z1', name: 'Flora')],
               limit: 100,
               offset: 0,
@@ -409,8 +409,8 @@ void main() {
 
     test('API search results are grouped before display', () async {
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(id: 'U1Z1', name: 'Andel'),
               Stop(id: 'U2Z1', name: 'Flora'),
@@ -421,8 +421,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [
               Stop(
                 id: 'U118Z101P',
@@ -471,8 +471,8 @@ void main() {
       'API search empty result keeps diacritics-insensitive local matches',
       () async {
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [_cernyMostPublicStop],
               limit: 1,
               offset: 0,
@@ -480,8 +480,8 @@ void main() {
               hasMore: true,
             ),
           ),
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [],
               limit: 100,
               offset: 0,
@@ -516,8 +516,8 @@ void main() {
       'short search query stays local and does not call API search',
       () async {
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [
                 Stop(id: 'U1Z1', name: 'Andel'),
                 Stop(id: 'U2Z1', name: 'Flora'),
@@ -548,8 +548,8 @@ void main() {
     test('writes cache after network-first load succeeds', () async {
       final cache = InMemoryStopsCacheDataSource();
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_andelPublicStop],
             limit: 1,
             offset: 0,
@@ -730,8 +730,8 @@ void main() {
         ),
       );
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_floraPublicStop],
             limit: 1,
             offset: 0,
@@ -792,8 +792,8 @@ void main() {
     test('load more updates cache through stop id merge', () async {
       final cache = InMemoryStopsCacheDataSource();
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_andelPublicStop],
             limit: 1,
             offset: 0,
@@ -801,8 +801,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_floraPublicStop],
             limit: 1,
             offset: 1,
@@ -835,8 +835,8 @@ void main() {
     test('API search does not overwrite the full cache', () async {
       final cache = InMemoryStopsCacheDataSource();
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_andelPublicStop, _staromestskaPublicStop],
             limit: 2,
             offset: 0,
@@ -844,8 +844,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_floraPublicStop],
             limit: 100,
             offset: 0,
@@ -969,8 +969,8 @@ void main() {
         ),
       );
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_floraPublicStop],
             limit: 500,
             offset: 0,
@@ -978,8 +978,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_staromestskaPublicStop],
             limit: 500,
             offset: 500,
@@ -1023,8 +1023,8 @@ void main() {
           ),
         );
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [_andelPublicStop],
               limit: 1,
               offset: 0,
@@ -1059,8 +1059,8 @@ void main() {
         ),
       );
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_staromestskaPublicStop],
             limit: 1,
             offset: 0,
@@ -1089,8 +1089,8 @@ void main() {
           RecentStops(updatedAt: _now, recentGroupIds: const ['U118S1']),
         );
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [_andelPublicStop],
               limit: 1,
               offset: 0,
@@ -1127,8 +1127,8 @@ void main() {
       () async {
         final savedStops = InMemorySavedStopsDataSource();
         final repository = _FakePaginatedStopsRepository([
-          _StopsPageSuccess(
-            const StopsPage(
+          const _StopsPageSuccess(
+            StopsPage(
               stops: [_andelPublicStop, _floraPublicStop],
               limit: 2,
               offset: 0,
@@ -1188,8 +1188,8 @@ void main() {
         RecentStops(updatedAt: _now, recentGroupIds: const ['U456S1']),
       );
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_andelPublicStop, _staromestskaPublicStop],
             limit: 2,
             offset: 0,
@@ -1197,8 +1197,8 @@ void main() {
             hasMore: true,
           ),
         ),
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_floraPublicStop],
             limit: 100,
             offset: 0,
@@ -1238,8 +1238,8 @@ void main() {
         RecentStops(updatedAt: _now, recentGroupIds: const ['U123S1']),
       );
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_floraPublicStop],
             limit: 1,
             offset: 0,
@@ -1273,8 +1273,8 @@ void main() {
         RecentStops(updatedAt: _now, recentGroupIds: const ['unknown']),
       );
       final repository = _FakePaginatedStopsRepository([
-        _StopsPageSuccess(
-          const StopsPage(
+        const _StopsPageSuccess(
+          StopsPage(
             stops: [_andelPublicStop],
             limit: 1,
             offset: 0,
@@ -1379,7 +1379,7 @@ class _FakeStopsRepository implements StopsRepository {
   _FakeStopsRepository(this._responses);
 
   final List<_StopsResponse> _responses;
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<List<Stop>> fetchStops() async {
@@ -1388,7 +1388,7 @@ class _FakeStopsRepository implements StopsRepository {
 
     return switch (response) {
       _StopsSuccess(:final stops) => stops,
-      _StopsFailure(:final error) => throw error,
+      _StopsFailure(:final error) => _throwTestError(error),
     };
   }
 }
@@ -1421,10 +1421,22 @@ class _FakePaginatedStopsRepository implements PaginatedStopsRepository {
 
     return switch (response) {
       _StopsPageSuccess(:final page) => page,
-      _StopsPageFailure(:final error) => throw error,
+      _StopsPageFailure(:final error) => _throwTestError(error),
       _StopsPagePending(:final completer) => completer.future,
     };
   }
+}
+
+Never _throwTestError(Object error) {
+  if (error is Exception) {
+    throw error;
+  }
+
+  if (error is Error) {
+    throw error;
+  }
+
+  throw StateError(error.toString());
 }
 
 sealed class _StopsResponse {

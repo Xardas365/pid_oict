@@ -34,7 +34,6 @@ class PidTransportIcon extends StatelessWidget {
       assetPath,
       width: size,
       height: size,
-      fit: BoxFit.contain,
       semanticsLabel: visual.semanticLabel,
       errorBuilder: (_, _, _) => fallback,
     );

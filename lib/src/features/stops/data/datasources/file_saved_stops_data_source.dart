@@ -61,7 +61,7 @@ class FileSavedStopsDataSource implements SavedStopsDataSource {
       return null;
     } on FormatException {
       return null;
-    } on TypeError {
+    } on Object {
       return null;
     }
   }

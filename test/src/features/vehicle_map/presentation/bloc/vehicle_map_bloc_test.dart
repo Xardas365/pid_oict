@@ -13,7 +13,7 @@ void main() {
   group('VehicleMapBloc', () {
     test('loads initial vehicle position successfully', () async {
       final repository = _QueueVehiclePositionRepository([
-        _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.0755)),
+        _VehiclePositionSuccess(_position('vehicle-1')),
       ]);
       final bloc = _createBloc(repository);
       addTearDown(bloc.close);
@@ -81,7 +81,7 @@ void main() {
 
     test('refresh success updates the position', () async {
       final repository = _QueueVehiclePositionRepository([
-        _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.0755)),
+        _VehiclePositionSuccess(_position('vehicle-1')),
         _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.08)),
       ]);
       final bloc = _createBloc(repository);
@@ -103,7 +103,7 @@ void main() {
         message: 'Timeout.',
       );
       final repository = _QueueVehiclePositionRepository([
-        _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.0755)),
+        _VehiclePositionSuccess(_position('vehicle-1')),
         const _VehiclePositionFailure(expectedError),
       ]);
       final bloc = _createBloc(repository);
@@ -126,7 +126,7 @@ void main() {
       () async {
         final refreshCompleter = Completer<VehiclePosition>();
         final repository = _QueueVehiclePositionRepository([
-          _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.0755)),
+          _VehiclePositionSuccess(_position('vehicle-1')),
           _VehiclePositionPending(refreshCompleter),
         ]);
         final bloc = _createBloc(repository);
@@ -168,9 +168,7 @@ void main() {
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
         tickerFactory: (_) => tickerController.stream,
-      );
-
-      bloc.add(const VehicleMapStarted('service-1'));
+      )..add(const VehicleMapStarted('service-1'));
       await _waitForStatus(bloc, VehicleMapStatus.loaded);
 
       await bloc.close();
@@ -182,18 +180,17 @@ void main() {
     test('ticker triggers refresh with same vehicleId', () async {
       final tickerController = StreamController<void>();
       final repository = _QueueVehiclePositionRepository([
-        _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.0755)),
+        _VehiclePositionSuccess(_position('vehicle-1')),
         _VehiclePositionSuccess(_position('vehicle-1', latitude: 50.08)),
       ]);
       final bloc = VehicleMapBloc(
         GetVehiclePositionForVehicleUseCase(repository),
         pollingInterval: const Duration(seconds: 1),
         tickerFactory: (_) => tickerController.stream,
-      );
+      )..add(const VehicleMapStarted('service-1'));
       addTearDown(bloc.close);
       addTearDown(tickerController.close);
 
-      bloc.add(const VehicleMapStarted('service-1'));
       await _waitForLatitude(bloc, 50.0755);
 
       tickerController.add(null);
@@ -248,7 +245,7 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
 
   final List<_VehiclePositionResponse> _responses;
   final receivedVehicleIds = <String>[];
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
@@ -258,10 +255,22 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
 
     return switch (response) {
       _VehiclePositionSuccess(:final position) => position,
-      _VehiclePositionFailure(:final error) => throw error,
+      _VehiclePositionFailure(:final error) => _throwTestError(error),
       _VehiclePositionPending(:final completer) => completer.future,
     };
   }
+}
+
+Never _throwTestError(Object error) {
+  if (error is Exception) {
+    throw error;
+  }
+
+  if (error is Error) {
+    throw error;
+  }
+
+  throw StateError(error.toString());
 }
 
 sealed class _VehiclePositionResponse {

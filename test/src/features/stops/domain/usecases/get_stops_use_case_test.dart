@@ -22,7 +22,7 @@ class _FakeStopsRepository implements StopsRepository {
   _FakeStopsRepository(this._stops);
 
   final List<Stop> _stops;
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<List<Stop>> fetchStops() async {

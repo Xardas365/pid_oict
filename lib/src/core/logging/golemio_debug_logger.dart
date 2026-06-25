@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 
 const _golemioDebugLogsEnabled = bool.fromEnvironment(
   'GOLEMIO_DEBUG_LOGS',
-  defaultValue: false,
 );
 
-const isGolemioDebugLoggingEnabled = kDebugMode && _golemioDebugLogsEnabled;
+const bool isGolemioDebugLoggingEnabled =
+    kDebugMode && _golemioDebugLogsEnabled;
 
 void logGolemioDebug(String message) {
   if (isGolemioDebugLoggingEnabled) {

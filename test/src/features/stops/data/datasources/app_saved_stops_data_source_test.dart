@@ -43,9 +43,10 @@ void main() {
       tempDirectory = await Directory.systemTemp.createTemp(
         'pid_oict_app_saved_stops_data_source_test_',
       );
+      final separator = Platform.pathSeparator;
       files = SavedStopsFiles(
         favoritesFile: File(
-          '${tempDirectory.path}${Platform.pathSeparator}$favoriteStopsFileName',
+          '${tempDirectory.path}$separator$favoriteStopsFileName',
         ),
         recentFile: File(
           '${tempDirectory.path}${Platform.pathSeparator}$recentStopsFileName',

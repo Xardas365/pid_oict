@@ -37,7 +37,7 @@ void main() {
 
     test('filters and sorts user-facing stops by public name', () {
       final stops = sortedUserFacingStops([
-        _publicStop(name: 'Flora', id: 'U2Z1'),
+        _publicStop(id: 'U2Z1'),
         _publicStop(name: 'Anděl', id: 'U1Z1'),
         _publicStop(name: 'vl. v km 12,4', id: 'T53297'),
         _publicStop(name: 'Kolín výh.č.1', id: 'U3Z1'),

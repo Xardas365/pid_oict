@@ -7,7 +7,7 @@ import '../../../fakes/fake_golemio_api_client.dart';
 void main() {
   group('VehiclePositionRepository', () {
     test('loads the first valid vehicle position', () async {
-      final apiClient = FakeGolemioApiClient(
+      final apiClient = mockGolemioApiClient(
         response: {
           'features': [
             {
@@ -31,12 +31,14 @@ void main() {
 
       final position = await repository.fetchVehiclePosition('service-3-1001');
 
-      expect(apiClient.calls, hasLength(1));
-      expect(
-        apiClient.calls.single.path,
+      final queryParameters = verifySingleGetJson(
+        apiClient,
         '/v2/public/vehiclepositions/service-3-1001',
       );
-      expect(apiClient.calls.single.queryParameters, {'scopes': 'info'});
+      expect(
+        queryParameters,
+        {'scopes': 'info'},
+      );
       expect(position.vehicleId, 'tram-22-123');
       expect(position.latitude, 50.0755);
       expect(position.longitude, 14.4378);
@@ -44,7 +46,7 @@ void main() {
     });
 
     test('encodes vehicleId as one path segment', () async {
-      final apiClient = FakeGolemioApiClient(
+      final apiClient = mockGolemioApiClient(
         response: {
           'geometry': {
             'type': 'Point',
@@ -58,15 +60,18 @@ void main() {
       await repository.fetchVehiclePosition('service/with slash');
 
       expect(
-        apiClient.calls.single.path,
-        '/v2/public/vehiclepositions/service%2Fwith%20slash',
+        verifySingleGetJson(
+          apiClient,
+          '/v2/public/vehiclepositions/service%2Fwith%20slash',
+        ),
+        {'scopes': 'info'},
       );
     });
 
     test(
       'uses request vehicleId when response body omits vehicle id',
       () async {
-        final apiClient = FakeGolemioApiClient(
+        final apiClient = mockGolemioApiClient(
           response: {
             'gtfs_trip_id': '115_107_180501',
             'route_type': 'bus',
@@ -101,7 +106,7 @@ void main() {
 
     test('throws controlled error when vehicleId is blank', () async {
       final repository = GolemioVehiclePositionRepository(
-        FakeGolemioApiClient(response: null),
+        mockGolemioApiClient(),
       );
 
       await expectLater(
@@ -120,7 +125,7 @@ void main() {
       'throws controlled error when no valid position is returned',
       () async {
         final repository = GolemioVehiclePositionRepository(
-          FakeGolemioApiClient(
+          mockGolemioApiClient(
             response: {
               'features': [
                 {
@@ -146,7 +151,7 @@ void main() {
 
     test('throws controlled error for empty API response object', () async {
       final repository = GolemioVehiclePositionRepository(
-        FakeGolemioApiClient(response: {}),
+        mockGolemioApiClient(response: {}),
       );
 
       await expectLater(
@@ -167,7 +172,7 @@ void main() {
         message: 'Timeout.',
       );
       final repository = GolemioVehiclePositionRepository(
-        FakeGolemioApiClient(response: null, error: expectedError),
+        mockGolemioApiClient(error: expectedError),
       );
 
       await expectLater(

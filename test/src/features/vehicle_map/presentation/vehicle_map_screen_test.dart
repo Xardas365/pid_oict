@@ -16,7 +16,7 @@ import '../../../test_localized_app.dart';
 void main() {
   group('VehicleMapScreen', () {
     testWidgets('shows loading state while position is loading', (
-      WidgetTester tester,
+      tester,
     ) async {
       final completer = Completer<VehiclePosition>();
 
@@ -32,7 +32,7 @@ void main() {
     });
 
     testWidgets('shows map marker and last update after position loads', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpVehicleMapScreen(
         tester,
@@ -61,7 +61,7 @@ void main() {
     });
 
     testWidgets('shows no-position state for invalid data', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpVehicleMapScreen(
         tester,
@@ -84,7 +84,7 @@ void main() {
     });
 
     testWidgets('shows initial error and retries loading', (
-      WidgetTester tester,
+      tester,
     ) async {
       final repository = _QueueVehiclePositionRepository([
         const _VehiclePositionFailure(
@@ -115,7 +115,7 @@ void main() {
     });
 
     testWidgets('shows refreshing indicator while preserving marker', (
-      WidgetTester tester,
+      tester,
     ) async {
       final refreshCompleter = Completer<VehiclePosition>();
       late VehicleMapBloc bloc;
@@ -146,7 +146,7 @@ void main() {
     });
 
     testWidgets('keeps last known position when refresh fails', (
-      WidgetTester tester,
+      tester,
     ) async {
       late VehicleMapBloc bloc;
       final repository = _QueueVehiclePositionRepository([
@@ -236,7 +236,7 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
   _QueueVehiclePositionRepository(this._responses);
 
   final List<_VehiclePositionResponse> _responses;
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<VehiclePosition> fetchVehiclePosition(String vehicleId) async {
@@ -245,10 +245,22 @@ class _QueueVehiclePositionRepository implements VehiclePositionRepository {
 
     return switch (response) {
       _VehiclePositionSuccess(:final position) => position,
-      _VehiclePositionFailure(:final error) => throw error,
+      _VehiclePositionFailure(:final error) => _throwTestError(error),
       _VehiclePositionPending(:final completer) => completer.future,
     };
   }
+}
+
+Never _throwTestError(Object error) {
+  if (error is Exception) {
+    throw error;
+  }
+
+  if (error is Error) {
+    throw error;
+  }
+
+  throw StateError(error.toString());
 }
 
 sealed class _VehiclePositionResponse {

@@ -165,11 +165,7 @@ class _SampleToolOptions {
     this.vehicleId,
   });
 
-  final int recordLimit;
-  final String? stopId;
-  final String? vehicleId;
-
-  static _SampleToolOptions parse(List<String> args) {
+  factory _SampleToolOptions.parse(List<String> args) {
     String? stopId;
     String? vehicleId;
     var recordLimit = _defaultRecordLimit;
@@ -194,6 +190,10 @@ class _SampleToolOptions {
       recordLimit: _clampLimit(recordLimit),
     );
   }
+
+  final int recordLimit;
+  final String? stopId;
+  final String? vehicleId;
 
   static MapEntry<String, String> _parseOption(String arg) {
     final separator = arg.indexOf('=');

@@ -10,7 +10,7 @@ void main() {
     test(
       'loads public stops, filters technical records, and sorts by name',
       () async {
-        final apiClient = FakeGolemioApiClient(
+        final apiClient = mockGolemioApiClient(
           response: {
             'features': [
               {
@@ -120,12 +120,10 @@ void main() {
 
         final stops = await repository.fetchStops();
 
-        expect(apiClient.calls, hasLength(1));
         expect(
-          apiClient.calls.single.path,
-          '/v2/gtfs/stops?limit=1000&offset=0',
+          verifySingleGetJson(apiClient, '/v2/gtfs/stops?limit=1000&offset=0'),
+          isEmpty,
         );
-        expect(apiClient.calls.single.queryParameters, isEmpty);
         expect(stops.map((stop) => stop.name), ['Andel', 'Flora']);
         expect(stops.first.id, 'U1Z1');
         expect(stops.first.latitude, 50.07128);
@@ -134,7 +132,7 @@ void main() {
     );
 
     test('loads a page with limit and offset and reports hasMore', () async {
-      final apiClient = FakeGolemioApiClient(
+      final apiClient = mockGolemioApiClient(
         response: {
           'features': [
             _stopFeature(
@@ -158,7 +156,7 @@ void main() {
         const GtfsStopsQuery(limit: 2, offset: 10),
       );
 
-      expect(apiClient.calls.single.path, '/v2/gtfs/stops?limit=2&offset=10');
+      verifySingleGetJson(apiClient, '/v2/gtfs/stops?limit=2&offset=10');
       expect(page.limit, 2);
       expect(page.offset, 10);
       expect(page.rawReturnedCount, 2);
@@ -167,7 +165,7 @@ void main() {
     });
 
     test('loads an API search page with names array parameter', () async {
-      final apiClient = FakeGolemioApiClient(
+      final apiClient = mockGolemioApiClient(
         response: {
           'features': [
             _stopFeature(
@@ -186,8 +184,11 @@ void main() {
       );
 
       expect(
-        apiClient.calls.single.path,
-        '/v2/gtfs/stops?names[]=Flora&limit=100&offset=0',
+        verifySingleGetJson(
+          apiClient,
+          '/v2/gtfs/stops?names[]=Flora&limit=100&offset=0',
+        ),
+        isEmpty,
       );
       expect(page.hasMore, isFalse);
       expect(page.stops.single.name, 'Flora');
@@ -195,7 +196,7 @@ void main() {
 
     test('throws controlled error when no valid stops are returned', () async {
       final repository = GolemioStopsRepository(
-        FakeGolemioApiClient(
+        mockGolemioApiClient(
           response: {
             'features': [
               {
@@ -222,7 +223,7 @@ void main() {
       'throws controlled error when only technical stops are returned',
       () async {
         final repository = GolemioStopsRepository(
-          FakeGolemioApiClient(
+          mockGolemioApiClient(
             response: {
               'features': [
                 {
@@ -257,7 +258,7 @@ void main() {
 
     test('throws controlled error for empty API response object', () async {
       final repository = GolemioStopsRepository(
-        FakeGolemioApiClient(response: {}),
+        mockGolemioApiClient(response: {}),
       );
 
       await expectLater(
@@ -278,7 +279,7 @@ void main() {
         message: 'Missing token.',
       );
       final repository = GolemioStopsRepository(
-        FakeGolemioApiClient(response: null, error: expectedError),
+        mockGolemioApiClient(error: expectedError),
       );
 
       await expectLater(repository.fetchStops(), throwsA(same(expectedError)));

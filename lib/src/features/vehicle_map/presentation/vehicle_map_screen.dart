@@ -30,7 +30,7 @@ class VehicleMapScreen extends StatelessWidget {
       appBar: AppBar(title: Text(context.t.vehicleMap.title)),
       body: SafeArea(
         child: BlocBuilder<VehicleMapBloc, VehicleMapState>(
-          builder: (context, state) => _buildBody(context, state),
+          builder: _buildBody,
         ),
       ),
     );

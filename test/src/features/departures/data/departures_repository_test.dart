@@ -15,7 +15,7 @@ void main() {
     test(
       'loads public departures for selected stop and skips invalid records',
       () async {
-        final apiClient = FakeGolemioApiClient(
+        final apiClient = mockGolemioApiClient(
           response: [
             [
               {
@@ -35,12 +35,14 @@ void main() {
 
         final departures = await repository.fetchDeparturesForStop(stop);
 
-        expect(apiClient.calls, hasLength(1));
-        expect(apiClient.calls.single.path, '/v2/public/departureboards');
-        expect(apiClient.calls.single.queryParameters, {
+        final queryParameters = verifySingleGetJson(
+          apiClient,
+          '/v2/public/departureboards',
+          notFoundEmptyListAsSuccess: true,
+        );
+        expect(queryParameters, {
           'stopIds': '{"0":["U123Z1"]}',
         });
-        expect(apiClient.calls.single.notFoundEmptyListAsSuccess, isTrue);
         expect(departures, hasLength(1));
         expect(departures.single.routeShortName, '22');
         expect(departures.single.headsign, 'Nadrazi Hostivar');
@@ -54,7 +56,7 @@ void main() {
     test(
       'aggregates duplicate grouped-stop departures and sorts by time',
       () async {
-        final apiClient = FakeGolemioApiClient(
+        final apiClient = mockGolemioApiClient(
           response: [
             [
               {
@@ -107,27 +109,32 @@ void main() {
     });
 
     test('sends all grouped stop ids to departure board', () async {
-      final apiClient = FakeGolemioApiClient(response: <Object?>[]);
+      final apiClient = mockGolemioApiClient(response: <Object?>[]);
       final repository = GolemioDeparturesRepository(apiClient);
-      final group = StopGroup(
+      const group = StopGroup(
         id: 'U118S1',
         name: 'Flora',
         parentStationId: 'U118S1',
         zoneId: 'P',
         latitude: 50.07827,
         longitude: 14.4633,
-        stops: const [
+        stops: [
           Stop(id: 'U118Z101P', name: 'Flora'),
           Stop(id: 'U118Z102P', name: 'Flora'),
           Stop(id: 'U118Z103P', name: 'Flora'),
         ],
-        stopIds: const ['U118Z101P', 'U118Z102P', 'U118Z103P'],
-        platformCodes: const ['A', 'B', 'C'],
+        stopIds: ['U118Z101P', 'U118Z102P', 'U118Z103P'],
+        platformCodes: ['A', 'B', 'C'],
       );
 
       await repository.fetchDeparturesForStop(group);
 
-      expect(apiClient.calls.single.queryParameters, {
+      final queryParameters = verifySingleGetJson(
+        apiClient,
+        '/v2/public/departureboards',
+        notFoundEmptyListAsSuccess: true,
+      );
+      expect(queryParameters, {
         'stopIds': '{"0":["U118Z101P","U118Z102P","U118Z103P"]}',
       });
     });
@@ -136,7 +143,7 @@ void main() {
       'throws controlled error when no valid departures are returned',
       () async {
         final repository = GolemioDeparturesRepository(
-          FakeGolemioApiClient(
+          mockGolemioApiClient(
             response: {
               'departures': [
                 {'line': 'A'},
@@ -160,7 +167,7 @@ void main() {
 
     test('returns empty departures for empty response', () async {
       final repository = GolemioDeparturesRepository(
-        FakeGolemioApiClient(response: {'departures': <Object?>[]}),
+        mockGolemioApiClient(response: {'departures': <Object?>[]}),
       );
 
       expect(await repository.fetchDeparturesForStop(stop), isEmpty);
@@ -169,13 +176,17 @@ void main() {
     test(
       'returns empty departures for public departureboards 404 [] body',
       () async {
-        final apiClient = FakeGolemioApiClient(response: <Object?>[]);
+        final apiClient = mockGolemioApiClient(response: <Object?>[]);
         final repository = GolemioDeparturesRepository(apiClient);
 
         final departures = await repository.fetchDeparturesForStop(stop);
 
         expect(departures, isEmpty);
-        expect(apiClient.calls.single.notFoundEmptyListAsSuccess, isTrue);
+        verifySingleGetJson(
+          apiClient,
+          '/v2/public/departureboards',
+          notFoundEmptyListAsSuccess: true,
+        );
       },
     );
 
@@ -185,7 +196,7 @@ void main() {
         message: 'Unauthorized.',
       );
       final repository = GolemioDeparturesRepository(
-        FakeGolemioApiClient(response: null, error: expectedError),
+        mockGolemioApiClient(error: expectedError),
       );
 
       await expectLater(

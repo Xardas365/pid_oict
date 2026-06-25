@@ -26,7 +26,7 @@ class FileStopsCacheDataSource implements StopsCacheDataSource {
       return null;
     } on FormatException {
       return null;
-    } on TypeError {
+    } on Object {
       return null;
     }
   }
