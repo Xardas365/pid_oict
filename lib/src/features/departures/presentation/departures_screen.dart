@@ -13,7 +13,6 @@ import '../../../shared/utils/date_time_formatters.dart';
 import '../../../shared/widgets/centered_scroll_view.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
-import '../../../shared/widgets/loading_state_view.dart';
 import '../../stops/domain/stop_group.dart';
 import '../../vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
@@ -113,9 +112,8 @@ class _DeparturesBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showBoardControls =
-        state.status != DeparturesStatus.loading &&
-        state.status != DeparturesStatus.error;
+    final isInitialLoading = state.status == DeparturesStatus.loading;
+    final isInitialError = state.status == DeparturesStatus.error;
 
     return PidDeparturesTemplate.screen(
       title: context.t.departures.title,
@@ -123,14 +121,18 @@ class _DeparturesBoard extends StatelessWidget {
       onBack: onBackToStops,
       stopHeader: _SelectedStopHeader(
         stop: stop,
-        lineType: state.representativeLineType,
+        lineType: state.hasDepartures ? state.representativeLineType : null,
       ),
-      filterRow: showBoardControls ? _TransportFilterRow(state: state) : null,
+      filterRow: isInitialLoading
+          ? const _TransportFilterSkeletonRow()
+          : isInitialError
+          ? null
+          : _TransportFilterRow(state: state),
       lastUpdatedRow: state.lastUpdated != null || state.isRefreshing
           ? _LastUpdatedRow(state: state)
           : null,
-      content: state.status == DeparturesStatus.loading
-          ? LoadingStateView(message: context.t.departures.loading)
+      content: isInitialLoading
+          ? const _DeparturesLoadingSkeleton()
           : RefreshIndicator(
               onRefresh: onRefresh,
               child: _RefreshableDeparturesContent(
@@ -146,7 +148,7 @@ class _SelectedStopHeader extends StatelessWidget {
   const _SelectedStopHeader({required this.stop, required this.lineType});
 
   final StopGroup stop;
-  final PidLineType lineType;
+  final PidLineType? lineType;
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +170,15 @@ class _SelectedStopHeader extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(10),
-                  child: PidTransportIcon(lineType: lineType),
+                  child: lineType == null
+                      ? Icon(
+                          Icons.location_on_outlined,
+                          color: colorScheme.onPrimaryContainer,
+                          semanticLabel: context.t.stops.stopSemantic(
+                            name: stop.name,
+                          ),
+                        )
+                      : PidTransportIcon(lineType: lineType!),
                 ),
               ),
               const SizedBox(width: 12),
@@ -184,6 +194,29 @@ class _SelectedStopHeader extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransportFilterSkeletonRow extends StatelessWidget {
+  const _TransportFilterSkeletonRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 48,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            _SkeletonPill(width: 48),
+            SizedBox(width: 8),
+            _SkeletonPill(width: 72),
+            SizedBox(width: 8),
+            _SkeletonPill(width: 64),
+          ],
         ),
       ),
     );
@@ -311,14 +344,16 @@ class _RefreshableDeparturesContent extends StatelessWidget {
   Widget build(BuildContext context) {
     if (state.status == DeparturesStatus.error) {
       final strings = context.t;
+      final details = userMessageForAppError(
+        state.error,
+        fallbackMessage: strings.departures.loadFailed,
+        invalidDataMessage: strings.departures.invalidData,
+      );
 
       return CenteredScrollView(
         child: ErrorStateView(
-          message: userMessageForAppError(
-            state.error,
-            fallbackMessage: strings.departures.loadFailed,
-            invalidDataMessage: strings.departures.invalidData,
-          ),
+          message: strings.departures.loadFailed,
+          details: details == strings.departures.loadFailed ? null : details,
           onRetry: () {
             context.read<DeparturesBloc>().add(const DeparturesRetried());
           },
@@ -348,6 +383,216 @@ class _RefreshableDeparturesContent extends StatelessWidget {
           const DeparturesTimeDisplayModeToggled(),
         );
       },
+    );
+  }
+}
+
+class _DeparturesLoadingSkeleton extends StatelessWidget {
+  const _DeparturesLoadingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      key: const ValueKey('departures-loading-skeleton'),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      itemCount: 5,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return const _LoadingStatusCard();
+        }
+
+        return const _DepartureSkeletonCard();
+      },
+    );
+  }
+}
+
+class _LoadingStatusCard extends StatelessWidget {
+  const _LoadingStatusCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                context.t.departures.loading,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const _LongLoadingMessage(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LongLoadingMessage extends StatefulWidget {
+  const _LongLoadingMessage();
+
+  @override
+  State<_LongLoadingMessage> createState() => _LongLoadingMessageState();
+}
+
+class _LongLoadingMessageState extends State<_LongLoadingMessage> {
+  Timer? _timer;
+  var _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() {
+          _visible = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_visible) {
+      return const SizedBox.shrink();
+    }
+
+    return Flexible(
+      child: Text(
+        context.t.departures.loadingLong,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.right,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _DepartureSkeletonCard extends StatelessWidget {
+  const _DepartureSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Card(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                _SkeletonBox(width: 58, height: 48, radius: 12),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SkeletonBar(widthFactor: 0.76, height: 14),
+                      SizedBox(height: 8),
+                      _SkeletonBar(widthFactor: 0.48, height: 10),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _SkeletonBox(width: 62, height: 14, radius: 999),
+                    SizedBox(height: 8),
+                    _SkeletonBox(width: 44, height: 10, radius: 999),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.only(left: 70),
+              child: _SkeletonBar(widthFactor: 0.58, height: 10),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonPill extends StatelessWidget {
+  const _SkeletonPill({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonBox(width: width, height: 32, radius: 999);
+  }
+}
+
+class _SkeletonBar extends StatelessWidget {
+  const _SkeletonBar({required this.widthFactor, required this.height});
+
+  final double widthFactor;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return FractionallySizedBox(
+      widthFactor: widthFactor,
+      alignment: Alignment.centerLeft,
+      child: _SkeletonBox(width: double.infinity, height: height, radius: 999),
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
+
+  final double width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ExcludeSemantics(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.72),
+          borderRadius: BorderRadius.all(Radius.circular(radius)),
+        ),
+        child: SizedBox(width: width, height: height),
+      ),
     );
   }
 }

@@ -8,10 +8,12 @@ class ErrorStateView extends StatelessWidget {
     required this.message,
     required this.onRetry,
     super.key,
+    this.details,
     this.icon = Icons.error_outline,
   });
 
   final String message;
+  final String? details;
   final VoidCallback onRetry;
   final IconData icon;
 
@@ -22,6 +24,7 @@ class ErrorStateView extends StatelessWidget {
         padding: const EdgeInsets.all(PidSeedSpacing.xxl),
         child: PidFeedbackState(
           title: message,
+          message: details ?? '',
           icon: icon,
           actionLabel: context.t.common.retry,
           onActionPressed: onRetry,

@@ -267,6 +267,9 @@ class Translations$departures$cs {
 	/// cs: 'Aktualizuji odjezdy...'
 	String get refreshing => 'Aktualizuji odjezdy...';
 
+	/// cs: 'Načítání trvá déle než obvykle…'
+	String get loadingLong => 'Načítání trvá déle než obvykle…';
+
 	/// cs: 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.'
 	String get staleWarning => 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.';
 
@@ -309,8 +312,8 @@ class Translations$departures$cs {
 	/// cs: 'Nástupiště $platform'
 	String platform({required Object platform}) => 'Nástupiště ${platform}';
 
-	/// cs: 'Poloha vozidla →'
-	String get trackingHint => 'Poloha vozidla →';
+	/// cs: 'Poloha →'
+	String get trackingHint => 'Poloha →';
 
 	/// cs: 'Přepnout zobrazení času odjezdu'
 	String get toggleTimeDisplay => 'Přepnout zobrazení času odjezdu';
@@ -329,6 +332,9 @@ class Translations$departures$cs {
 
 	/// cs: 'za $minutes min'
 	String departingInMinutes({required Object minutes}) => 'za ${minutes} min';
+
+	/// cs: 'za $hours h'
+	String departingInHours({required Object hours}) => 'za ${hours} h';
 
 	/// cs: 'Načas'
 	String get onTime => 'Načas';
@@ -363,14 +369,32 @@ class Translations$vehicleMap$cs {
 	/// cs: 'Aktuální poloha vozidla není dostupná.'
 	String get invalidData => 'Aktuální poloha vozidla není dostupná.';
 
-	/// cs: 'Vozidlo $vehicleId'
-	String vehicleLabel({required Object vehicleId}) => 'Vozidlo ${vehicleId}';
-
 	/// cs: 'Aktuální poloha linky $line'
 	String vehicleMarkerSemantic({required Object line}) => 'Aktuální poloha linky ${line}';
 
 	/// cs: 'Poslední aktualizace $time'
 	String lastUpdated({required Object time}) => 'Poslední aktualizace ${time}';
+
+	/// cs: 'Poslední aktualizace před $seconds s'
+	String lastUpdatedAgo({required Object seconds}) => 'Poslední aktualizace před ${seconds} s';
+
+	/// cs: 'Další: $stop'
+	String nextStop({required Object stop}) => 'Další: ${stop}';
+
+	/// cs: 'Další: $stop v $time'
+	String nextStopAt({required Object stop, required Object time}) => 'Další: ${stop} v ${time}';
+
+	/// cs: 'Bezbariérové'
+	String get wheelchairAccessible => 'Bezbariérové';
+
+	/// cs: 'Klimatizace'
+	String get airConditioned => 'Klimatizace';
+
+	/// cs: 'USB nabíjení'
+	String get usbChargers => 'USB nabíjení';
+
+	/// cs: 'Dopravce $name'
+	String operatorName({required Object name}) => 'Dopravce ${name}';
 
 	/// cs: 'Vycentrovat vozidlo'
 	String get recenterTooltip => 'Vycentrovat vozidlo';
@@ -560,6 +584,7 @@ extension on Translations {
 			'departures.empty' => 'Pro tuto zastávku nejsou dostupné žádné odjezdy.',
 			'departures.emptyFilter' => 'Pro vybraný typ dopravy nejsou dostupné žádné odjezdy.',
 			'departures.refreshing' => 'Aktualizuji odjezdy...',
+			'departures.loadingLong' => 'Načítání trvá déle než obvykle…',
 			'departures.staleWarning' => 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.',
 			'departures.backToStops' => 'Zpět na zastávky',
 			'departures.filterAll' => 'Vše',
@@ -574,13 +599,14 @@ extension on Translations {
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizované před ${seconds} s',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
-			'departures.trackingHint' => 'Poloha vozidla →',
+			'departures.trackingHint' => 'Poloha →',
 			'departures.toggleTimeDisplay' => 'Přepnout zobrazení času odjezdu',
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',
 			'departures.wheelchairAccessible' => 'Bezbariérový odjezd',
 			'departures.wheelchairAccessibleShort' => 'Bezbariérové',
 			'departures.departingNow' => 'teď',
 			'departures.departingInMinutes' => ({required Object minutes}) => 'za ${minutes} min',
+			'departures.departingInHours' => ({required Object hours}) => 'za ${hours} h',
 			'departures.onTime' => 'Načas',
 			'departures.scheduledTimeOnly' => 'dle JŘ',
 			'vehicleMap.emptyTabMessage' => 'Vyberte odjezd s dostupnou polohou vozidla.',
@@ -589,9 +615,15 @@ extension on Translations {
 			'vehicleMap.loading' => 'Načítání polohy vozidla...',
 			'vehicleMap.loadFailed' => 'Polohu vozidla se nepodařilo načíst. Zkuste to prosím znovu.',
 			'vehicleMap.invalidData' => 'Aktuální poloha vozidla není dostupná.',
-			'vehicleMap.vehicleLabel' => ({required Object vehicleId}) => 'Vozidlo ${vehicleId}',
 			'vehicleMap.vehicleMarkerSemantic' => ({required Object line}) => 'Aktuální poloha linky ${line}',
 			'vehicleMap.lastUpdated' => ({required Object time}) => 'Poslední aktualizace ${time}',
+			'vehicleMap.lastUpdatedAgo' => ({required Object seconds}) => 'Poslední aktualizace před ${seconds} s',
+			'vehicleMap.nextStop' => ({required Object stop}) => 'Další: ${stop}',
+			'vehicleMap.nextStopAt' => ({required Object stop, required Object time}) => 'Další: ${stop} v ${time}',
+			'vehicleMap.wheelchairAccessible' => 'Bezbariérové',
+			'vehicleMap.airConditioned' => 'Klimatizace',
+			'vehicleMap.usbChargers' => 'USB nabíjení',
+			'vehicleMap.operatorName' => ({required Object name}) => 'Dopravce ${name}',
 			'vehicleMap.recenterTooltip' => 'Vycentrovat vozidlo',
 			'vehicleMap.attribution' => 'Mapová data (c) přispěvatelé OpenStreetMap',
 			'format.noDelay' => 'Bez zpoždění',

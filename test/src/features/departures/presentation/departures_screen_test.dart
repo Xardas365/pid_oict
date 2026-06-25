@@ -35,6 +35,17 @@ void main() {
       );
 
       expect(find.text('Načítání odjezdů...'), findsOneWidget);
+      expect(find.byIcon(Icons.help_outline), findsNothing);
+      expect(
+        find.byKey(const ValueKey('departures-loading-skeleton')),
+        findsOneWidget,
+      );
+      expect(find.byType(Card), findsAtLeastNWidgets(5));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 4));
+
+      expect(find.text('Načítání trvá déle než obvykle…'), findsOneWidget);
 
       completer.complete(const []);
     });
@@ -80,7 +91,8 @@ void main() {
       expect(find.text('+2 min'), findsNothing);
       expect(find.text('Nástupiště 3'), findsOneWidget);
       expect(find.text('Bezbariérové'), findsOneWidget);
-      expect(find.text('Poloha vozidla →'), findsOneWidget);
+      expect(find.text('Poloha →'), findsOneWidget);
+      expect(find.text('·'), findsNothing);
       expect(find.text('A'), findsOneWidget);
       expect(find.byIcon(Icons.accessible_forward), findsOneWidget);
 
@@ -169,6 +181,35 @@ void main() {
       expect(find.text('+2 min'), findsNothing);
       expect(selectedArgs, isNull);
       semantics.dispose();
+    });
+
+    testWidgets('long relative countdown uses compact hours without ellipsis', (
+      tester,
+    ) async {
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: 'S7',
+              routeType: 'train',
+              headsign: 'Beroun',
+              departureTime: DateTime(2026, 6, 22, 12, 18),
+              delaySeconds: 60,
+              vehicleId: 'service-3-s7',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('za 126 min'), findsNothing);
+      expect(find.text('za 2 h'), findsOneWidget);
+      expect(find.text('12:18'), findsOneWidget);
+
+      final countdownText = tester.widget<Text>(find.text('za 2 h'));
+      expect(countdownText.overflow, isNull);
     });
 
     testWidgets('departure without platform hides platform row', (
@@ -367,7 +408,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.text('Poloha vozidla →'), findsNothing);
+      expect(find.text('Poloha →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
@@ -400,7 +441,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.text('Poloha vozidla →'), findsNothing);
+      expect(find.text('Poloha →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
@@ -430,6 +471,10 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      expect(
+        find.text('Odjezdy se nepodařilo načíst. Zkuste to prosím znovu.'),
+        findsOneWidget,
+      );
       expect(
         find.text(
           'Nepodařilo se připojit ke Golemio API. '

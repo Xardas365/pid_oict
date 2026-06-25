@@ -41,7 +41,7 @@ class DepartureTile extends StatelessWidget {
         child: InkWell(
           onTap: onOpenVehicleMap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -52,7 +52,7 @@ class DepartureTile extends StatelessWidget {
                   onToggleTimeDisplayMode: onToggleTimeDisplayMode,
                 ),
                 if (_hasMetadata(departure, hasTracking)) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   _DepartureMetadataRow(
                     departure: departure,
                     hasTracking: hasTracking,
@@ -200,11 +200,15 @@ class _DepartureTimeBlock extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final clockTime = formatClockTime(departure.departureTime);
     final topLabel = mode == DepartureTimeDisplayMode.relativeFirst
-        ? _relativeDepartureLabel(context, departure, referenceTime)
+        ? formatRelativeDepartureCountdown(
+            departure.departureTime.difference(
+              referenceTime ?? DateTime.now(),
+            ),
+          )
         : clockTime;
     final bottomLabel = mode == DepartureTimeDisplayMode.relativeFirst
         ? clockTime
-        : _delayDisplayLabel(context, departure.delaySeconds);
+        : formatRealtimeDelayLabel(departure.delaySeconds);
     final bottomColor = mode == DepartureTimeDisplayMode.clockFirst
         ? _delayTextColor(context, departure.delaySeconds)
         : colorScheme.onSurfaceVariant;
@@ -237,7 +241,6 @@ class _DepartureTimeBlock extends StatelessWidget {
                         topLabel,
                         maxLines: 1,
                         textAlign: TextAlign.right,
-                        overflow: TextOverflow.ellipsis,
                         style: textTheme.titleSmall?.copyWith(
                           fontFeatures: const [FontFeature.tabularFigures()],
                           fontWeight: FontWeight.w800,
@@ -265,37 +268,6 @@ class _DepartureTimeBlock extends StatelessWidget {
       ),
     );
   }
-}
-
-String _relativeDepartureLabel(
-  BuildContext context,
-  Departure departure,
-  DateTime? referenceTime,
-) {
-  final difference = departure.departureTime.difference(
-    referenceTime ?? DateTime.now(),
-  );
-  final seconds = difference.inSeconds;
-  if (seconds <= 0) {
-    return context.t.departures.departingNow;
-  }
-
-  final minutes = (seconds + 59) ~/ 60;
-  return context.t.departures.departingInMinutes(minutes: minutes);
-}
-
-String _delayDisplayLabel(BuildContext context, int? delaySeconds) {
-  if (delaySeconds == null) {
-    return context.t.departures.scheduledTimeOnly;
-  }
-
-  if (delaySeconds == 0) {
-    return context.t.departures.onTime;
-  }
-
-  final sign = delaySeconds > 0 ? '+' : '-';
-  final minutes = (delaySeconds.abs() + 59) ~/ 60;
-  return '$sign$minutes min';
 }
 
 Color _delayTextColor(BuildContext context, int? delaySeconds) {
@@ -376,28 +348,51 @@ class _DepartureMetadataRow extends StatelessWidget {
         ),
         child: Wrap(
           spacing: 7,
-          runSpacing: 4,
+          runSpacing: 3,
           crossAxisAlignment: WrapCrossAlignment.center,
-          children: _withSeparators(context, metadata),
+          children: [
+            for (var index = 0; index < metadata.length; index++)
+              _MetadataWrapItem(
+                showLeadingSeparator: index > 0,
+                child: metadata[index],
+              ),
+          ],
         ),
       ),
     );
   }
 }
 
-List<Widget> _withSeparators(BuildContext context, List<Widget> widgets) {
-  final separated = <Widget>[];
-  for (var index = 0; index < widgets.length; index++) {
-    if (index > 0) {
-      separated.add(
-        Text(
-          '·',
-          style: TextStyle(color: Theme.of(context).colorScheme.outline),
-        ),
-      );
-    }
-    separated.add(widgets[index]);
-  }
+class _MetadataWrapItem extends StatelessWidget {
+  const _MetadataWrapItem({
+    required this.child,
+    required this.showLeadingSeparator,
+  });
 
-  return separated;
+  final Widget child;
+  final bool showLeadingSeparator;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!showLeadingSeparator) {
+      return child;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+          child: Text.rich(
+            TextSpan(
+              text: '· ',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
 }

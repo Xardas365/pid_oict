@@ -27,5 +27,38 @@ void main() {
       expect(formatDelaySeconds(120), 'Zpoždění +2 min');
       expect(formatDelaySeconds(121), 'Zpoždění +3 min');
     });
+
+    test('formats realtime delay label', () {
+      expect(formatRealtimeDelayLabel(null), 'dle JŘ');
+      expect(formatRealtimeDelayLabel(0), 'Načas');
+      expect(formatRealtimeDelayLabel(1), '+1 min');
+      expect(formatRealtimeDelayLabel(120), '+2 min');
+      expect(formatRealtimeDelayLabel(-1), '-1 min');
+      expect(formatRealtimeDelayLabel(-120), '-2 min');
+    });
+
+    test('formats relative departure countdown compactly', () {
+      expect(formatRelativeDepartureCountdown(Duration.zero), 'teď');
+      expect(
+        formatRelativeDepartureCountdown(const Duration(seconds: -1)),
+        'teď',
+      );
+      expect(
+        formatRelativeDepartureCountdown(const Duration(minutes: 3)),
+        'za 3 min',
+      );
+      expect(
+        formatRelativeDepartureCountdown(const Duration(minutes: 59)),
+        'za 59 min',
+      );
+      expect(
+        formatRelativeDepartureCountdown(const Duration(minutes: 60)),
+        'za 1 h',
+      );
+      expect(
+        formatRelativeDepartureCountdown(const Duration(minutes: 126)),
+        'za 2 h',
+      );
+    });
   });
 }

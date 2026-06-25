@@ -163,6 +163,7 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String get empty => 'No departures are available for this stop.';
 	@override String get emptyFilter => 'No departures are available for the selected transport type.';
 	@override String get refreshing => 'Refreshing departures...';
+	@override String get loadingLong => 'Loading is taking longer than usual…';
 	@override String get staleWarning => 'Could not refresh departures. Showing the last available data.';
 	@override String get backToStops => 'Back to stops';
 	@override String get filterAll => 'All';
@@ -177,13 +178,14 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String lastUpdatedAgo({required Object seconds}) => 'Updated ${seconds} s ago';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
-	@override String get trackingHint => 'Vehicle position →';
+	@override String get trackingHint => 'Position →';
 	@override String get toggleTimeDisplay => 'Toggle departure time display';
 	@override String get showVehicleTooltip => 'Show vehicle position';
 	@override String get wheelchairAccessible => 'Wheelchair-accessible departure';
 	@override String get wheelchairAccessibleShort => 'Accessible';
 	@override String get departingNow => 'now';
 	@override String departingInMinutes({required Object minutes}) => 'in ${minutes} min';
+	@override String departingInHours({required Object hours}) => 'in ${hours} h';
 	@override String get onTime => 'On time';
 	@override String get scheduledTimeOnly => 'timetable';
 }
@@ -201,9 +203,15 @@ class _Translations$vehicleMap$en extends Translations$vehicleMap$cs {
 	@override String get loading => 'Loading vehicle position...';
 	@override String get loadFailed => 'Could not load the vehicle position. Please try again.';
 	@override String get invalidData => 'The current vehicle position is not available.';
-	@override String vehicleLabel({required Object vehicleId}) => 'Vehicle ${vehicleId}';
 	@override String vehicleMarkerSemantic({required Object line}) => 'Current position of line ${line}';
 	@override String lastUpdated({required Object time}) => 'Last updated ${time}';
+	@override String lastUpdatedAgo({required Object seconds}) => 'Last updated ${seconds} s ago';
+	@override String nextStop({required Object stop}) => 'Next: ${stop}';
+	@override String nextStopAt({required Object stop, required Object time}) => 'Next: ${stop} at ${time}';
+	@override String get wheelchairAccessible => 'Accessible';
+	@override String get airConditioned => 'Air-conditioned';
+	@override String get usbChargers => 'USB charging';
+	@override String operatorName({required Object name}) => 'Operator ${name}';
 	@override String get recenterTooltip => 'Recenter vehicle';
 	@override String get attribution => 'Map data (c) OpenStreetMap contributors';
 }
@@ -335,6 +343,7 @@ extension on TranslationsEn {
 			'departures.empty' => 'No departures are available for this stop.',
 			'departures.emptyFilter' => 'No departures are available for the selected transport type.',
 			'departures.refreshing' => 'Refreshing departures...',
+			'departures.loadingLong' => 'Loading is taking longer than usual…',
 			'departures.staleWarning' => 'Could not refresh departures. Showing the last available data.',
 			'departures.backToStops' => 'Back to stops',
 			'departures.filterAll' => 'All',
@@ -349,13 +358,14 @@ extension on TranslationsEn {
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Updated ${seconds} s ago',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',
-			'departures.trackingHint' => 'Vehicle position →',
+			'departures.trackingHint' => 'Position →',
 			'departures.toggleTimeDisplay' => 'Toggle departure time display',
 			'departures.showVehicleTooltip' => 'Show vehicle position',
 			'departures.wheelchairAccessible' => 'Wheelchair-accessible departure',
 			'departures.wheelchairAccessibleShort' => 'Accessible',
 			'departures.departingNow' => 'now',
 			'departures.departingInMinutes' => ({required Object minutes}) => 'in ${minutes} min',
+			'departures.departingInHours' => ({required Object hours}) => 'in ${hours} h',
 			'departures.onTime' => 'On time',
 			'departures.scheduledTimeOnly' => 'timetable',
 			'vehicleMap.emptyTabMessage' => 'Select a departure with an available vehicle position.',
@@ -364,9 +374,15 @@ extension on TranslationsEn {
 			'vehicleMap.loading' => 'Loading vehicle position...',
 			'vehicleMap.loadFailed' => 'Could not load the vehicle position. Please try again.',
 			'vehicleMap.invalidData' => 'The current vehicle position is not available.',
-			'vehicleMap.vehicleLabel' => ({required Object vehicleId}) => 'Vehicle ${vehicleId}',
 			'vehicleMap.vehicleMarkerSemantic' => ({required Object line}) => 'Current position of line ${line}',
 			'vehicleMap.lastUpdated' => ({required Object time}) => 'Last updated ${time}',
+			'vehicleMap.lastUpdatedAgo' => ({required Object seconds}) => 'Last updated ${seconds} s ago',
+			'vehicleMap.nextStop' => ({required Object stop}) => 'Next: ${stop}',
+			'vehicleMap.nextStopAt' => ({required Object stop, required Object time}) => 'Next: ${stop} at ${time}',
+			'vehicleMap.wheelchairAccessible' => 'Accessible',
+			'vehicleMap.airConditioned' => 'Air-conditioned',
+			'vehicleMap.usbChargers' => 'USB charging',
+			'vehicleMap.operatorName' => ({required Object name}) => 'Operator ${name}',
 			'vehicleMap.recenterTooltip' => 'Recenter vehicle',
 			'vehicleMap.attribution' => 'Map data (c) OpenStreetMap contributors',
 			'format.noDelay' => 'No delay',
