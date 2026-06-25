@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -80,7 +82,11 @@ void main() {
         tester,
         _departuresScreen(
           QueueDeparturesRepository([
-            RepositorySuccess([repyDeparture(), motolDeparture()]),
+            RepositorySuccess([
+              repyDeparture(),
+              _busDeparture(),
+              motolDeparture(),
+            ]),
           ]),
         ),
       );
@@ -89,6 +95,90 @@ void main() {
         find.byType(Scaffold),
         matchesGoldenFile('goldens/departures_success.png'),
       );
+    });
+
+    testWidgets('DeparturesScreen filtered', (tester) async {
+      await _pumpGolden(
+        tester,
+        _departuresScreen(
+          QueueDeparturesRepository([
+            RepositorySuccess([
+              repyDeparture(),
+              _busDeparture(),
+              motolDeparture(),
+            ]),
+          ]),
+        ),
+      );
+
+      await tester.tap(find.text('Bus'));
+      await tester.pumpAndSettle();
+
+      await expectLater(
+        find.byType(Scaffold),
+        matchesGoldenFile('goldens/departures_filtered.png'),
+      );
+    });
+
+    testWidgets('DeparturesScreen empty', (tester) async {
+      await _pumpGolden(
+        tester,
+        _departuresScreen(
+          QueueDeparturesRepository([const RepositorySuccess(<Departure>[])]),
+        ),
+      );
+
+      await expectLater(
+        find.byType(Scaffold),
+        matchesGoldenFile('goldens/departures_empty.png'),
+      );
+    });
+
+    testWidgets('DeparturesScreen initial error', (tester) async {
+      await _pumpGolden(
+        tester,
+        _departuresScreen(
+          QueueDeparturesRepository([
+            const RepositoryFailure<List<Departure>>(
+              AppException(type: AppExceptionType.network, message: 'Network.'),
+            ),
+          ]),
+        ),
+      );
+
+      await expectLater(
+        find.byType(Scaffold),
+        matchesGoldenFile('goldens/departures_error.png'),
+      );
+    });
+
+    testWidgets('DeparturesScreen refresh loading', (tester) async {
+      final refreshCompleter = Completer<List<Departure>>();
+      late DeparturesBloc bloc;
+
+      await _pumpGolden(
+        tester,
+        _departuresScreen(
+          QueueDeparturesRepository([
+            RepositorySuccess<List<Departure>>([repyDeparture()]),
+            RepositoryPending<List<Departure>>(refreshCompleter),
+          ]),
+          onBlocCreated: (createdBloc) {
+            bloc = createdBloc;
+          },
+        ),
+      );
+
+      bloc.add(const DeparturesRefreshed());
+      await tester.pump();
+
+      await expectLater(
+        find.byType(Scaffold),
+        matchesGoldenFile('goldens/departures_refresh_loading.png'),
+      );
+
+      refreshCompleter.complete([_busDeparture()]);
+      await tester.pumpAndSettle();
     });
 
     testWidgets('DeparturesScreen refresh warning', (tester) async {
@@ -175,7 +265,11 @@ Future<void> _pumpGolden(WidgetTester tester, Widget home) async {
 
 Widget _stopsScreen(StopsRepository repository) {
   return BlocProvider(
-    create: (_) => StopsCubit(GetStopsUseCase(repository))..loadStops(),
+    create: (_) {
+      final cubit = StopsCubit(GetStopsUseCase(repository));
+      unawaited(cubit.loadStops());
+      return cubit;
+    },
     child: const StopsScreen(),
   );
 }
@@ -186,8 +280,10 @@ Widget _departuresScreen(
 }) {
   return BlocProvider(
     create: (_) {
-      final bloc = DeparturesBloc(GetDeparturesForStopUseCase(repository))
-        ..add(DeparturesStarted(andelStopGroup));
+      final bloc = DeparturesBloc(
+        GetDeparturesForStopUseCase(repository),
+        refreshInterval: Duration.zero,
+      )..add(DeparturesStarted(andelStopGroup));
       onBlocCreated?.call(bloc);
 
       return bloc;
@@ -214,5 +310,19 @@ Widget _vehicleMapScreen(
       vehicleId: 'service-3-1001',
       showMapTiles: false,
     ),
+  );
+}
+
+Departure _busDeparture() {
+  return Departure(
+    routeShortName: '176',
+    routeType: 'bus',
+    headsign: 'Karlovo namesti',
+    departureTime: DateTime(2026, 6, 22, 10, 22),
+    delaySeconds: 660,
+    platform: 'B',
+    gtfsTripId: 'trip-176-karlovo',
+    vehicleId: 'service-3-176',
+    isWheelchairAccessible: false,
   );
 }

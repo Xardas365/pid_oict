@@ -13,6 +13,7 @@ class DepartureDto {
     this.stopId,
     this.gtfsTripId,
     this.vehicleId,
+    this.isWheelchairAccessible,
   });
 
   final String routeShortName;
@@ -24,6 +25,7 @@ class DepartureDto {
   final String? stopId;
   final String? gtfsTripId;
   final String? vehicleId;
+  final bool? isWheelchairAccessible;
 
   static DepartureDto? fromJson(JsonMap json) {
     final routeShortName = readString(json, _routeShortNamePaths);
@@ -44,6 +46,7 @@ class DepartureDto {
       stopId: readString(json, _stopIdPaths),
       gtfsTripId: readString(json, _gtfsTripIdPaths),
       vehicleId: readString(json, _vehicleIdPaths),
+      isWheelchairAccessible: readBool(json, _wheelchairAccessiblePaths),
     );
   }
 
@@ -82,6 +85,7 @@ class DepartureDto {
       stopId: stopId,
       gtfsTripId: gtfsTripId,
       vehicleId: vehicleId,
+      isWheelchairAccessible: isWheelchairAccessible,
     );
   }
 }
@@ -225,4 +229,27 @@ const _vehicleIdPaths = [
   ['properties', 'departure', 'vehicle', 'id'],
   ['properties', 'departure', 'vehicle', 'vehicle_id'],
   ['properties', 'departure', 'vehicle', 'vehicleId'],
+];
+
+const _wheelchairAccessiblePaths = [
+  ['is_wheelchair_accessible'],
+  ['isWheelchairAccessible'],
+  ['wheelchair_accessible'],
+  ['wheelchairAccessible'],
+  ['vehicle', 'is_wheelchair_accessible'],
+  ['vehicle', 'isWheelchairAccessible'],
+  ['vehicle', 'wheelchair_accessible'],
+  ['vehicle', 'wheelchairAccessible'],
+  ['properties', 'is_wheelchair_accessible'],
+  ['properties', 'isWheelchairAccessible'],
+  ['properties', 'wheelchair_accessible'],
+  ['properties', 'wheelchairAccessible'],
+  ['properties', 'vehicle', 'is_wheelchair_accessible'],
+  ['properties', 'vehicle', 'isWheelchairAccessible'],
+  ['properties', 'vehicle', 'wheelchair_accessible'],
+  ['properties', 'vehicle', 'wheelchairAccessible'],
+  ['departure', 'vehicle', 'is_wheelchair_accessible'],
+  ['departure', 'vehicle', 'isWheelchairAccessible'],
+  ['properties', 'departure', 'vehicle', 'is_wheelchair_accessible'],
+  ['properties', 'departure', 'vehicle', 'isWheelchairAccessible'],
 ];

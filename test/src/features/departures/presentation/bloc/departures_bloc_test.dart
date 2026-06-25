@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/departures/domain/departure.dart';
 import 'package:pid_oict/src/features/departures/domain/repositories/departures_repository.dart';
@@ -97,6 +98,72 @@ void main() {
 
       expect(bloc.state.refreshError, isNull);
       expect(repository.callCount, 2);
+    });
+
+    test('selects transport filter and exposes filtered departures', () async {
+      final tramDeparture = _departure('Sidliste Repy', routeShortName: '10');
+      final busDeparture = _departure(
+        'Koleje Strahov',
+        routeShortName: '176',
+        routeType: 'bus',
+      );
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([tramDeparture, busDeparture]),
+      ]);
+      final bloc = _createBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForStatus(bloc, DeparturesStatus.loaded);
+
+      bloc.add(const DeparturesTransportFilterSelected(PidTransportMode.bus));
+      await bloc.stream.firstWhere(
+        (state) => state.selectedTransportMode == PidTransportMode.bus,
+      );
+
+      expect(bloc.state.visibleDepartures, [busDeparture]);
+    });
+
+    test('refresh falls back to all when selected type disappears', () async {
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([
+          _departure('Sidliste Repy', routeShortName: '10'),
+          _departure('Koleje Strahov', routeShortName: '176', routeType: 'bus'),
+        ]),
+        _DeparturesSuccess([
+          _departure('Nadrazi Hostivar', routeShortName: '10'),
+        ]),
+      ]);
+      final bloc = _createBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForStatus(bloc, DeparturesStatus.loaded);
+
+      bloc.add(const DeparturesTransportFilterSelected(PidTransportMode.bus));
+      await bloc.stream.firstWhere(
+        (state) => state.selectedTransportMode == PidTransportMode.bus,
+      );
+
+      bloc.add(const DeparturesRefreshed());
+      await _waitForDeparture(bloc, 'Nadrazi Hostivar');
+
+      expect(bloc.state.selectedTransportMode, isNull);
+      expect(bloc.state.visibleDepartures.single.headsign, 'Nadrazi Hostivar');
+    });
+
+    test('stores last successful refresh timestamp', () async {
+      final updatedAt = DateTime(2026, 6, 22, 10, 30, 15);
+      final repository = _QueueDeparturesRepository([
+        _DeparturesSuccess([_departure('Nadrazi Hostivar')]),
+      ]);
+      final bloc = _createBloc(repository, now: () => updatedAt);
+      addTearDown(bloc.close);
+
+      bloc.add(DeparturesStarted(stop));
+      await _waitForStatus(bloc, DeparturesStatus.loaded);
+
+      expect(bloc.state.lastUpdated, updatedAt);
     });
 
     test('refresh error keeps previous departures visible', () async {
@@ -212,9 +279,7 @@ void main() {
       final bloc = _createBloc(
         repository,
         refreshInterval: const Duration(milliseconds: 10),
-      );
-
-      bloc.add(DeparturesStarted(stop));
+      )..add(DeparturesStarted(stop));
       await _waitForDeparture(bloc, 'Nadrazi Hostivar');
       await _waitForCallCount(repository, 2);
 
@@ -230,10 +295,12 @@ void main() {
 DeparturesBloc _createBloc(
   _QueueDeparturesRepository repository, {
   Duration refreshInterval = Duration.zero,
+  DateTime Function()? now,
 }) {
   return DeparturesBloc(
     GetDeparturesForStopUseCase(repository),
     refreshInterval: refreshInterval,
+    now: now,
   );
 }
 
@@ -272,9 +339,14 @@ Future<void> _waitForCallCount(
   }
 }
 
-Departure _departure(String headsign) {
+Departure _departure(
+  String headsign, {
+  String routeShortName = '22',
+  String? routeType,
+}) {
   return Departure(
-    routeShortName: '22',
+    routeShortName: routeShortName,
+    routeType: routeType,
     headsign: headsign,
     departureTime: DateTime(2026, 6, 22, 10, 15),
     gtfsTripId: 'trip-22-123',
@@ -286,7 +358,7 @@ class _QueueDeparturesRepository implements DeparturesRepository {
 
   final List<_DeparturesResponse> _responses;
   final receivedStops = <StopGroup>[];
-  var callCount = 0;
+  int callCount = 0;
 
   @override
   Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) async {
@@ -296,10 +368,22 @@ class _QueueDeparturesRepository implements DeparturesRepository {
 
     return switch (response) {
       _DeparturesSuccess(:final departures) => departures,
-      _DeparturesFailure(:final error) => throw error,
+      _DeparturesFailure(:final error) => _throwTestError(error),
       _DeparturesPending(:final completer) => completer.future,
     };
   }
+}
+
+Never _throwTestError(Object error) {
+  if (error is Exception) {
+    throw error;
+  }
+
+  if (error is Error) {
+    throw error;
+  }
+
+  throw StateError(error.toString());
 }
 
 sealed class _DeparturesResponse {

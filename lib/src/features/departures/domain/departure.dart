@@ -12,6 +12,7 @@ class Departure {
     this.stopId,
     this.gtfsTripId,
     this.vehicleId,
+    this.isWheelchairAccessible,
   });
 
   final String routeShortName;
@@ -23,6 +24,7 @@ class Departure {
   final String? stopId;
   final String? gtfsTripId;
   final String? vehicleId;
+  final bool? isWheelchairAccessible;
 
   PidLineType get lineType {
     final page = pidLinePageFromGolemioRouteType(routeType);

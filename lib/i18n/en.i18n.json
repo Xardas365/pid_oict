@@ -53,16 +53,30 @@
     "legacyPlatformWithId": "Platform $platform - ID $id"
   },
   "departures": {
+    "title": "Departures from stop",
     "emptyTabMessage": "Select a stop from the list first.",
     "loading": "Loading departures...",
     "loadFailed": "Could not load departures. Please try again.",
     "invalidData": "The Golemio API did not return any usable departures.",
     "empty": "No departures are available for this stop.",
+    "emptyFilter": "No departures are available for the selected transport type.",
     "refreshing": "Refreshing departures...",
     "staleWarning": "Could not refresh departures. Showing the last available data.",
+    "backToStops": "Back to stops",
+    "filterAll": "All",
+    "filterMetro": "Metro",
+    "filterTram": "Tram",
+    "filterBus": "Bus",
+    "filterTrolleybus": "Trolleybus",
+    "filterTrain": "Train",
+    "filterFerry": "Ferry",
+    "filterFunicular": "Funicular",
+    "filterOther": "Other",
+    "lastUpdatedAgo": "Updated $seconds s ago",
     "departureTime": "Departure $time",
     "platform": "Platform $platform",
-    "showVehicleTooltip": "Show vehicle position"
+    "showVehicleTooltip": "Show vehicle position",
+    "wheelchairAccessible": "Wheelchair-accessible departure"
   },
   "vehicleMap": {
     "emptyTabMessage": "Select a departure with an available vehicle position.",
@@ -76,6 +90,8 @@
   },
   "format": {
     "noDelay": "No delay",
-    "delayMinutes": "Delay +$minutes min"
+    "delayMinutes": "Delay +$minutes min",
+    "delayOnTimeShort": "0 min",
+    "delayMinutesShort": "+$minutes min"
   }
 }

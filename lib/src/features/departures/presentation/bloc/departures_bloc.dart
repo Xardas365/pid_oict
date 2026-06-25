@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/domain/pid_line_type.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 import '../../domain/usecases/get_departures_for_stop_use_case.dart';
+import '../departure_transport_filter.dart';
 import 'departures_event.dart';
 import 'departures_state.dart';
 
@@ -14,14 +16,18 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
   DeparturesBloc(
     this._getDepartures, {
     this.refreshInterval = departureBoardRefreshInterval,
+    DateTime Function()? now,
   }) : super(const DeparturesState.loading()) {
+    _now = now ?? DateTime.now;
     on<DeparturesStarted>(_onStarted);
     on<DeparturesRetried>(_onRetried);
     on<DeparturesRefreshed>(_onRefreshed);
+    on<DeparturesTransportFilterSelected>(_onTransportFilterSelected);
   }
 
   final GetDeparturesForStopUseCase _getDepartures;
   final Duration refreshInterval;
+  late final DateTime Function() _now;
   Timer? _refreshTimer;
   var _refreshInProgress = false;
 
@@ -75,8 +81,14 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
 
       try {
         final departures = await _getDepartures(stop);
-        emit(_stateFromDepartures(stop, departures));
-      } catch (error) {
+        emit(
+          _stateFromDepartures(
+            stop,
+            departures,
+            selectedTransportMode: state.selectedTransportMode,
+          ),
+        );
+      } on Object catch (error) {
         if (previousDepartures.isNotEmpty) {
           emit(
             state.copyWith(
@@ -105,6 +117,24 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     }
   }
 
+  void _onTransportFilterSelected(
+    DeparturesTransportFilterSelected event,
+    Emitter<DeparturesState> emit,
+  ) {
+    final mode = event.mode;
+    if (mode != null && !state.availableTransportModes.contains(mode)) {
+      emit(state.copyWith(clearSelectedTransportMode: true));
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        selectedTransportMode: mode,
+        clearSelectedTransportMode: mode == null,
+      ),
+    );
+  }
+
   Future<void> _load(
     StopGroup stop,
     Emitter<DeparturesState> emit, {
@@ -120,7 +150,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
       final departures = await _getDepartures(stop);
       emit(_stateFromDepartures(stop, departures));
       _startPeriodicRefresh();
-    } catch (error) {
+    } on Object catch (error) {
       emit(
         DeparturesState(
           status: DeparturesStatus.error,
@@ -133,9 +163,16 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
 
   DeparturesState _stateFromDepartures(
     StopGroup stop,
-    List<Departure> departures,
-  ) {
+    List<Departure> departures, {
+    PidTransportMode? selectedTransportMode,
+  }) {
     final immutableDepartures = List<Departure>.unmodifiable(departures);
+    final availableModes = deriveDepartureTransportModes(immutableDepartures);
+    final validSelectedTransportMode =
+        selectedTransportMode != null &&
+            availableModes.contains(selectedTransportMode)
+        ? selectedTransportMode
+        : null;
 
     return DeparturesState(
       status: immutableDepartures.isEmpty
@@ -143,6 +180,8 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
           : DeparturesStatus.loaded,
       stop: stop,
       departures: immutableDepartures,
+      selectedTransportMode: validSelectedTransportMode,
+      lastUpdated: _now(),
     );
   }
 

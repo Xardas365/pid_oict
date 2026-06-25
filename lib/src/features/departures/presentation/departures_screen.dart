@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../i18n/strings.g.dart';
+import '../../../core/domain/pid_line_type.dart';
+import '../../../core/presentation/widgets/pid_transport_icon.dart';
 import '../../../shared/utils/app_error_messages.dart';
+import '../../../shared/utils/date_time_formatters.dart';
 import '../../../shared/widgets/centered_scroll_view.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
@@ -14,6 +17,7 @@ import '../../vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_c
 import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import '../../vehicle_map/presentation/vehicle_map_screen.dart';
+import '../domain/departure.dart';
 import 'bloc/departures_bloc.dart';
 import 'bloc/departures_event.dart';
 import 'bloc/departures_state.dart';
@@ -24,10 +28,22 @@ class DeparturesScreen extends StatelessWidget {
     required this.stop,
     super.key,
     this.onVehicleSelected,
+    this.onBackToStops,
   });
 
   final StopGroup stop;
   final ValueChanged<String>? onVehicleSelected;
+  final VoidCallback? onBackToStops;
+
+  void _backToStops(BuildContext context) {
+    final onBackToStops = this.onBackToStops;
+    if (onBackToStops != null) {
+      onBackToStops();
+      return;
+    }
+
+    unawaited(Navigator.of(context).maybePop());
+  }
 
   void _openVehicleMap(BuildContext context, String vehicleId) {
     final onVehicleSelected = this.onVehicleSelected;
@@ -36,13 +52,15 @@ class DeparturesScreen extends StatelessWidget {
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => BlocProvider(
-          create: (context) => VehicleMapBloc(
-            context.read<GetVehiclePositionForVehicleUseCase>(),
-          )..add(VehicleMapStarted(vehicleId)),
-          child: VehicleMapScreen(vehicleId: vehicleId),
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => BlocProvider(
+            create: (context) => VehicleMapBloc(
+              context.read<GetVehiclePositionForVehicleUseCase>(),
+            )..add(VehicleMapStarted(vehicleId)),
+            child: VehicleMapScreen(vehicleId: vehicleId),
+          ),
         ),
       ),
     );
@@ -60,25 +78,207 @@ class DeparturesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(stop.name)),
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: context.t.departures.backToStops,
+          onPressed: () => _backToStops(context),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: Text(context.t.departures.title),
+      ),
       body: SafeArea(
         child: BlocBuilder<DeparturesBloc, DeparturesState>(
-          builder: (context, state) {
-            if (state.status == DeparturesStatus.loading) {
-              return LoadingStateView(message: context.t.departures.loading);
-            }
-
-            return RefreshIndicator(
-              onRefresh: () => _refresh(context),
-              child: _buildRefreshableContent(context, state),
-            );
-          },
+          builder: (context, state) => _DeparturesBoard(
+            stop: stop,
+            state: state,
+            onRefresh: () => _refresh(context),
+            onOpenVehicleMap: (vehicleId) =>
+                _openVehicleMap(context, vehicleId),
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildRefreshableContent(BuildContext context, DeparturesState state) {
+class _DeparturesBoard extends StatelessWidget {
+  const _DeparturesBoard({
+    required this.stop,
+    required this.state,
+    required this.onRefresh,
+    required this.onOpenVehicleMap,
+  });
+
+  final StopGroup stop;
+  final DeparturesState state;
+  final Future<void> Function() onRefresh;
+  final ValueChanged<String> onOpenVehicleMap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _SelectedStopHeader(stop: stop, lineType: state.representativeLineType),
+        if (state.status != DeparturesStatus.loading &&
+            state.status != DeparturesStatus.error)
+          _TransportFilterRow(state: state),
+        if (state.lastUpdated != null || state.isRefreshing)
+          _LastUpdatedRow(state: state),
+        Expanded(
+          child: state.status == DeparturesStatus.loading
+              ? LoadingStateView(message: context.t.departures.loading)
+              : RefreshIndicator(
+                  onRefresh: onRefresh,
+                  child: _RefreshableDeparturesContent(
+                    state: state,
+                    onOpenVehicleMap: onOpenVehicleMap,
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SelectedStopHeader extends StatelessWidget {
+  const _SelectedStopHeader({required this.stop, required this.lineType});
+
+  final StopGroup stop;
+  final PidLineType lineType;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: const BorderRadius.all(Radius.circular(14)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: PidTransportIcon(lineType: lineType),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  stop.name,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TransportFilterRow extends StatelessWidget {
+  const _TransportFilterRow({required this.state});
+
+  final DeparturesState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedMode = state.selectedTransportMode;
+    final modes = state.availableTransportModes;
+
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: modes.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return ChoiceChip(
+              label: Text(context.t.departures.filterAll),
+              selected: selectedMode == null,
+              onSelected: (_) {
+                context.read<DeparturesBloc>().add(
+                  const DeparturesTransportFilterSelected(null),
+                );
+              },
+            );
+          }
+
+          final mode = modes[index - 1];
+
+          return ChoiceChip(
+            label: Text(_transportModeLabel(context, mode)),
+            selected: selectedMode == mode,
+            onSelected: (_) {
+              context.read<DeparturesBloc>().add(
+                DeparturesTransportFilterSelected(mode),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LastUpdatedRow extends StatelessWidget {
+  const _LastUpdatedRow({required this.state});
+
+  final DeparturesState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final lastUpdated = state.lastUpdated;
+    final seconds = lastUpdated == null ? 0 : elapsedSecondsSince(lastUpdated);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Row(
+        children: [
+          SizedBox.square(
+            dimension: 14,
+            child: state.isRefreshing
+                ? const CircularProgressIndicator(strokeWidth: 2)
+                : const SizedBox.shrink(),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            context.t.departures.lastUpdatedAgo(seconds: seconds),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RefreshableDeparturesContent extends StatelessWidget {
+  const _RefreshableDeparturesContent({
+    required this.state,
+    required this.onOpenVehicleMap,
+  });
+
+  final DeparturesState state;
+  final ValueChanged<String> onOpenVehicleMap;
+
+  @override
+  Widget build(BuildContext context) {
     if (state.status == DeparturesStatus.error) {
       final strings = context.t;
 
@@ -96,10 +296,13 @@ class DeparturesScreen extends StatelessWidget {
       );
     }
 
-    if (state.status == DeparturesStatus.empty) {
+    final visibleDepartures = state.visibleDepartures;
+    if (state.status == DeparturesStatus.empty || visibleDepartures.isEmpty) {
       return CenteredScrollView(
         child: EmptyStateView(
-          message: context.t.departures.empty,
+          message: state.selectedTransportMode == null
+              ? context.t.departures.empty
+              : context.t.departures.emptyFilter,
           icon: Icons.departure_board_outlined,
         ),
       );
@@ -107,42 +310,40 @@ class DeparturesScreen extends StatelessWidget {
 
     return _DeparturesList(
       state: state,
-      onOpenVehicleMap: (vehicleId) => _openVehicleMap(context, vehicleId),
+      departures: visibleDepartures,
+      onOpenVehicleMap: onOpenVehicleMap,
     );
   }
 }
 
 class _DeparturesList extends StatelessWidget {
-  const _DeparturesList({required this.state, required this.onOpenVehicleMap});
+  const _DeparturesList({
+    required this.state,
+    required this.departures,
+    required this.onOpenVehicleMap,
+  });
 
   final DeparturesState state;
+  final List<Departure> departures;
   final ValueChanged<String> onOpenVehicleMap;
 
   @override
   Widget build(BuildContext context) {
-    final headerCount =
-        (state.isRefreshing ? 1 : 0) + (state.refreshError != null ? 1 : 0);
-    final itemCount = state.departures.length + headerCount;
+    final headerCount = state.refreshError != null ? 1 : 0;
+    final itemCount = departures.length + headerCount;
 
     return ListView.separated(
+      key: const ValueKey('departures-list'),
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: itemCount,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
-        if (state.isRefreshing && index == 0) {
-          return Semantics(
-            label: context.t.departures.refreshing,
-            child: const LinearProgressIndicator(),
-          );
-        }
-
-        final warningIndex = state.isRefreshing ? 1 : 0;
-        if (state.refreshError != null && index == warningIndex) {
+        if (state.refreshError != null && index == 0) {
           return _RefreshWarning(error: state.refreshError);
         }
 
-        final departure = state.departures[index - headerCount];
+        final departure = departures[index - headerCount];
         // Departure boards can omit vehicle.id. A separate lookup would be
         // needed; do not fake vehicle tracking from gtfsTripId.
 
@@ -155,6 +356,21 @@ class _DeparturesList extends StatelessWidget {
       },
     );
   }
+}
+
+String _transportModeLabel(BuildContext context, PidTransportMode mode) {
+  final strings = context.t.departures;
+
+  return switch (mode) {
+    PidTransportMode.metro => strings.filterMetro,
+    PidTransportMode.tram => strings.filterTram,
+    PidTransportMode.bus => strings.filterBus,
+    PidTransportMode.trolleybus => strings.filterTrolleybus,
+    PidTransportMode.train => strings.filterTrain,
+    PidTransportMode.ferry => strings.filterFerry,
+    PidTransportMode.funicular => strings.filterFunicular,
+    PidTransportMode.unknown => strings.filterOther,
+  };
 }
 
 class _RefreshWarning extends StatelessWidget {

@@ -50,9 +50,8 @@ void main() {
         expect(receivedStops.single.id, andelStop.id);
         expect(find.text('Sidliste Repy'), findsOneWidget);
         expect(find.text('Nemocnice Motol'), findsOneWidget);
-        expect(find.byTooltip('Zobrazit polohu vozidla'), findsOneWidget);
 
-        await tester.tap(find.byTooltip('Zobrazit polohu vozidla'));
+        await tester.tap(find.text('Sidliste Repy'));
         await tester.pumpAndSettle();
 
         expect(receivedVehicleIds, ['service-3-1001']);
@@ -87,7 +86,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.byTooltip('Zobrazit polohu vozidla'), findsNothing);
+      await tester.tap(find.text('Nemocnice Motol'));
+      await tester.pumpAndSettle();
+
       expect(vehiclePositionWasRequested, isFalse);
     });
 
@@ -119,7 +120,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Andel'));
         await tester.pumpAndSettle();
-        await tester.tap(find.byTooltip('Zobrazit polohu vozidla'));
+        await tester.tap(find.text('Sidliste Repy'));
         await tester.pumpAndSettle();
 
         expect(find.text('Vozidlo vehicle-before-stale'), findsOneWidget);

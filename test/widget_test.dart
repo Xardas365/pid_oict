@@ -8,7 +8,7 @@ import 'package:pid_oict/src/features/vehicle_map/domain/vehicle_position.dart';
 
 void main() {
   testWidgets('app opens the stops screen and filters loaded stops', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       PidOictApp(
@@ -38,7 +38,7 @@ void main() {
   });
 
   testWidgets('departures tab asks for a selected stop first', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(PidOictApp(loadStops: () async => const <Stop>[]));
 
@@ -49,7 +49,7 @@ void main() {
     expect(find.text('Nejdříve vyberte zastávku ze seznamu.'), findsOneWidget);
   });
 
-  testWidgets('app can render English locale', (WidgetTester tester) async {
+  testWidgets('app can render English locale', (tester) async {
     await tester.pumpWidget(
       PidOictApp(locale: AppLocale.en, loadStops: () async => const <Stop>[]),
     );
@@ -63,7 +63,7 @@ void main() {
   });
 
   testWidgets('map tab asks for a selected vehicle first', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(PidOictApp(loadStops: () async => const <Stop>[]));
 
@@ -78,7 +78,7 @@ void main() {
   });
 
   testWidgets('selecting a stop switches to departures tab', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       PidOictApp(
@@ -98,11 +98,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Cerny Most'), findsOneWidget);
-    expect(find.text('Odjezd 10:15'), findsOneWidget);
+    expect(find.text('10:15'), findsOneWidget);
   });
 
   testWidgets('selecting a departure vehicle switches to map tab', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
       PidOictApp(
@@ -133,7 +133,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Andel'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Zobrazit polohu vozidla'));
+    await tester.tap(find.text('Nadrazi Hostivar'));
     await tester.pumpAndSettle();
 
     expect(find.text('Poloha vozidla'), findsOneWidget);

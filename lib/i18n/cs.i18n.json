@@ -53,16 +53,30 @@
     "legacyPlatformWithId": "Nástupiště $platform - ID $id"
   },
   "departures": {
+    "title": "Odjezdy zo zastávky",
     "emptyTabMessage": "Nejdříve vyberte zastávku ze seznamu.",
     "loading": "Načítání odjezdů...",
     "loadFailed": "Odjezdy se nepodařilo načíst. Zkuste to prosím znovu.",
     "invalidData": "Golemio API nevrátilo žádné použitelné odjezdy.",
     "empty": "Pro tuto zastávku nejsou dostupné žádné odjezdy.",
+    "emptyFilter": "Pro vybraný typ dopravy nejsou dostupné žádné odjezdy.",
     "refreshing": "Aktualizuji odjezdy...",
     "staleWarning": "Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.",
+    "backToStops": "Zpět na zastávky",
+    "filterAll": "Vše",
+    "filterMetro": "Metro",
+    "filterTram": "Tram",
+    "filterBus": "Bus",
+    "filterTrolleybus": "Trolejbus",
+    "filterTrain": "Vlak",
+    "filterFerry": "Přívoz",
+    "filterFunicular": "Lanovka",
+    "filterOther": "Ostatní",
+    "lastUpdatedAgo": "Aktualizované před $seconds s",
     "departureTime": "Odjezd $time",
     "platform": "Nástupiště $platform",
-    "showVehicleTooltip": "Zobrazit polohu vozidla"
+    "showVehicleTooltip": "Zobrazit polohu vozidla",
+    "wheelchairAccessible": "Bezbariérový odjezd"
   },
   "vehicleMap": {
     "emptyTabMessage": "Vyberte odjezd s dostupnou polohou vozidla.",
@@ -76,6 +90,8 @@
   },
   "format": {
     "noDelay": "Bez zpoždění",
-    "delayMinutes": "Zpoždění +$minutes min"
+    "delayMinutes": "Zpoždění +$minutes min",
+    "delayOnTimeShort": "0 min",
+    "delayMinutesShort": "+$minutes min"
   }
 }

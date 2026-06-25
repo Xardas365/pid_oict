@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../../core/domain/pid_line_type.dart';
 import '../../../stops/domain/stop_group.dart';
 
 sealed class DeparturesEvent {
@@ -20,4 +21,10 @@ class DeparturesRefreshed extends DeparturesEvent {
   const DeparturesRefreshed({this.completion});
 
   final Completer<void>? completion;
+}
+
+class DeparturesTransportFilterSelected extends DeparturesEvent {
+  const DeparturesTransportFilterSelected(this.mode);
+
+  final PidTransportMode? mode;
 }

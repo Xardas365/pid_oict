@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pid_seeds/pid_seeds.dart';
@@ -17,9 +19,9 @@ import '../features/stops/domain/stop_group.dart';
 import '../features/stops/domain/usecases/get_stops_use_case.dart';
 import '../features/stops/presentation/cubit/stops_cubit.dart';
 import '../features/stops/presentation/stops_screen.dart';
-import '../features/vehicle_map/domain/vehicle_position.dart';
 import '../features/vehicle_map/domain/repositories/vehicle_position_repository.dart';
 import '../features/vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
+import '../features/vehicle_map/domain/vehicle_position.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
 import '../features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import '../features/vehicle_map/presentation/vehicle_map_screen.dart';
@@ -48,7 +50,7 @@ class PidOictShell extends StatefulWidget {
 }
 
 class _PidOictShellState extends State<PidOictShell> {
-  var _selectedTab = PidNavigationTab.stops;
+  PidNavigationTab _selectedTab = PidNavigationTab.stops;
   StopGroup? _selectedStop;
   String? _selectedVehicleId;
 
@@ -66,6 +68,12 @@ class _PidOictShellState extends State<PidOictShell> {
     });
   }
 
+  void _showStops() {
+    setState(() {
+      _selectedTab = PidNavigationTab.stops;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = context.t;
@@ -80,6 +88,7 @@ class _PidOictShellState extends State<PidOictShell> {
             loadDepartures: widget.loadDepartures,
             refreshInterval: widget.departureRefreshInterval,
             onVehicleSelected: _selectVehicle,
+            onBackToStops: _showStops,
             isActive: _selectedTab == PidNavigationTab.departures,
           ),
           _MapTab(
@@ -119,15 +128,19 @@ class _StopsTab extends StatelessWidget {
     final loadStops = this.loadStops;
 
     return BlocProvider(
-      create: (context) => StopsCubit(
-        _getStopsUseCase(context),
-        cacheDataSource: loadStops == null
-            ? context.read<StopsCacheDataSource>()
-            : null,
-        savedStopsDataSource: loadStops == null
-            ? context.read<SavedStopsDataSource>()
-            : null,
-      )..loadStops(),
+      create: (context) {
+        final cubit = StopsCubit(
+          _getStopsUseCase(context),
+          cacheDataSource: loadStops == null
+              ? context.read<StopsCacheDataSource>()
+              : null,
+          savedStopsDataSource: loadStops == null
+              ? context.read<SavedStopsDataSource>()
+              : null,
+        );
+        unawaited(cubit.loadStops());
+        return cubit;
+      },
       child: StopsScreen(onStopSelected: onStopSelected),
     );
   }
@@ -148,6 +161,7 @@ class _DeparturesTab extends StatelessWidget {
     required this.loadDepartures,
     required this.refreshInterval,
     required this.onVehicleSelected,
+    required this.onBackToStops,
     required this.isActive,
   });
 
@@ -155,6 +169,7 @@ class _DeparturesTab extends StatelessWidget {
   final Future<List<Departure>> Function(Stop stop)? loadDepartures;
   final Duration refreshInterval;
   final ValueChanged<String> onVehicleSelected;
+  final VoidCallback onBackToStops;
   final bool isActive;
 
   @override
@@ -180,7 +195,11 @@ class _DeparturesTab extends StatelessWidget {
         _getDeparturesUseCase(context),
         refreshInterval: refreshInterval,
       )..add(DeparturesStarted(stop)),
-      child: DeparturesScreen(stop: stop, onVehicleSelected: onVehicleSelected),
+      child: DeparturesScreen(
+        stop: stop,
+        onVehicleSelected: onVehicleSelected,
+        onBackToStops: onBackToStops,
+      ),
     );
   }
 

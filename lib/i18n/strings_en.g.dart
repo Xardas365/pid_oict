@@ -144,16 +144,30 @@ class _Translations$departures$en extends Translations$departures$cs {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
+	@override String get title => 'Departures from stop';
 	@override String get emptyTabMessage => 'Select a stop from the list first.';
 	@override String get loading => 'Loading departures...';
 	@override String get loadFailed => 'Could not load departures. Please try again.';
 	@override String get invalidData => 'The Golemio API did not return any usable departures.';
 	@override String get empty => 'No departures are available for this stop.';
+	@override String get emptyFilter => 'No departures are available for the selected transport type.';
 	@override String get refreshing => 'Refreshing departures...';
 	@override String get staleWarning => 'Could not refresh departures. Showing the last available data.';
+	@override String get backToStops => 'Back to stops';
+	@override String get filterAll => 'All';
+	@override String get filterMetro => 'Metro';
+	@override String get filterTram => 'Tram';
+	@override String get filterBus => 'Bus';
+	@override String get filterTrolleybus => 'Trolleybus';
+	@override String get filterTrain => 'Train';
+	@override String get filterFerry => 'Ferry';
+	@override String get filterFunicular => 'Funicular';
+	@override String get filterOther => 'Other';
+	@override String lastUpdatedAgo({required Object seconds}) => 'Updated ${seconds} s ago';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
 	@override String get showVehicleTooltip => 'Show vehicle position';
+	@override String get wheelchairAccessible => 'Wheelchair-accessible departure';
 }
 
 // Path: vehicleMap
@@ -182,6 +196,8 @@ class _Translations$format$en extends Translations$format$cs {
 	// Translations
 	@override String get noDelay => 'No delay';
 	@override String delayMinutes({required Object minutes}) => 'Delay +${minutes} min';
+	@override String get delayOnTimeShort => '0 min';
+	@override String delayMinutesShort({required Object minutes}) => '+${minutes} min';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -235,16 +251,30 @@ extension on TranslationsEn {
 			'stops.stopPoints' => ({required Object count}) => '${count} stop points',
 			'stops.coordinatesWithId' => ({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}',
 			'stops.legacyPlatformWithId' => ({required Object platform, required Object id}) => 'Platform ${platform} - ID ${id}',
+			'departures.title' => 'Departures from stop',
 			'departures.emptyTabMessage' => 'Select a stop from the list first.',
 			'departures.loading' => 'Loading departures...',
 			'departures.loadFailed' => 'Could not load departures. Please try again.',
 			'departures.invalidData' => 'The Golemio API did not return any usable departures.',
 			'departures.empty' => 'No departures are available for this stop.',
+			'departures.emptyFilter' => 'No departures are available for the selected transport type.',
 			'departures.refreshing' => 'Refreshing departures...',
 			'departures.staleWarning' => 'Could not refresh departures. Showing the last available data.',
+			'departures.backToStops' => 'Back to stops',
+			'departures.filterAll' => 'All',
+			'departures.filterMetro' => 'Metro',
+			'departures.filterTram' => 'Tram',
+			'departures.filterBus' => 'Bus',
+			'departures.filterTrolleybus' => 'Trolleybus',
+			'departures.filterTrain' => 'Train',
+			'departures.filterFerry' => 'Ferry',
+			'departures.filterFunicular' => 'Funicular',
+			'departures.filterOther' => 'Other',
+			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Updated ${seconds} s ago',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',
 			'departures.showVehicleTooltip' => 'Show vehicle position',
+			'departures.wheelchairAccessible' => 'Wheelchair-accessible departure',
 			'vehicleMap.emptyTabMessage' => 'Select a departure with an available vehicle position.',
 			'vehicleMap.title' => 'Vehicle position',
 			'vehicleMap.loading' => 'Loading vehicle position...',
@@ -255,6 +285,8 @@ extension on TranslationsEn {
 			'vehicleMap.attribution' => 'Map data (c) OpenStreetMap contributors',
 			'format.noDelay' => 'No delay',
 			'format.delayMinutes' => ({required Object minutes}) => 'Delay +${minutes} min',
+			'format.delayOnTimeShort' => '0 min',
+			'format.delayMinutesShort' => ({required Object minutes}) => '+${minutes} min',
 			_ => null,
 		};
 	}

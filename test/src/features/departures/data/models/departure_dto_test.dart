@@ -14,7 +14,7 @@ void main() {
           'delay_seconds': '120',
         },
         'stop': {'id': 'U123Z1', 'platform_code': '3'},
-        'vehicle': {'id': 'service-3-1001'},
+        'vehicle': {'id': 'service-3-1001', 'is_wheelchair_accessible': true},
       });
 
       expect(dto, isNotNull);
@@ -27,6 +27,7 @@ void main() {
       expect(dto.stopId, 'U123Z1');
       expect(dto.gtfsTripId, 'trip-22-123');
       expect(dto.vehicleId, 'service-3-1001');
+      expect(dto.isWheelchairAccessible, isTrue);
 
       final departure = dto.toDomain();
 
@@ -35,6 +36,7 @@ void main() {
       expect(departure.lineType, PidLineType.tram);
       expect(departure.headsign, dto.headsign);
       expect(departure.departureTime, dto.departureTime);
+      expect(departure.isWheelchairAccessible, isTrue);
     });
 
     test('uses route type as PID line context when available', () {
@@ -74,6 +76,7 @@ void main() {
       expect(dto.platform, isNull);
       expect(dto.gtfsTripId, isNull);
       expect(dto.vehicleId, isNull);
+      expect(dto.isWheelchairAccessible, isNull);
     });
 
     test('parses numeric epoch departure timestamps', () {

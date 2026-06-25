@@ -28,4 +28,11 @@ String? formatDelaySeconds(int? delaySeconds) {
   return t.format.delayMinutes(minutes: minutes);
 }
 
+int elapsedSecondsSince(DateTime dateTime, {DateTime? now}) {
+  final referenceTime = now ?? DateTime.now();
+  final elapsedSeconds = referenceTime.difference(dateTime).inSeconds;
+
+  return elapsedSeconds < 0 ? 0 : elapsedSeconds;
+}
+
 String _twoDigits(int value) => value.toString().padLeft(2, '0');

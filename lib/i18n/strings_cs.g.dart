@@ -232,6 +232,9 @@ class Translations$departures$cs {
 
 	// Translations
 
+	/// cs: 'Odjezdy zo zastávky'
+	String get title => 'Odjezdy zo zastávky';
+
 	/// cs: 'Nejdříve vyberte zastávku ze seznamu.'
 	String get emptyTabMessage => 'Nejdříve vyberte zastávku ze seznamu.';
 
@@ -247,11 +250,47 @@ class Translations$departures$cs {
 	/// cs: 'Pro tuto zastávku nejsou dostupné žádné odjezdy.'
 	String get empty => 'Pro tuto zastávku nejsou dostupné žádné odjezdy.';
 
+	/// cs: 'Pro vybraný typ dopravy nejsou dostupné žádné odjezdy.'
+	String get emptyFilter => 'Pro vybraný typ dopravy nejsou dostupné žádné odjezdy.';
+
 	/// cs: 'Aktualizuji odjezdy...'
 	String get refreshing => 'Aktualizuji odjezdy...';
 
 	/// cs: 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.'
 	String get staleWarning => 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.';
+
+	/// cs: 'Zpět na zastávky'
+	String get backToStops => 'Zpět na zastávky';
+
+	/// cs: 'Vše'
+	String get filterAll => 'Vše';
+
+	/// cs: 'Metro'
+	String get filterMetro => 'Metro';
+
+	/// cs: 'Tram'
+	String get filterTram => 'Tram';
+
+	/// cs: 'Bus'
+	String get filterBus => 'Bus';
+
+	/// cs: 'Trolejbus'
+	String get filterTrolleybus => 'Trolejbus';
+
+	/// cs: 'Vlak'
+	String get filterTrain => 'Vlak';
+
+	/// cs: 'Přívoz'
+	String get filterFerry => 'Přívoz';
+
+	/// cs: 'Lanovka'
+	String get filterFunicular => 'Lanovka';
+
+	/// cs: 'Ostatní'
+	String get filterOther => 'Ostatní';
+
+	/// cs: 'Aktualizované před $seconds s'
+	String lastUpdatedAgo({required Object seconds}) => 'Aktualizované před ${seconds} s';
 
 	/// cs: 'Odjezd $time'
 	String departureTime({required Object time}) => 'Odjezd ${time}';
@@ -261,6 +300,9 @@ class Translations$departures$cs {
 
 	/// cs: 'Zobrazit polohu vozidla'
 	String get showVehicleTooltip => 'Zobrazit polohu vozidla';
+
+	/// cs: 'Bezbariérový odjezd'
+	String get wheelchairAccessible => 'Bezbariérový odjezd';
 }
 
 // Path: vehicleMap
@@ -309,6 +351,12 @@ class Translations$format$cs {
 
 	/// cs: 'Zpoždění +$minutes min'
 	String delayMinutes({required Object minutes}) => 'Zpoždění +${minutes} min';
+
+	/// cs: '0 min'
+	String get delayOnTimeShort => '0 min';
+
+	/// cs: '+$minutes min'
+	String delayMinutesShort({required Object minutes}) => '+${minutes} min';
 }
 
 /// The flat map containing all translations for locale <cs>.
@@ -362,16 +410,30 @@ extension on Translations {
 			'stops.stopPoints' => ({required Object count}) => '${count} označníky',
 			'stops.coordinatesWithId' => ({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}',
 			'stops.legacyPlatformWithId' => ({required Object platform, required Object id}) => 'Nástupiště ${platform} - ID ${id}',
+			'departures.title' => 'Odjezdy zo zastávky',
 			'departures.emptyTabMessage' => 'Nejdříve vyberte zastávku ze seznamu.',
 			'departures.loading' => 'Načítání odjezdů...',
 			'departures.loadFailed' => 'Odjezdy se nepodařilo načíst. Zkuste to prosím znovu.',
 			'departures.invalidData' => 'Golemio API nevrátilo žádné použitelné odjezdy.',
 			'departures.empty' => 'Pro tuto zastávku nejsou dostupné žádné odjezdy.',
+			'departures.emptyFilter' => 'Pro vybraný typ dopravy nejsou dostupné žádné odjezdy.',
 			'departures.refreshing' => 'Aktualizuji odjezdy...',
 			'departures.staleWarning' => 'Nepodařilo se aktualizovat odjezdy. Zobrazujeme poslední dostupná data.',
+			'departures.backToStops' => 'Zpět na zastávky',
+			'departures.filterAll' => 'Vše',
+			'departures.filterMetro' => 'Metro',
+			'departures.filterTram' => 'Tram',
+			'departures.filterBus' => 'Bus',
+			'departures.filterTrolleybus' => 'Trolejbus',
+			'departures.filterTrain' => 'Vlak',
+			'departures.filterFerry' => 'Přívoz',
+			'departures.filterFunicular' => 'Lanovka',
+			'departures.filterOther' => 'Ostatní',
+			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizované před ${seconds} s',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',
+			'departures.wheelchairAccessible' => 'Bezbariérový odjezd',
 			'vehicleMap.emptyTabMessage' => 'Vyberte odjezd s dostupnou polohou vozidla.',
 			'vehicleMap.title' => 'Poloha vozidla',
 			'vehicleMap.loading' => 'Načítání polohy vozidla...',
@@ -382,6 +444,8 @@ extension on Translations {
 			'vehicleMap.attribution' => 'Mapová data (c) přispěvatelé OpenStreetMap',
 			'format.noDelay' => 'Bez zpoždění',
 			'format.delayMinutes' => ({required Object minutes}) => 'Zpoždění +${minutes} min',
+			'format.delayOnTimeShort' => '0 min',
+			'format.delayMinutesShort' => ({required Object minutes}) => '+${minutes} min',
 			_ => null,
 		};
 	}

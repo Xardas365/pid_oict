@@ -102,6 +102,12 @@ int _contextScore(Departure departure) {
   if (departure.stopId?.trim().isNotEmpty ?? false) {
     score++;
   }
+  if (departure.vehicleId?.trim().isNotEmpty ?? false) {
+    score++;
+  }
+  if (departure.isWheelchairAccessible != null) {
+    score++;
+  }
   return score;
 }
 
