@@ -156,7 +156,14 @@ domain fields. Technical GTFS records are filtered out before public display.
 Remaining public stop points are grouped into `StopGroup` values by
 `parent_station` or normalized stop name.
 
-The stops flow supports paginated loading, API-backed search, local fallback
+Parent station GTFS records are not selectable and are not sent to departure
+boards. When a parent station record is present in raw GTFS data, its name is
+kept only as search alias metadata for child stop groups. This lets queries
+such as `Praha hl.` resolve to the related passenger stop group without
+loosening public-stop filtering.
+
+The stops flow supports paginated loading, background complete-index loading,
+API-backed search while the local index is incomplete, local fallback
 filtering, cache restore, stale cache warnings, favorites, and recent stops.
 
 ### Departures
@@ -213,9 +220,11 @@ and safe for the user experience.
 
 Public GTFS stops are cached locally because the stop list changes relatively
 slowly compared with departures or vehicle positions. The cache stores only
-filtered public stop records needed to rebuild `StopGroup` values. It uses a
-24-hour TTL, app-specific support storage through `path_provider`, and ignores
-corrupted or unsupported cache payloads safely.
+filtered public stop records needed to rebuild `StopGroup` values. Search-only
+aliases derived from parent station records are stored with those public stops
+when available, but parent stations themselves are not cached as selectable
+items. It uses a 24-hour TTL, app-specific support storage through
+`path_provider`, and ignores corrupted or unsupported cache payloads safely.
 
 When the stops screen opens, `StopsCubit` tries to restore cached stops first.
 If usable cached stops exist, it emits grouped stops immediately. Expired cache

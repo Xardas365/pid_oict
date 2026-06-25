@@ -76,6 +76,28 @@ void main() {
       expect(token.single.score, greaterThan(contains.single.score));
     });
 
+    test('matches child stop groups through parent station aliases', () {
+      final index = StopSearchIndex.fromGroups([
+        _group(
+          'U202S1',
+          'Hlavní nádraží',
+          searchAliases: const ['Praha hlavní nádraží'],
+        ),
+      ]);
+
+      final prahaResults = matcher.matchGroups(
+        index,
+        StopSearchQuery.parse('praha hl'),
+      );
+      final abbreviationResults = matcher.matchGroups(
+        index,
+        StopSearchQuery.parse('hl. n.'),
+      );
+
+      expect(prahaResults.single.name, 'Hlavní nádraží');
+      expect(abbreviationResults.single.name, 'Hlavní nádraží');
+    });
+
     test('sorts equal scores by public name and group id', () {
       final index = StopSearchIndex.fromGroups([
         _group('name:flora-b', 'Praha Flora'),
@@ -143,7 +165,12 @@ void main() {
   });
 }
 
-StopGroup _group(String id, String name, {int? locationType}) {
+StopGroup _group(
+  String id,
+  String name, {
+  int? locationType,
+  List<String> searchAliases = const <String>[],
+}) {
   return StopGroup(
     id: id,
     name: name,
@@ -156,6 +183,7 @@ StopGroup _group(String id, String name, {int? locationType}) {
         locationType: locationType,
         latitude: 50,
         longitude: 14,
+        searchAliases: searchAliases,
       ),
     ],
     stopIds: [id],

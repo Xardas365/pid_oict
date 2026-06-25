@@ -198,6 +198,43 @@ void main() {
       expect(page.stops.single.name, 'Flora');
     });
 
+    test(
+      'collects parent station aliases without returning parent records',
+      () async {
+        final apiClient = mockGolemioApiClient(
+          response: {
+            'features': [
+              _stopFeature(
+                id: 'U202Z101P',
+                name: 'Hlavní nádraží',
+                longitude: 14.43528,
+                latitude: 50.08361,
+                parentStationId: 'U202S1',
+              ),
+              {
+                'properties': {
+                  'stop_id': 'U202S1',
+                  'stop_name': 'Praha hlavní nádraží',
+                  'location_type': 1,
+                },
+              },
+            ],
+          },
+        );
+        final repository = _repository(apiClient);
+
+        final page = await repository.fetchStopsPage(
+          const GtfsStopsQuery(limit: 1000, offset: 0),
+        );
+
+        expect(page.stops.map((stop) => stop.id), ['U202Z101P']);
+        expect(page.stops.single.searchAliases, ['Praha hlavní nádraží']);
+        expect(page.parentStationNamesById, {
+          'U202S1': 'Praha hlavní nádraží',
+        });
+      },
+    );
+
     test('throws controlled error when no valid stops are returned', () async {
       final repository = _repository(
         mockGolemioApiClient(
@@ -300,6 +337,7 @@ Map<String, Object?> _stopFeature({
   required double latitude,
   String zoneId = 'P',
   int locationType = 0,
+  String? parentStationId,
 }) {
   return {
     'geometry': {
@@ -311,6 +349,7 @@ Map<String, Object?> _stopFeature({
       'stop_name': name,
       'zone_id': zoneId,
       'location_type': locationType,
+      'parent_station': ?parentStationId,
     },
   };
 }

@@ -108,6 +108,46 @@ void main() {
       expect(result.hasMore, isFalse);
     });
 
+    test(
+      'complete index loader attaches parent aliases across pages',
+      () async {
+        const hlavniNadrazi = Stop(
+          id: 'U202Z101P',
+          name: 'Hlavní nádraží',
+          parentStationId: 'U202S1',
+        );
+        final repository = _QueuedStopsRepository(
+          const [
+            StopsPage(
+              stops: [hlavniNadrazi],
+              limit: gtfsCompleteStopsPageLimit,
+              offset: 0,
+              rawReturnedCount: gtfsCompleteStopsPageLimit,
+              hasMore: true,
+            ),
+            StopsPage(
+              stops: [],
+              limit: gtfsCompleteStopsPageLimit,
+              offset: gtfsCompleteStopsPageLimit,
+              rawReturnedCount: 1,
+              hasMore: false,
+              parentStationNamesById: {'U202S1': 'Praha hlavní nádraží'},
+            ),
+          ],
+        );
+        final useCase = LoadCompleteStopIndexUseCase(
+          GetStopsUseCase(repository),
+        );
+
+        final result = await useCase();
+
+        expect(result.stops.single.searchAliases, ['Praha hlavní nádraží']);
+        expect(result.parentStationNamesById, {
+          'U202S1': 'Praha hlavní nádraží',
+        });
+      },
+    );
+
     test('cache use cases read and write cache snapshots', () async {
       final repository = _MemoryStopsCacheRepository();
       final cachedAt = DateTime.utc(2026, 6, 23, 12);

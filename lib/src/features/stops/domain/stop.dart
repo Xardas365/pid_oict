@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 
+import '../../../core/utils/value_equality.dart';
+
 @immutable
 class Stop {
   const Stop({
@@ -13,6 +15,7 @@ class Stop {
     this.levelId,
     this.latitude,
     this.longitude,
+    this.searchAliases = const <String>[],
   });
 
   final String id;
@@ -25,6 +28,32 @@ class Stop {
   final String? levelId;
   final double? latitude;
   final double? longitude;
+  final List<String> searchAliases;
+
+  Stop withSearchAliases(Iterable<String> aliases) {
+    final uniqueAliases = <String>{};
+
+    for (final alias in aliases) {
+      final trimmedAlias = alias.trim();
+      if (trimmedAlias.isNotEmpty) {
+        uniqueAliases.add(trimmedAlias);
+      }
+    }
+
+    return Stop(
+      id: id,
+      name: name,
+      platformCode: platformCode,
+      zoneId: zoneId,
+      locationType: locationType,
+      parentStationId: parentStationId,
+      wheelchairBoarding: wheelchairBoarding,
+      levelId: levelId,
+      latitude: latitude,
+      longitude: longitude,
+      searchAliases: List<String>.unmodifiable(uniqueAliases),
+    );
+  }
 
   @override
   bool operator ==(Object other) {
@@ -39,7 +68,8 @@ class Stop {
             wheelchairBoarding == other.wheelchairBoarding &&
             levelId == other.levelId &&
             latitude == other.latitude &&
-            longitude == other.longitude;
+            longitude == other.longitude &&
+            iterableEquals(searchAliases, other.searchAliases);
   }
 
   @override
@@ -55,6 +85,7 @@ class Stop {
       levelId,
       latitude,
       longitude,
+      iterableHash(searchAliases),
     );
   }
 }

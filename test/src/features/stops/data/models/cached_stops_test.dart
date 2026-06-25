@@ -90,6 +90,31 @@ void main() {
       expect(cachedStops.nextOffset, 500);
     });
 
+    test('round trips search alias metadata without changing schema', () {
+      final cachedStops = CachedStops(
+        cachedAt: DateTime.utc(2026, 6, 23, 10),
+        stops: const [
+          Stop(
+            id: 'U202Z101P',
+            name: 'Hlavní nádraží',
+            parentStationId: 'U202S1',
+            searchAliases: ['Praha hlavní nádraží'],
+          ),
+        ],
+      );
+
+      final json = cachedStops.toJson();
+      final restored = CachedStops.fromJson(json);
+
+      expect(json['schemaVersion'], stopsCacheSchemaVersion);
+      expect(
+        (json['stops']! as List).single,
+        containsPair('searchAliases', ['Praha hlavní nádraží']),
+      );
+      expect(restored, isNotNull);
+      expect(restored!.stops.single.searchAliases, ['Praha hlavní nádraží']);
+    });
+
     test('ignores unsupported schema versions safely', () {
       final cachedStops = CachedStops.fromJson({
         'schemaVersion': stopsCacheSchemaVersion + 1,

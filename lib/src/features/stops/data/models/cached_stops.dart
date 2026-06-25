@@ -113,6 +113,8 @@ JsonMap _stopToJson(Stop stop) {
     if (stop.levelId != null) 'levelId': stop.levelId,
     if (stop.latitude != null) 'latitude': stop.latitude,
     if (stop.longitude != null) 'longitude': stop.longitude,
+    if (stop.searchAliases.isNotEmpty)
+      'searchAliases': stop.searchAliases.toList(growable: false),
   };
 }
 
@@ -159,5 +161,29 @@ Stop? _stopFromJson(Object? value) {
     longitude: readDouble(json, const [
       ['longitude'],
     ]),
+    searchAliases: _searchAliasesFromJson(json),
   );
+}
+
+List<String> _searchAliasesFromJson(JsonMap json) {
+  final value = readJsonValue(json, const [
+    ['searchAliases'],
+  ]);
+  if (value is! List) {
+    return const <String>[];
+  }
+
+  final aliases = <String>[];
+  for (final item in value) {
+    if (item is! String) {
+      return const <String>[];
+    }
+
+    final alias = item.trim();
+    if (alias.isNotEmpty) {
+      aliases.add(alias);
+    }
+  }
+
+  return List<String>.unmodifiable(aliases);
 }

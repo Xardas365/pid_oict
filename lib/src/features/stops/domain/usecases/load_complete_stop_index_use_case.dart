@@ -1,5 +1,6 @@
 import '../gtfs_stops_query.dart';
 import '../stop.dart';
+import '../stop_parent_aliases.dart';
 import '../stops_page.dart';
 import 'get_stops_use_case.dart';
 
@@ -15,6 +16,7 @@ class LoadCompleteStopIndexUseCase {
     int offset = 0,
   }) async {
     final stopsById = <String, Stop>{};
+    final parentNamesById = <String, String>{};
     var nextOffset = offset;
     var rawReturnedCount = 0;
     var hasMore = true;
@@ -27,6 +29,7 @@ class LoadCompleteStopIndexUseCase {
       for (final stop in page.stops) {
         stopsById[stop.id] = stop;
       }
+      parentNamesById.addAll(page.parentStationNamesById);
 
       rawReturnedCount += page.rawReturnedCount;
 
@@ -39,11 +42,14 @@ class LoadCompleteStopIndexUseCase {
     }
 
     return StopsPage(
-      stops: List<Stop>.unmodifiable(stopsById.values),
+      stops: attachParentStationAliases(stopsById.values, parentNamesById),
       limit: limit,
       offset: offset,
       rawReturnedCount: rawReturnedCount,
       hasMore: false,
+      parentStationNamesById: Map<String, String>.unmodifiable(
+        parentNamesById,
+      ),
     );
   }
 }

@@ -30,6 +30,7 @@ class StopSearchAliasBuilder {
 
     for (final stop in group.stops) {
       addAlias(stop.name);
+      stop.searchAliases.forEach(addAlias);
     }
 
     for (final platformCode in group.platformCodes) {
