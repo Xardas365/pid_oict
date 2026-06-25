@@ -138,6 +138,8 @@ void main() {
       expect(queryParameters.toSingleValueMap(), {
         'stopIds': '{"0":["U118Z101P","U118Z102P","U118Z103P"]}',
       });
+      expect(queryParameters.encoded, startsWith('stopIds='));
+      expect(queryParameters.encoded, isNot(contains('stopIds[]')));
     });
 
     test(

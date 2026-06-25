@@ -177,7 +177,7 @@ Used endpoints:
   - `aswIds[]`
   - `cisIds[]`
 - `GET /v2/public/departureboards`
-  - grouped `stopIds`, for example
+  - grouped `stopIds` query parameter, not `stopIds[]`, for example
     `stopIds={"0":["U118Z101P","U118Z102P"]}`
 - `GET /v2/public/vehiclepositions/{vehicleId}`
   - `scopes=info`

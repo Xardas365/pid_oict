@@ -5,8 +5,9 @@ import '../../../../core/network/golemio_query_parameters.dart';
 
 const departureBoardsPath = '/v2/public/departureboards';
 
-// Golemio OpenAPI for /v2/public/departureboards expects stop groups encoded
-// as repeated stopIds={"0":["U717Z5P"]} query values.
+// Golemio OpenAPI names the departure board filter `stopIds`. Keep this exact
+// key, not `stopIds[]`, and put the grouped stop IDs into the JSON value:
+// stopIds={"0":["U717Z5P","U718Z5P"]}.
 const departureBoardsStopFilterParameter = 'stopIds';
 
 class DepartureBoardRequest {

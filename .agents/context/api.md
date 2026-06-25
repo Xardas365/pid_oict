@@ -100,7 +100,9 @@ For `GET /v2/gtfs/stops`:
 
 For `GET /v2/public/departureboards`:
 
-* verify the exact stop filtering query parameter before implementing,
+* use the `stopIds` query parameter, not `stopIds[]`,
+* encode grouped stop IDs as a JSON value, for example
+  `stopIds={"0":["U118Z101P","U118Z102P"]}`,
 * parse route/line,
 * parse headsign/destination,
 * parse scheduled or predicted departure time,

@@ -132,7 +132,9 @@ filtering, cache restore, stale cache warnings, favorites, and recent stops.
 ### Departures
 
 `DeparturesRemoteDataSource` calls `GET /v2/public/departureboards` with grouped
-stop IDs from the selected `StopGroup`.
+stop IDs from the selected `StopGroup`. The request intentionally uses the
+`stopIds` query parameter, not `stopIds[]`, with a JSON value such as
+`{"0":["U118Z101P","U118Z102P"]}`.
 
 Departures are parsed, deduplicated, sorted by the best available departure
 time, and enriched with route type classification. A 404 response with an empty
