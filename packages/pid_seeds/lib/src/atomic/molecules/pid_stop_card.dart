@@ -9,6 +9,11 @@ import '../../tokens/pid_seed_typography.dart';
 import '../../utils/pid_transport_type.dart';
 import '../atoms/pid_badge.dart';
 
+const _highlightedStopCardBackground = Color(0xFFF7FAFF);
+const _highlightedStopCardBorder = Color(0xFFD8E7FE);
+const _trailingActionWidth = 52.0;
+const _trailingActionTapTarget = 48.0;
+
 class PidStopCard extends StatelessWidget {
   const PidStopCard({
     super.key,
@@ -27,10 +32,11 @@ class PidStopCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = stop.transportType.foreground;
     final badgeBackground = stop.transportType.background;
-    final cardBackground =
-        stop.isHighlighted ? PidSeedColors.primarySoft : PidSeedColors.surface;
+    final cardBackground = stop.isHighlighted
+        ? _highlightedStopCardBackground
+        : PidSeedColors.surface;
     final borderColor =
-        stop.isHighlighted ? PidSeedColors.primaryBorder : PidSeedColors.border;
+        stop.isHighlighted ? _highlightedStopCardBorder : PidSeedColors.border;
 
     return Material(
       color: cardBackground,
@@ -108,27 +114,34 @@ class PidStopCard extends StatelessWidget {
               ),
             ),
             if (trailingAction != null)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 1,
-                    height: 42,
-                    color: borderColor,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: PidSeedSpacing.xs,
-                      right: PidSeedSpacing.sm,
+              SizedBox(
+                width: _trailingActionWidth,
+                child: Center(
+                  child: IconButton(
+                    tooltip: trailingAction!.tooltip,
+                    onPressed: trailingAction!.onPressed,
+                    icon: Icon(trailingAction!.icon),
+                    color: trailingAction!.color,
+                    iconSize: 22,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: _trailingActionTapTarget,
+                      height: _trailingActionTapTarget,
                     ),
-                    child: IconButton(
-                      tooltip: trailingAction!.tooltip,
-                      onPressed: trailingAction!.onPressed,
-                      icon: Icon(trailingAction!.icon),
-                      color: trailingAction!.color,
+                    style: IconButton.styleFrom(
+                      shape: const CircleBorder(),
+                      backgroundColor: stop.isHighlighted
+                          ? PidSeedColors.surface.withValues(alpha: 0.72)
+                          : Colors.transparent,
+                      hoverColor: PidSeedColors.primarySoft.withValues(
+                        alpha: 0.7,
+                      ),
+                      highlightColor: PidSeedColors.primarySoft,
+                      minimumSize: const Size.square(_trailingActionTapTarget),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                   ),
-                ],
+                ),
               ),
           ],
         ),

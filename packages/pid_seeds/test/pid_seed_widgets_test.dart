@@ -127,6 +127,10 @@ void main() {
 
     expect(actionTapCount, 1);
     expect(rowTapCount, 0);
+    expect(
+      tester.getSize(find.byTooltip('Přidat do oblíbených')),
+      const Size.square(48),
+    );
     expect(find.byIcon(Icons.location_on_outlined), findsNothing);
     expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
 
@@ -134,6 +138,61 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(rowTapCount, 1);
+  });
+
+  testWidgets('PidStopCard renders favorite and non-favorite action states', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PidSeedsTheme.light(),
+        home: Scaffold(
+          body: Column(
+            children: [
+              PidStopCard(
+                stop: const PidStopData(
+                  id: 'U123S1',
+                  name: 'Andel',
+                  subtitle: 'Nástupiště A • zóna P',
+                  isHighlighted: true,
+                ),
+                trailingAction: PidStopCardAction(
+                  icon: Icons.star_rounded,
+                  tooltip: 'Odebrat z oblíbených',
+                  onPressed: () {},
+                  color: PidSeedColors.primary,
+                ),
+              ),
+              PidStopCard(
+                stop: const PidStopData(
+                  id: 'U456S1',
+                  name: 'Flora',
+                  subtitle: 'Nástupiště B • zóna P',
+                ),
+                trailingAction: PidStopCardAction(
+                  icon: Icons.star_border_rounded,
+                  tooltip: 'Přidat do oblíbených',
+                  onPressed: () {},
+                  color: PidSeedColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final favoriteButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.star_rounded),
+    );
+    final nonFavoriteButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.star_border_rounded),
+    );
+
+    expect(favoriteButton.color, PidSeedColors.primary);
+    expect(nonFavoriteButton.color, PidSeedColors.textMuted);
+    expect(find.text('Andel'), findsOneWidget);
+    expect(find.text('Flora'), findsOneWidget);
   });
 
   testWidgets('PidStatusBanner renders title, message and tone icon', (
