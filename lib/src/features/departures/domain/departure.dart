@@ -1,6 +1,9 @@
+import 'package:meta/meta.dart';
+
 import '../../../core/domain/pid_line_classifier.dart';
 import '../../../core/domain/pid_line_type.dart';
 
+@immutable
 class Departure {
   const Departure({
     required this.routeShortName,
@@ -33,5 +36,37 @@ class Departure {
     }
 
     return fromPidPage(page: page, shortName: routeShortName);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is Departure &&
+            routeShortName == other.routeShortName &&
+            headsign == other.headsign &&
+            departureTime == other.departureTime &&
+            routeType == other.routeType &&
+            delaySeconds == other.delaySeconds &&
+            platform == other.platform &&
+            stopId == other.stopId &&
+            gtfsTripId == other.gtfsTripId &&
+            vehicleId == other.vehicleId &&
+            isWheelchairAccessible == other.isWheelchairAccessible;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      routeShortName,
+      headsign,
+      departureTime,
+      routeType,
+      delaySeconds,
+      platform,
+      stopId,
+      gtfsTripId,
+      vehicleId,
+      isWheelchairAccessible,
+    );
   }
 }

@@ -1,3 +1,6 @@
+import 'package:meta/meta.dart';
+
+@immutable
 class VehicleId {
   VehicleId(String rawValue) : value = _normalize(rawValue) {
     if (value.isEmpty) {
@@ -30,4 +33,12 @@ class VehicleId {
 
   @override
   String toString() => value;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) || other is VehicleId && value == other.value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
 }

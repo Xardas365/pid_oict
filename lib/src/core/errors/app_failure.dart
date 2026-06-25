@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import 'app_exception.dart';
 
 enum AppFailureCategory {
@@ -30,6 +32,7 @@ enum AppFailureMessageKey {
   fallback,
 }
 
+@immutable
 class AppFailure {
   const AppFailure({
     required this.category,
@@ -150,5 +153,27 @@ class AppFailure {
 
     return 'AppFailure(category: $category$status, '
         'retryable: $retryable, debugMessage: $debugMessage)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is AppFailure &&
+            category == other.category &&
+            userMessageKey == other.userMessageKey &&
+            debugMessage == other.debugMessage &&
+            retryable == other.retryable &&
+            statusCode == other.statusCode;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      category,
+      userMessageKey,
+      debugMessage,
+      retryable,
+      statusCode,
+    );
   }
 }

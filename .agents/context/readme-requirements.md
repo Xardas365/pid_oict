@@ -52,10 +52,10 @@ Explain:
 
 ## Code generation section
 
-Include this section when Freezed, json_serializable, or another generator is
-present in the project, even if migration is still incremental.
+Include this section only when Freezed, json_serializable, or another model
+generator is present in the project, even if migration is still incremental.
 
-Example wording:
+Example wording for a future generated-model setup:
 
 ```md
 ### Code generation
@@ -69,7 +69,8 @@ dart run build_runner build
 ```
 ```
 
-If code generation is not used, state that the project uses manual models/parsers to keep the assignment small.
+If model code generation is not used, state that the project uses manual
+models/parsers and handwritten value equality to keep the assignment small.
 
 ## Troubleshooting
 

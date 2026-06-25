@@ -114,11 +114,8 @@ Update goldens only after intentional UI changes:
 flutter test --update-goldens
 ```
 
-If generated model sources are changed later, run:
-
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
+Domain models, DTOs, and Bloc/Cubit states are currently handwritten. The
+project does not use Freezed, `json_serializable`, or `build_runner`.
 
 The test suite is offline. It does not call the real Golemio API, require a real
 token, or load real map tiles.

@@ -1,7 +1,11 @@
+import 'package:meta/meta.dart';
+
+import '../../../core/utils/value_equality.dart';
 import 'stop.dart';
 
 const stopsCacheTtl = Duration(hours: 24);
 
+@immutable
 class StopsCacheSnapshot {
   const StopsCacheSnapshot({
     required this.cachedAt,
@@ -17,6 +21,21 @@ class StopsCacheSnapshot {
 
   bool isFresh(DateTime now, {Duration ttl = stopsCacheTtl}) {
     return isStopsCacheFresh(this, now, ttl: ttl);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is StopsCacheSnapshot &&
+            cachedAt == other.cachedAt &&
+            iterableEquals(stops, other.stops) &&
+            hasMore == other.hasMore &&
+            nextOffset == other.nextOffset;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(cachedAt, iterableHash(stops), hasMore, nextOffset);
   }
 }
 

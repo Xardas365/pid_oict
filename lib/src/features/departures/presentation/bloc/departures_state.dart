@@ -1,11 +1,15 @@
+import 'package:meta/meta.dart';
+
 import '../../../../core/domain/pid_line_type.dart';
 import '../../../../core/errors/app_failure.dart';
+import '../../../../core/utils/value_equality.dart';
 import '../../../stops/domain/stop_group.dart';
 import '../../domain/departure.dart';
 import '../departure_transport_filter.dart';
 
 enum DeparturesStatus { loading, loaded, empty, error }
 
+@immutable
 class DeparturesState {
   const DeparturesState({
     required this.status,
@@ -69,6 +73,34 @@ class DeparturesState {
           ? null
           : selectedTransportMode ?? this.selectedTransportMode,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is DeparturesState &&
+            status == other.status &&
+            stop == other.stop &&
+            iterableEquals(departures, other.departures) &&
+            error == other.error &&
+            refreshError == other.refreshError &&
+            isRefreshing == other.isRefreshing &&
+            selectedTransportMode == other.selectedTransportMode &&
+            lastUpdated == other.lastUpdated;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      status,
+      stop,
+      iterableHash(departures),
+      error,
+      refreshError,
+      isRefreshing,
+      selectedTransportMode,
+      lastUpdated,
     );
   }
 }

@@ -1,9 +1,12 @@
+import 'package:meta/meta.dart';
+
 import '../../../../core/errors/app_failure.dart';
 import '../../domain/vehicle_id.dart';
 import '../../domain/vehicle_position.dart';
 
 enum VehicleMapStatus { loading, loaded, noPosition, error }
 
+@immutable
 class VehicleMapState {
   const VehicleMapState({
     required this.status,
@@ -43,6 +46,30 @@ class VehicleMapState {
       error: clearError ? null : error ?? this.error,
       staleError: clearStaleError ? null : staleError ?? this.staleError,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is VehicleMapState &&
+            status == other.status &&
+            vehicleId == other.vehicleId &&
+            position == other.position &&
+            error == other.error &&
+            staleError == other.staleError &&
+            isRefreshing == other.isRefreshing;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      status,
+      vehicleId,
+      position,
+      error,
+      staleError,
+      isRefreshing,
     );
   }
 }

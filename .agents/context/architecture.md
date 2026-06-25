@@ -7,8 +7,6 @@ still pragmatic Flutter implementation using:
 
 * `flutter_bloc` as the single state-management package,
 * Dio as the active HTTP client for the app-owned API layer,
-* Freezed and `json_serializable` for generated immutable models/states and
-  JSON mapping where they reduce boilerplate,
 * Slang for Czech and English user-facing strings,
 * Cubit for simple state/actions,
 * Bloc where events make flows clearer, especially loading, retry, refresh,
@@ -31,8 +29,6 @@ Allowed or preferred dependencies:
 * `flutter_bloc` for state management.
 * `flutter_map` for map rendering without a Google Maps key.
 * `latlong2` for map coordinates when using `flutter_map`.
-* `freezed_annotation` and `json_annotation` for generated models, DTOs, and
-  Bloc state when the extra structure improves reviewability.
 * `slang` and `slang_flutter` for app localization. The `pid_seeds`
   package may use `slang` for its own package-local fallback strings.
 * `flutter_lints` or a stricter analyzer package for linting.
@@ -40,9 +36,10 @@ Allowed or preferred dependencies:
 Allowed dev dependencies:
 
 * Flutter test tooling.
-* `build_runner`, `freezed`, and `json_serializable` for code generation.
 * `bloc_test` only if it materially improves Bloc/Cubit tests.
 * `mocktail` only if handwritten fakes become too costly.
+* `build_runner`, `freezed`, and `json_serializable` only when a future task
+  explicitly adopts generated models or state classes.
 
 Do not add:
 
@@ -218,9 +215,11 @@ Debug logging should be safe:
 
 ## Code Generation
 
-Code generation is part of the approved post-MVP architecture for selected
-models, DTOs, and Bloc state classes. Use it pragmatically where it reduces
-manual boilerplate or parsing risk.
+The app currently uses manual immutable models, parser helpers, and hand-written
+value equality for domain entities and Bloc/Cubit states. Freezed and
+`json_serializable` are intentionally not part of the active dependency set.
+Add generated models only when they clearly reduce boilerplate or parsing risk
+without creating a broad migration.
 
 Generated files must not be edited manually:
 
@@ -228,8 +227,8 @@ Generated files must not be edited manually:
 * `lib/i18n/strings_*.g.dart`
 * `packages/pid_seeds/lib/i18n/pid_seed_strings.g.dart`
 * `packages/pid_seeds/lib/i18n/pid_seed_strings_*.g.dart`
-* `*.freezed.dart`
-* `*.g.dart`
+* future generated model files such as `*.freezed.dart` or `*.g.dart`, if a
+  later task introduces them
 
 If root app localization JSON files change, run:
 
@@ -245,7 +244,8 @@ dart run slang
 cd ../..
 ```
 
-If a later task explicitly adds generated models, run:
+If a later task explicitly adds generated models and the needed dev
+dependencies, run:
 
 ```bash
 dart run build_runner build

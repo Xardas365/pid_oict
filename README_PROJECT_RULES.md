@@ -47,7 +47,8 @@ flutter analyze
 flutter test
 ```
 
-If Freezed/json_serializable or other generated files are used, run before checks:
+If a future task adds Freezed/json_serializable or other model generators, run
+before checks:
 
 ```bash
 dart run build_runner build

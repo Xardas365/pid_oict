@@ -1,5 +1,9 @@
+import 'package:meta/meta.dart';
+
+import '../../../core/utils/value_equality.dart';
 import 'stop.dart';
 
+@immutable
 class StopGroup {
   const StopGroup({
     required this.id,
@@ -30,6 +34,36 @@ class StopGroup {
   int get stopCount => stops.length;
 
   Stop get representativeStop => stops.first;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is StopGroup &&
+            id == other.id &&
+            name == other.name &&
+            parentStationId == other.parentStationId &&
+            zoneId == other.zoneId &&
+            latitude == other.latitude &&
+            longitude == other.longitude &&
+            iterableEquals(stops, other.stops) &&
+            iterableEquals(stopIds, other.stopIds) &&
+            iterableEquals(platformCodes, other.platformCodes);
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      id,
+      name,
+      parentStationId,
+      zoneId,
+      latitude,
+      longitude,
+      iterableHash(stops),
+      iterableHash(stopIds),
+      iterableHash(platformCodes),
+    );
+  }
 }
 
 List<StopGroup> groupStops(Iterable<Stop> stops) {

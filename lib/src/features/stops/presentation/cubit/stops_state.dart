@@ -1,9 +1,13 @@
+import 'package:meta/meta.dart';
+
 import '../../../../core/errors/app_failure.dart';
+import '../../../../core/utils/value_equality.dart';
 import '../../domain/stop.dart';
 import '../../domain/stop_group.dart';
 
 enum StopsStatus { loading, loaded, empty, error }
 
+@immutable
 class StopsState {
   const StopsState({
     required this.status,
@@ -97,6 +101,54 @@ class StopsState {
       recentGroupIds: recentGroupIds ?? this.recentGroupIds,
       favoriteGroups: favoriteGroups ?? this.favoriteGroups,
       recentGroups: recentGroups ?? this.recentGroups,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is StopsState &&
+            status == other.status &&
+            iterableEquals(allStops, other.allStops) &&
+            iterableEquals(filteredStops, other.filteredStops) &&
+            iterableEquals(allGroups, other.allGroups) &&
+            iterableEquals(filteredGroups, other.filteredGroups) &&
+            searchQuery == other.searchQuery &&
+            error == other.error &&
+            hasMore == other.hasMore &&
+            nextOffset == other.nextOffset &&
+            isLoadingMore == other.isLoadingMore &&
+            isSearching == other.isSearching &&
+            isFromCache == other.isFromCache &&
+            isCacheStale == other.isCacheStale &&
+            cacheRefreshError == other.cacheRefreshError &&
+            iterableEquals(favoriteGroupIds, other.favoriteGroupIds) &&
+            iterableEquals(recentGroupIds, other.recentGroupIds) &&
+            iterableEquals(favoriteGroups, other.favoriteGroups) &&
+            iterableEquals(recentGroups, other.recentGroups);
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      status,
+      iterableHash(allStops),
+      iterableHash(filteredStops),
+      iterableHash(allGroups),
+      iterableHash(filteredGroups),
+      searchQuery,
+      error,
+      hasMore,
+      nextOffset,
+      isLoadingMore,
+      isSearching,
+      isFromCache,
+      isCacheStale,
+      cacheRefreshError,
+      iterableHash(favoriteGroupIds),
+      iterableHash(recentGroupIds),
+      iterableHash(favoriteGroups),
+      iterableHash(recentGroups),
     );
   }
 }

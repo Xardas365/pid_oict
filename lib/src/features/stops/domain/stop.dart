@@ -1,3 +1,6 @@
+import 'package:meta/meta.dart';
+
+@immutable
 class Stop {
   const Stop({
     required this.id,
@@ -22,4 +25,36 @@ class Stop {
   final String? levelId;
   final double? latitude;
   final double? longitude;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is Stop &&
+            id == other.id &&
+            name == other.name &&
+            platformCode == other.platformCode &&
+            zoneId == other.zoneId &&
+            locationType == other.locationType &&
+            parentStationId == other.parentStationId &&
+            wheelchairBoarding == other.wheelchairBoarding &&
+            levelId == other.levelId &&
+            latitude == other.latitude &&
+            longitude == other.longitude;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      id,
+      name,
+      platformCode,
+      zoneId,
+      locationType,
+      parentStationId,
+      wheelchairBoarding,
+      levelId,
+      latitude,
+      longitude,
+    );
+  }
 }

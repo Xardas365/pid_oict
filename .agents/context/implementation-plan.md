@@ -23,8 +23,9 @@ Architecture.
 
 * Add `flutter_bloc` as the single state-management package.
 * Add explicit app composition using `RepositoryProvider` and `BlocProvider`.
-* Keep Dio, Freezed, and JSON code generation as the approved foundation for
-  the upcoming data/model migration.
+* Keep Dio as the approved HTTP foundation. Freezed/JSON code generation is not
+  currently used; add it only if a future phase clearly benefits from generated
+  immutable models or parsers.
 * Introduce domain repository interfaces and use case folders without changing
   behavior.
 * Keep constructor injection. Do not add service locators.

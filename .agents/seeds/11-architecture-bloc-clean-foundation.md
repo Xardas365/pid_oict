@@ -14,8 +14,10 @@ Scope:
 
 - Add only the dependencies required for the architecture foundation:
   - `flutter_bloc`
-  - Dio, Freezed, `json_serializable`, and `build_runner` if they are not
-    already present.
+  - Dio if it is not already present.
+- Do not add Freezed, `json_serializable`, or `build_runner` in this foundation
+  seed. Add model code generation only in a later task when it removes real
+  boilerplate and the generated files are committed intentionally.
 - Do not add Riverpod, Provider, GetX, service locator packages, or a generated
   Golemio API client.
 - Create the minimal target folders for:
@@ -27,8 +29,8 @@ Scope:
 - Add explicit app-level provider composition if useful, using
   `RepositoryProvider` and `BlocProvider`.
 - Keep constructor injection.
-- Keep code generation configuration ready, but do not migrate DTOs/models in
-  this seed unless required to make the foundation compile.
+- Keep handwritten models/states unless a later task explicitly adopts code
+  generation.
 - Do not migrate stops, departures, or map screen state in this seed.
 - Do not change endpoint parameters or token handling.
 
