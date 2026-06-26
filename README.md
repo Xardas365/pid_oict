@@ -121,10 +121,19 @@ git diff --check
 Also run the project token scan used during review and confirm it returns no
 real token-like strings.
 
-Update goldens only after intentional UI changes:
+Golden baselines are canonical for `ubuntu-latest` with Flutter `3.44.1`,
+matching CI rendering. Do not update tracked golden PNGs from Windows local
+rendering. After intentional UI changes, run the manual GitHub Actions workflow
+`Update goldens`, download its `screen-goldens` artifact, and commit the
+reviewed PNG changes locally. The workflow does not commit changes
+automatically.
+
+An equivalent Ubuntu environment with Flutter `3.44.1` can update and verify
+the screen goldens with:
 
 ```bash
-flutter test --update-goldens
+flutter test test/golden/app_screen_golden_test.dart --update-goldens
+flutter test test/golden/app_screen_golden_test.dart
 ```
 
 Domain models, DTOs, and Bloc/Cubit states are currently handwritten. The

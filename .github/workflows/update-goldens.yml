@@ -1,0 +1,42 @@
+name: Update goldens
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-goldens:
+    name: Update screen golden baselines
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          cache: true
+
+      - name: Install app dependencies
+        run: flutter pub get
+
+      - name: Install pid_seeds dependencies
+        working-directory: packages/pid_seeds
+        run: flutter pub get
+
+      - name: Update screen goldens
+        run: flutter test test/golden/app_screen_golden_test.dart --update-goldens
+
+      - name: Verify screen goldens
+        run: flutter test test/golden/app_screen_golden_test.dart
+
+      - name: Upload updated screen goldens
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-goldens
+          path: test/golden/goldens/*.png
+          if-no-files-found: error
+
+      - name: Show changed golden files
+        run: git diff --name-only -- test/golden/goldens
