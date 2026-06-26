@@ -66,7 +66,7 @@ void main() {
         find.byType(PolylineLayer),
       );
       expect(polylineLayer.polylines, hasLength(2));
-      expect(polylineLayer.polylines.first.strokeWidth, 3.5);
+      expect(polylineLayer.polylines.first.strokeWidth, 5);
       expect(polylineLayer.polylines.last.strokeWidth, 6.8);
       expect(
         polylineLayer.polylines.first.color,

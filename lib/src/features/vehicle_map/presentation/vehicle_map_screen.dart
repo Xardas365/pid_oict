@@ -331,9 +331,9 @@ class _RoutePolylineLayer extends StatelessWidget {
         Polyline(
           points: segments.traveled,
           color: style.traveledRouteColor,
-          strokeWidth: 3.5,
-          borderColor: Colors.white.withValues(alpha: 0.82),
-          borderStrokeWidth: 1.2,
+          strokeWidth: 5,
+          borderColor: Colors.white.withValues(alpha: 0.9),
+          borderStrokeWidth: 2,
         ),
       );
     }
@@ -1086,7 +1086,7 @@ class _VehicleRouteStyle {
 
     return _VehicleRouteStyle(
       remainingRouteColor: backgroundColor,
-      traveledRouteColor: const Color(0xFF64748B).withValues(alpha: 0.72),
+      traveledRouteColor: const Color(0xFF475569).withValues(alpha: 0.92),
       markerBackgroundColor: backgroundColor,
       markerForegroundColor: metroColors?.foregroundColor ?? Colors.white,
       badgeBorderColor: metroColors?.borderColor ?? backgroundColor,
