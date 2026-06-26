@@ -14,6 +14,7 @@ import 'package:pid_oict/src/features/departures/presentation/departures_screen.
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_args.dart';
+import 'package:pid_oict/src/shared/widgets/live_relative_time_text.dart';
 
 import '../../../test_localized_app.dart';
 
@@ -99,7 +100,8 @@ void main() {
         find.byKey(const ValueKey('selected-stop-transport-type-metro')),
         findsOneWidget,
       );
-      expect(find.textContaining('Aktualizované před'), findsOneWidget);
+      expect(find.byType(LiveRelativeTimeText), findsOneWidget);
+      expect(find.textContaining('Aktualizováno před'), findsOneWidget);
       expect(find.text('22'), findsOneWidget);
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
       expect(find.text('za 3 min'), findsOneWidget);
@@ -765,7 +767,7 @@ void main() {
       await _pumpDeparturesScreen(tester, repository: repository);
       await tester.pumpAndSettle();
 
-      final labelFinder = find.textContaining('Aktualizované před');
+      final labelFinder = find.textContaining('Aktualizováno před');
       final beforeRefreshLeft = tester.getTopLeft(labelFinder).dx;
 
       await tester.drag(

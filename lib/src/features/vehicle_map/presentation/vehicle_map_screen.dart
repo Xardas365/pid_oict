@@ -16,6 +16,7 @@ import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/utils/date_time_formatters.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
+import '../../../shared/widgets/live_relative_time_text.dart';
 import '../../../shared/widgets/loading_state_view.dart';
 import '../domain/vehicle_position.dart';
 import 'bloc/vehicle_map_bloc.dart';
@@ -753,9 +754,12 @@ class _VehiclePositionCard extends StatelessWidget {
         ? title
         : _headsign(args, position) ?? title;
     final delay = formatRealtimeDelayLabel(position.delaySeconds);
-    final lastUpdatedText = _lastUpdatedText(context, lastUpdated);
     final nextStopText = _nextStopText(context, position);
     final metadata = _metadataLabels(context, args, position, routeLabel);
+    final subtleInfoStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w600,
+    );
 
     return DecoratedBox(
       key: _vehicleMapPanelKey,
@@ -801,8 +805,13 @@ class _VehiclePositionCard extends StatelessWidget {
                         runSpacing: 3,
                         children: [
                           _InfoPill(text: delay),
-                          if (lastUpdatedText != null)
-                            _SubtleInfoPill(text: lastUpdatedText),
+                          if (lastUpdated != null)
+                            LiveRelativeTimeText.vehicleLastUpdated(
+                              timestamp: lastUpdated,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: subtleInfoStyle,
+                            ),
                         ],
                       ),
                     ],
@@ -896,27 +905,6 @@ class _InfoPill extends StatelessWidget {
   }
 }
 
-class _SubtleInfoPill extends StatelessWidget {
-  const _SubtleInfoPill({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Text(
-      text,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: colorScheme.onSurfaceVariant,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-}
-
 class _InlineInfo extends StatelessWidget {
   const _InlineInfo({required this.icon, required this.text});
 
@@ -964,29 +952,6 @@ class _MetadataSummary extends StatelessWidget {
       ),
     );
   }
-}
-
-String? _lastUpdatedText(BuildContext context, DateTime? lastUpdated) {
-  if (lastUpdated == null) {
-    return null;
-  }
-
-  final now = DateTime.now();
-  final localLastUpdated = lastUpdated.toLocal();
-  final localNow = now.toLocal();
-  final elapsedSeconds = elapsedSecondsSince(localLastUpdated, now: localNow);
-  final isToday =
-      localLastUpdated.year == localNow.year &&
-      localLastUpdated.month == localNow.month &&
-      localLastUpdated.day == localNow.day;
-
-  if (isToday && elapsedSeconds < 3600) {
-    return context.t.vehicleMap.lastUpdatedAgo(seconds: elapsedSeconds);
-  }
-
-  return context.t.vehicleMap.lastUpdated(
-    time: formatClockTimeWithSeconds(lastUpdated),
-  );
 }
 
 String? _nextStopText(BuildContext context, VehiclePosition position) {

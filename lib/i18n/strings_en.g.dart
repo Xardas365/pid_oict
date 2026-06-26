@@ -178,6 +178,7 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String get filterOther => 'Other';
 	@override String transportTypes({required Object types}) => 'Transport types: ${types}';
 	@override String lastUpdatedAgo({required Object seconds}) => 'Updated ${seconds} s ago';
+	@override String lastUpdatedAgoMinutes({required Object minutes}) => 'Updated ${minutes} min ago';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
 	@override String get trackingHint => 'Track vehicle →';
@@ -209,6 +210,7 @@ class _Translations$vehicleMap$en extends Translations$vehicleMap$cs {
 	@override String vehicleMarkerSemantic({required Object line}) => 'Current position of line ${line}';
 	@override String lastUpdated({required Object time}) => 'Last updated ${time}';
 	@override String lastUpdatedAgo({required Object seconds}) => 'Last updated ${seconds} s ago';
+	@override String lastUpdatedAgoMinutes({required Object minutes}) => 'Last updated ${minutes} min ago';
 	@override String nextStop({required Object stop}) => 'Next: ${stop}';
 	@override String nextStopAt({required Object stop, required Object time}) => 'Next: ${stop} at ${time}';
 	@override String get wheelchairAccessible => 'Accessible';
@@ -385,6 +387,7 @@ extension on TranslationsEn {
 			'departures.filterOther' => 'Other',
 			'departures.transportTypes' => ({required Object types}) => 'Transport types: ${types}',
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Updated ${seconds} s ago',
+			'departures.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Updated ${minutes} min ago',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',
 			'departures.trackingHint' => 'Track vehicle →',
@@ -407,6 +410,7 @@ extension on TranslationsEn {
 			'vehicleMap.vehicleMarkerSemantic' => ({required Object line}) => 'Current position of line ${line}',
 			'vehicleMap.lastUpdated' => ({required Object time}) => 'Last updated ${time}',
 			'vehicleMap.lastUpdatedAgo' => ({required Object seconds}) => 'Last updated ${seconds} s ago',
+			'vehicleMap.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Last updated ${minutes} min ago',
 			'vehicleMap.nextStop' => ({required Object stop}) => 'Next: ${stop}',
 			'vehicleMap.nextStopAt' => ({required Object stop, required Object time}) => 'Next: ${stop} at ${time}',
 			'vehicleMap.wheelchairAccessible' => 'Accessible',

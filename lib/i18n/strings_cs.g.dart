@@ -307,8 +307,11 @@ class Translations$departures$cs {
 	/// cs: 'Typy dopravy: $types'
 	String transportTypes({required Object types}) => 'Typy dopravy: ${types}';
 
-	/// cs: 'Aktualizované před $seconds s'
-	String lastUpdatedAgo({required Object seconds}) => 'Aktualizované před ${seconds} s';
+	/// cs: 'Aktualizováno před $seconds s'
+	String lastUpdatedAgo({required Object seconds}) => 'Aktualizováno před ${seconds} s';
+
+	/// cs: 'Aktualizováno před $minutes min'
+	String lastUpdatedAgoMinutes({required Object minutes}) => 'Aktualizováno před ${minutes} min';
 
 	/// cs: 'Odjezd $time'
 	String departureTime({required Object time}) => 'Odjezd ${time}';
@@ -384,6 +387,9 @@ class Translations$vehicleMap$cs {
 
 	/// cs: 'Poslední aktualizace před $seconds s'
 	String lastUpdatedAgo({required Object seconds}) => 'Poslední aktualizace před ${seconds} s';
+
+	/// cs: 'Poslední aktualizace před $minutes min'
+	String lastUpdatedAgoMinutes({required Object minutes}) => 'Poslední aktualizace před ${minutes} min';
 
 	/// cs: 'Další: $stop'
 	String nextStop({required Object stop}) => 'Další: ${stop}';
@@ -645,7 +651,8 @@ extension on Translations {
 			'departures.filterFunicular' => 'Lanovka',
 			'departures.filterOther' => 'Ostatní',
 			'departures.transportTypes' => ({required Object types}) => 'Typy dopravy: ${types}',
-			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizované před ${seconds} s',
+			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizováno před ${seconds} s',
+			'departures.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Aktualizováno před ${minutes} min',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
 			'departures.trackingHint' => 'Sledovat vozidlo →',
@@ -668,6 +675,7 @@ extension on Translations {
 			'vehicleMap.vehicleMarkerSemantic' => ({required Object line}) => 'Aktuální poloha linky ${line}',
 			'vehicleMap.lastUpdated' => ({required Object time}) => 'Poslední aktualizace ${time}',
 			'vehicleMap.lastUpdatedAgo' => ({required Object seconds}) => 'Poslední aktualizace před ${seconds} s',
+			'vehicleMap.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Poslední aktualizace před ${minutes} min',
 			'vehicleMap.nextStop' => ({required Object stop}) => 'Další: ${stop}',
 			'vehicleMap.nextStopAt' => ({required Object stop, required Object time}) => 'Další: ${stop} v ${time}',
 			'vehicleMap.wheelchairAccessible' => 'Bezbariérové',

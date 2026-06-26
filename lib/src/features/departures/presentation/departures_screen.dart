@@ -9,10 +9,10 @@ import '../../../core/domain/pid_line_type.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../core/presentation/widgets/pid_transport_icon.dart';
 import '../../../shared/utils/app_error_messages.dart';
-import '../../../shared/utils/date_time_formatters.dart';
 import '../../../shared/widgets/centered_scroll_view.dart';
 import '../../../shared/widgets/empty_state_view.dart';
 import '../../../shared/widgets/error_state_view.dart';
+import '../../../shared/widgets/live_relative_time_text.dart';
 import '../../stops/domain/stop_group.dart';
 import '../../vehicle_map/domain/usecases/get_vehicle_position_for_vehicle_use_case.dart';
 import '../../vehicle_map/presentation/bloc/vehicle_map_bloc.dart';
@@ -383,7 +383,9 @@ class _LastUpdatedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastUpdated = state.lastUpdated;
-    final seconds = lastUpdated == null ? 0 : elapsedSecondsSince(lastUpdated);
+    if (lastUpdated == null) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -396,8 +398,8 @@ class _LastUpdatedRow extends StatelessWidget {
                 : const SizedBox.shrink(),
           ),
           const SizedBox(width: 8),
-          Text(
-            context.t.departures.lastUpdatedAgo(seconds: seconds),
+          LiveRelativeTimeText.departuresLastUpdated(
+            timestamp: lastUpdated,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),

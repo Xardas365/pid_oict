@@ -14,6 +14,7 @@ import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_
 import 'package:pid_oict/src/features/vehicle_map/presentation/bloc/vehicle_map_event.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_args.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_screen.dart';
+import 'package:pid_oict/src/shared/widgets/live_relative_time_text.dart';
 
 import '../../../test_localized_app.dart';
 
@@ -122,6 +123,7 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(find.byType(LiveRelativeTimeText), findsOneWidget);
       expect(find.text('Poslední aktualizace 10:20:00'), findsOneWidget);
       expect(
         find.text('Mapová data (c) přispěvatelé OpenStreetMap'),
@@ -138,6 +140,27 @@ void main() {
 
       await tester.tap(find.byTooltip('Vycentrovat vozidlo'));
       await tester.pump();
+    });
+
+    testWidgets('shows live relative last update in the info panel', (
+      tester,
+    ) async {
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _QueueVehiclePositionRepository([
+          _VehiclePositionSuccess(
+            _position('vehicle-123', lastUpdated: DateTime.now()),
+          ),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LiveRelativeTimeText), findsOneWidget);
+      expect(
+        find.textContaining('Poslední aktualizace před'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('starts long routes around the current vehicle', (

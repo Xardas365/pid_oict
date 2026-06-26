@@ -65,4 +65,18 @@ int elapsedSecondsSince(DateTime dateTime, {DateTime? now}) {
   return elapsedSeconds < 0 ? 0 : elapsedSeconds;
 }
 
+String formatRelativeElapsedSince(
+  DateTime dateTime, {
+  required String Function(int seconds) secondsLabel,
+  required String Function(int minutes) minutesLabel,
+  DateTime? now,
+}) {
+  final elapsedSeconds = elapsedSecondsSince(dateTime, now: now);
+  if (elapsedSeconds < 60) {
+    return secondsLabel(elapsedSeconds);
+  }
+
+  return minutesLabel(elapsedSeconds ~/ 60);
+}
+
 String _twoDigits(int value) => value.toString().padLeft(2, '0');

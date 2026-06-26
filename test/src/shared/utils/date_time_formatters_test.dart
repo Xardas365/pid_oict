@@ -60,5 +60,24 @@ void main() {
         'za 2 h',
       );
     });
+
+    test('formats relative elapsed labels as seconds then minutes', () {
+      final timestamp = DateTime(2026, 6, 22, 10);
+
+      String format(DateTime now) {
+        return formatRelativeElapsedSince(
+          timestamp,
+          now: now,
+          secondsLabel: (seconds) => '$seconds s',
+          minutesLabel: (minutes) => '$minutes min',
+        );
+      }
+
+      expect(format(DateTime(2026, 6, 22, 9, 59, 59)), '0 s');
+      expect(format(DateTime(2026, 6, 22, 10)), '0 s');
+      expect(format(DateTime(2026, 6, 22, 10, 0, 12)), '12 s');
+      expect(format(DateTime(2026, 6, 22, 10, 1)), '1 min');
+      expect(format(DateTime(2026, 6, 22, 10, 2, 30)), '2 min');
+    });
   });
 }
