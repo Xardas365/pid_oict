@@ -369,6 +369,7 @@ class _TrackingActionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
+      container: true,
       label: context.t.departures.showVehicleTooltip,
       button: true,
       child: ExcludeSemantics(

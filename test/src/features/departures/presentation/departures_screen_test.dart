@@ -58,6 +58,8 @@ void main() {
     testWidgets('shows loaded departures and vehicle map action', (
       tester,
     ) async {
+      final semantics = tester.ensureSemantics();
+
       await _pumpDeparturesScreen(
         tester,
         repository: _QueueDeparturesRepository([
@@ -103,6 +105,10 @@ void main() {
       expect(find.text('♿'), findsOneWidget);
       expect(find.byTooltip('Bezbariérové'), findsOneWidget);
       expect(find.text('Sledovat vozidlo →'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Zobrazit polohu vozidla'),
+        findsOneWidget,
+      );
       expect(find.text('·'), findsNothing);
       expect(find.text('A'), findsOneWidget);
 
@@ -114,6 +120,8 @@ void main() {
         metroDecoration.color,
         PidLineBadgeColorResolver.metroA.backgroundColor,
       );
+
+      semantics.dispose();
     });
 
     testWidgets('loaded header does not render transport type summary icons', (

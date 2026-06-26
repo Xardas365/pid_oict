@@ -735,62 +735,67 @@ class _VehicleMapMarker extends StatelessWidget {
 
     return Semantics(
       key: _vehicleMapMarkerKey,
+      container: true,
       label: semanticLabel,
-      child: SizedBox(
-        width: _vehicleMapMarkerWidth,
-        height: _vehicleMapMarkerHeight,
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: [
-            Positioned(
-              bottom: 0,
-              child: _VehicleMarkerPointer(style: style),
-            ),
-            Positioned(
-              top: 0,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: style.markerBackgroundColor,
-                  shape: BoxShape.circle,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x44000000),
-                      blurRadius: 14,
-                      offset: Offset(0, 5),
-                    ),
-                  ],
-                  border: Border.all(color: Colors.white, width: 3),
-                ),
-                child: SizedBox.square(
-                  dimension: _vehicleMapMarkerBodySize,
-                  child: Center(
-                    child: label == null
-                        ? Icon(
-                            style.fallbackIcon,
-                            color: style.markerForegroundColor,
-                            size: 22,
-                          )
-                        : Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                label,
-                                maxLines: 1,
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      color: style.markerForegroundColor,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0,
-                                    ),
+      child: ExcludeSemantics(
+        child: SizedBox(
+          width: _vehicleMapMarkerWidth,
+          height: _vehicleMapMarkerHeight,
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              Positioned(
+                bottom: 0,
+                child: _VehicleMarkerPointer(style: style),
+              ),
+              Positioned(
+                top: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: style.markerBackgroundColor,
+                    shape: BoxShape.circle,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x44000000),
+                        blurRadius: 14,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: SizedBox.square(
+                    dimension: _vehicleMapMarkerBodySize,
+                    child: Center(
+                      child: label == null
+                          ? Icon(
+                              style.fallbackIcon,
+                              color: style.markerForegroundColor,
+                              size: 22,
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  label,
+                                  maxLines: 1,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        color: style.markerForegroundColor,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0,
+                                      ),
+                                ),
                               ),
                             ),
-                          ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

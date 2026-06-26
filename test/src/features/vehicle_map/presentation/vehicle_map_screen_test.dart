@@ -130,6 +130,10 @@ void main() {
         find.bySemanticsLabel('Další zastávka: Narodni divadlo'),
         findsOneWidget,
       );
+      expect(
+        find.bySemanticsLabel('Aktuální poloha linky 10'),
+        findsOneWidget,
+      );
       semantics.dispose();
       expect(find.textContaining('vehicle-123'), findsNothing);
       expect(find.text('Sidliste Repy'), findsOneWidget);

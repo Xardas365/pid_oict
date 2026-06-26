@@ -48,6 +48,29 @@ void main() {
       expect(find.text('Aktualizováno před 1 min'), findsOneWidget);
     });
 
+    testWidgets('updates vehicle last-update label locally', (
+      tester,
+    ) async {
+      final timestamp = DateTime(2026, 6, 22, 10);
+      var now = timestamp;
+
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: LiveRelativeTimeText.vehicleLastUpdated(
+            timestamp: timestamp,
+            now: () => now,
+          ),
+        ),
+      );
+
+      expect(find.text('Poslední aktualizace před 0 s'), findsOneWidget);
+
+      now = timestamp.add(const Duration(seconds: 42));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Poslední aktualizace před 42 s'), findsOneWidget);
+    });
+
     testWidgets('resets when timestamp changes', (tester) async {
       final firstTimestamp = DateTime(2026, 6, 22, 10);
       final secondTimestamp = DateTime(2026, 6, 22, 10, 0, 30);
