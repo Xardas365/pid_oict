@@ -11,6 +11,16 @@
     "retry": "Zkusit znovu"
   },
   "transport": {
+    "modes": {
+      "metro": "metro",
+      "tram": "tramvaj",
+      "bus": "autobus",
+      "trolleybus": "trolejbus",
+      "train": "vlak",
+      "ferry": "přívoz",
+      "funicular": "lanová dráha",
+      "unknown": "ostatní"
+    },
     "lineTypes": {
       "metro": "Metro",
       "tram": "Tramvaj",
@@ -100,6 +110,7 @@
     "filterFerry": "Přívoz",
     "filterFunicular": "Lanovka",
     "filterOther": "Ostatní",
+    "transportTypes": "Typy dopravy: $types",
     "lastUpdatedAgo": "Aktualizované před $seconds s",
     "departureTime": "Odjezd $time",
     "platform": "Nástupiště $platform",

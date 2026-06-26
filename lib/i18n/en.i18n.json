@@ -11,6 +11,16 @@
     "retry": "Try again"
   },
   "transport": {
+    "modes": {
+      "metro": "metro",
+      "tram": "tram",
+      "bus": "bus",
+      "trolleybus": "trolleybus",
+      "train": "train",
+      "ferry": "ferry",
+      "funicular": "funicular",
+      "unknown": "other"
+    },
     "lineTypes": {
       "metro": "Metro",
       "tram": "Tram",
@@ -100,6 +110,7 @@
     "filterFerry": "Ferry",
     "filterFunicular": "Funicular",
     "filterOther": "Other",
+    "transportTypes": "Transport types: $types",
     "lastUpdatedAgo": "Updated $seconds s ago",
     "departureTime": "Departure $time",
     "platform": "Platform $platform",

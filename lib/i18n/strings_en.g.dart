@@ -89,6 +89,7 @@ class _Translations$transport$en extends Translations$transport$cs {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
+	@override late final _Translations$transport$modes$en modes = _Translations$transport$modes$en._(_root);
 	@override late final _Translations$transport$lineTypes$en lineTypes = _Translations$transport$lineTypes$en._(_root);
 }
 
@@ -175,6 +176,7 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String get filterFerry => 'Ferry';
 	@override String get filterFunicular => 'Funicular';
 	@override String get filterOther => 'Other';
+	@override String transportTypes({required Object types}) => 'Transport types: ${types}';
 	@override String lastUpdatedAgo({required Object seconds}) => 'Updated ${seconds} s ago';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
@@ -230,6 +232,23 @@ class _Translations$format$en extends Translations$format$cs {
 	@override String delayMinutesShort({required Object minutes}) => '+${minutes} min';
 }
 
+// Path: transport.modes
+class _Translations$transport$modes$en extends Translations$transport$modes$cs {
+	_Translations$transport$modes$en._(TranslationsEn root) : this._root = root, super.internal(root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get metro => 'metro';
+	@override String get tram => 'tram';
+	@override String get bus => 'bus';
+	@override String get trolleybus => 'trolleybus';
+	@override String get train => 'train';
+	@override String get ferry => 'ferry';
+	@override String get funicular => 'funicular';
+	@override String get unknown => 'other';
+}
+
 // Path: transport.lineTypes
 class _Translations$transport$lineTypes$en extends Translations$transport$lineTypes$cs {
 	_Translations$transport$lineTypes$en._(TranslationsEn root) : this._root = root, super.internal(root);
@@ -275,6 +294,14 @@ extension on TranslationsEn {
 			'navigation.departures' => 'Departures',
 			'navigation.map' => 'Map',
 			'common.retry' => 'Try again',
+			'transport.modes.metro' => 'metro',
+			'transport.modes.tram' => 'tram',
+			'transport.modes.bus' => 'bus',
+			'transport.modes.trolleybus' => 'trolleybus',
+			'transport.modes.train' => 'train',
+			'transport.modes.ferry' => 'ferry',
+			'transport.modes.funicular' => 'funicular',
+			'transport.modes.unknown' => 'other',
 			'transport.lineTypes.metro' => 'Metro',
 			'transport.lineTypes.tram' => 'Tram',
 			'transport.lineTypes.tramSpecial' => 'Special tram',
@@ -356,6 +383,7 @@ extension on TranslationsEn {
 			'departures.filterFerry' => 'Ferry',
 			'departures.filterFunicular' => 'Funicular',
 			'departures.filterOther' => 'Other',
+			'departures.transportTypes' => ({required Object types}) => 'Transport types: ${types}',
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Updated ${seconds} s ago',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',

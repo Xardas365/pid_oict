@@ -40,6 +40,10 @@ void main() {
         find.byKey(const ValueKey('departures-loading-skeleton')),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-types')),
+        findsNothing,
+      );
       expect(find.byType(Card), findsAtLeastNWidgets(5));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
@@ -83,6 +87,18 @@ void main() {
       expect(find.text('Vše'), findsOneWidget);
       expect(find.text('Tram'), findsOneWidget);
       expect(find.text('Metro'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-types')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-type-tram')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-type-metro')),
+        findsOneWidget,
+      );
       expect(find.textContaining('Aktualizované před'), findsOneWidget);
       expect(find.text('22'), findsOneWidget);
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
@@ -104,6 +120,83 @@ void main() {
         metroDecoration.color,
         PidLineBadgeColorResolver.metroA.backgroundColor,
       );
+    });
+
+    testWidgets('loaded header shows one transport type summary icon', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: '22',
+              headsign: 'Nadrazi Hostivar',
+              departureTime: DateTime(2026, 6, 22, 10, 15),
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-types')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-type-tram')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-type-bus')),
+        findsNothing,
+      );
+      expect(
+        find.bySemanticsLabel('Typy dopravy: tramvaj'),
+        findsOneWidget,
+      );
+
+      semantics.dispose();
+    });
+
+    testWidgets('loaded header shows multiple transport type summary icons', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            _departure('Sidliste Repy', routeShortName: '10'),
+            _departure(
+              'Koleje Strahov',
+              routeShortName: '176',
+              routeType: 'bus',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-type-tram')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-type-bus')),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel('Typy dopravy: tramvaj, autobus'),
+        findsOneWidget,
+      );
+
+      semantics.dispose();
     });
 
     testWidgets('non-accessible departure does not show wheelchair icon', (
@@ -531,6 +624,10 @@ void main() {
         ),
         findsOneWidget,
       );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-types')),
+        findsNothing,
+      );
 
       await tester.tap(find.text('Zkusit znovu'));
       await tester.pumpAndSettle();
@@ -552,6 +649,10 @@ void main() {
       expect(
         find.text('Pro tuto zastávku nejsou dostupné žádné odjezdy.'),
         findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('selected-stop-transport-types')),
+        findsNothing,
       );
     });
 

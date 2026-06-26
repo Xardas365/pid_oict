@@ -100,6 +100,7 @@ class Translations$transport$cs {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+	late final Translations$transport$modes$cs modes = Translations$transport$modes$cs.internal(_root);
 	late final Translations$transport$lineTypes$cs lineTypes = Translations$transport$lineTypes$cs.internal(_root);
 }
 
@@ -303,6 +304,9 @@ class Translations$departures$cs {
 	/// cs: 'Ostatní'
 	String get filterOther => 'Ostatní';
 
+	/// cs: 'Typy dopravy: $types'
+	String transportTypes({required Object types}) => 'Typy dopravy: ${types}';
+
 	/// cs: 'Aktualizované před $seconds s'
 	String lastUpdatedAgo({required Object seconds}) => 'Aktualizované před ${seconds} s';
 
@@ -427,6 +431,39 @@ class Translations$format$cs {
 	String delayMinutesShort({required Object minutes}) => '+${minutes} min';
 }
 
+// Path: transport.modes
+class Translations$transport$modes$cs {
+	Translations$transport$modes$cs.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// cs: 'metro'
+	String get metro => 'metro';
+
+	/// cs: 'tramvaj'
+	String get tram => 'tramvaj';
+
+	/// cs: 'autobus'
+	String get bus => 'autobus';
+
+	/// cs: 'trolejbus'
+	String get trolleybus => 'trolejbus';
+
+	/// cs: 'vlak'
+	String get train => 'vlak';
+
+	/// cs: 'přívoz'
+	String get ferry => 'přívoz';
+
+	/// cs: 'lanová dráha'
+	String get funicular => 'lanová dráha';
+
+	/// cs: 'ostatní'
+	String get unknown => 'ostatní';
+}
+
 // Path: transport.lineTypes
 class Translations$transport$lineTypes$cs {
 	Translations$transport$lineTypes$cs.internal(this._root);
@@ -518,6 +555,14 @@ extension on Translations {
 			'navigation.departures' => 'Odjezdy',
 			'navigation.map' => 'Mapa',
 			'common.retry' => 'Zkusit znovu',
+			'transport.modes.metro' => 'metro',
+			'transport.modes.tram' => 'tramvaj',
+			'transport.modes.bus' => 'autobus',
+			'transport.modes.trolleybus' => 'trolejbus',
+			'transport.modes.train' => 'vlak',
+			'transport.modes.ferry' => 'přívoz',
+			'transport.modes.funicular' => 'lanová dráha',
+			'transport.modes.unknown' => 'ostatní',
 			'transport.lineTypes.metro' => 'Metro',
 			'transport.lineTypes.tram' => 'Tramvaj',
 			'transport.lineTypes.tramSpecial' => 'Zvláštní tramvaj',
@@ -599,6 +644,7 @@ extension on Translations {
 			'departures.filterFerry' => 'Přívoz',
 			'departures.filterFunicular' => 'Lanovka',
 			'departures.filterOther' => 'Ostatní',
+			'departures.transportTypes' => ({required Object types}) => 'Typy dopravy: ${types}',
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizované před ${seconds} s',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
