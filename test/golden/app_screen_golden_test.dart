@@ -262,7 +262,9 @@ Future<void> _pumpGolden(WidgetTester tester, Widget home) async {
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  await tester.pumpWidget(localizedTestApp(home: home));
+  await tester.pumpWidget(
+    localizedTestApp(home: home, platform: TargetPlatform.android),
+  );
   await tester.pumpAndSettle();
 }
 

@@ -7,6 +7,7 @@ import 'package:pid_seeds/pid_seeds.dart';
 Widget localizedTestApp({
   required Widget home,
   AppLocale locale = AppLocale.cs,
+  TargetPlatform? platform,
 }) {
   LocaleSettings.setLocaleSync(locale);
   pid_seed_strings.LocaleSettings.setLocaleRawSync(locale.languageCode);
@@ -14,8 +15,10 @@ Widget localizedTestApp({
   return TranslationProvider(
     child: Builder(
       builder: (context) {
+        final theme = PidSeedsTheme.light();
+
         return MaterialApp(
-          theme: PidSeedsTheme.light(),
+          theme: platform == null ? theme : theme.copyWith(platform: platform),
           locale: TranslationProvider.of(context).flutterLocale,
           supportedLocales: AppLocaleUtils.supportedLocales,
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
