@@ -94,6 +94,8 @@ class VehicleMapScreen extends StatelessWidget {
 const _vehicleMapZoom = 15.0;
 const _vehicleMapFitMinZoom = 13.0;
 const _vehicleMapFitMaxZoom = 16.5;
+const _vehicleMapCenterMinZoom = 15.0;
+const _vehicleMapCenterMaxZoom = 17.5;
 const _vehicleMapFitPadding = EdgeInsets.fromLTRB(56, 72, 56, 210);
 const _vehicleMapBackgroundColor = Color(0xFFE7EEF4);
 const _vehicleMapStaticBackgroundKey = Key('vehicle-map-static-background');
@@ -141,7 +143,7 @@ class _MapStateState extends State<_MapState> {
     if (_autoFollow && widget.position != oldWidget.position) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _focusVehicleAndRoute();
+          _centerOnVehicle();
         }
       });
     }
@@ -158,7 +160,7 @@ class _MapStateState extends State<_MapState> {
     if (_autoFollow) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _focusVehicleAndRoute();
+          _fitVehicleRouteContext();
         }
       });
     }
@@ -178,10 +180,10 @@ class _MapStateState extends State<_MapState> {
     setState(() {
       _autoFollow = true;
     });
-    _focusVehicleAndRoute();
+    _centerOnVehicle();
   }
 
-  void _focusVehicleAndRoute() {
+  void _fitVehicleRouteContext() {
     if (!_isMapReady) {
       return;
     }
@@ -199,6 +201,17 @@ class _MapStateState extends State<_MapState> {
         minZoom: _vehicleMapFitMinZoom,
         maxZoom: _vehicleMapFitMaxZoom,
       ),
+    );
+  }
+
+  void _centerOnVehicle() {
+    if (!_isMapReady) {
+      return;
+    }
+
+    _mapController.move(
+      _vehiclePoint(widget.position),
+      _vehicleCenterZoom(_mapController.camera.zoom),
     );
   }
 
@@ -1176,6 +1189,22 @@ List<LatLng> _focusCoordinates(VehiclePosition position) {
 @visibleForTesting
 List<LatLng> vehicleMapFocusCoordinatesForTesting(VehiclePosition position) {
   return _focusCoordinates(position);
+}
+
+/// Exposes the recenter target for deterministic widget tests.
+@visibleForTesting
+LatLng vehicleMapRecenterPointForTesting(VehiclePosition position) {
+  return _vehiclePoint(position);
+}
+
+/// Exposes the recenter zoom policy for deterministic widget tests.
+@visibleForTesting
+double vehicleMapRecenterZoomForTesting(double currentZoom) {
+  return _vehicleCenterZoom(currentZoom);
+}
+
+double _vehicleCenterZoom(double currentZoom) {
+  return currentZoom.clamp(_vehicleMapCenterMinZoom, _vehicleMapCenterMaxZoom);
 }
 
 List<LatLng> _nearbyRouteCoordinates(VehiclePosition position) {

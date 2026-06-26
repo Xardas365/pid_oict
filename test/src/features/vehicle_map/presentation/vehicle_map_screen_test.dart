@@ -140,6 +140,8 @@ void main() {
 
       await tester.tap(find.byTooltip('Vycentrovat vozidlo'));
       await tester.pump();
+
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('shows live relative last update in the info panel', (
@@ -218,6 +220,29 @@ void main() {
         ),
         isFalse,
       );
+    });
+
+    test('recenter target uses only the current vehicle position', () {
+      final position = _longTrainPosition();
+      final point = vehicleMapRecenterPointForTesting(position);
+      final contextCoordinates = vehicleMapFocusCoordinatesForTesting(position);
+
+      expect(point.latitude, closeTo(50.0755, 0.0001));
+      expect(point.longitude, closeTo(14.4378, 0.0001));
+      expect(contextCoordinates, hasLength(greaterThan(1)));
+      expect(
+        contextCoordinates.any(
+          (coordinate) =>
+              coordinate.latitude == 50.0619 && coordinate.longitude == 14.4083,
+        ),
+        isTrue,
+      );
+    });
+
+    test('recenter zoom preserves reasonable zoom and clamps extremes', () {
+      expect(vehicleMapRecenterZoomForTesting(10), 15);
+      expect(vehicleMapRecenterZoomForTesting(16), 16);
+      expect(vehicleMapRecenterZoomForTesting(20), 17.5);
     });
 
     testWidgets('falls back to a single route line without distance metadata', (
