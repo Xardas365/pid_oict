@@ -41,7 +41,7 @@ class DepartureTile extends StatelessWidget {
         child: InkWell(
           onTap: onOpenVehicleMap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -303,36 +303,76 @@ class _DepartureMetadataSection extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(left: _lineBadgeWidth + _lineBadgeGap),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (metadata.isNotEmpty)
-            DefaultTextStyle.merge(
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
-              child: Wrap(
-                spacing: 7,
-                runSpacing: 3,
-                crossAxisAlignment: WrapCrossAlignment.center,
+      child: DefaultTextStyle.merge(
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final stackTracking =
+                hasTracking &&
+                (constraints.maxWidth < 250 || (platform?.length ?? 0) > 12);
+            final metadataRow = _MetadataItemsRow(items: metadata);
+            final trackingLabel = _TrackingActionLabel(
+              color: colorScheme.primary,
+            );
+
+            if (!hasTracking) {
+              return metadataRow;
+            }
+
+            if (stackTracking) {
+              return Column(
+                key: const ValueKey('departure-metadata-stacked'),
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (var index = 0; index < metadata.length; index++)
-                    _MetadataWrapItem(
-                      showLeadingSeparator: index > 0,
-                      child: metadata[index],
-                    ),
+                  if (metadata.isNotEmpty) metadataRow,
+                  if (metadata.isNotEmpty) const SizedBox(height: 3),
+                  trackingLabel,
                 ],
-              ),
-            ),
-          if (hasTracking) ...[
-            if (metadata.isNotEmpty) const SizedBox(height: 3),
-            _TrackingActionLabel(color: colorScheme.primary),
-          ],
-        ],
+              );
+            }
+
+            return Row(
+              key: const ValueKey('departure-metadata-inline'),
+              children: [
+                Expanded(child: metadataRow),
+                const SizedBox(width: 10),
+                trackingLabel,
+              ],
+            );
+          },
+        ),
       ),
+    );
+  }
+}
+
+class _MetadataItemsRow extends StatelessWidget {
+  const _MetadataItemsRow({required this.items});
+
+  final List<Widget> items;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Wrap(
+      spacing: 7,
+      runSpacing: 3,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (var index = 0; index < items.length; index++)
+          _MetadataWrapItem(
+            showLeadingSeparator: index > 0,
+            child: items[index],
+          ),
+      ],
     );
   }
 }

@@ -10,7 +10,9 @@ import 'package:pid_oict/src/features/departures/domain/repositories/departures_
 import 'package:pid_oict/src/features/departures/domain/usecases/load_departure_board_use_case.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_bloc.dart';
 import 'package:pid_oict/src/features/departures/presentation/bloc/departures_event.dart';
+import 'package:pid_oict/src/features/departures/presentation/departure_time_display_mode.dart';
 import 'package:pid_oict/src/features/departures/presentation/departures_screen.dart';
+import 'package:pid_oict/src/features/departures/presentation/widgets/departure_tile.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
 import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 import 'package:pid_oict/src/features/vehicle_map/presentation/vehicle_map_args.dart';
@@ -397,8 +399,16 @@ void main() {
       expect(find.text('Sledovat na mapě →'), findsOneWidget);
       expect(find.text('·'), findsNothing);
       expect(
-        tester.getTopLeft(trackingFinder).dy,
-        greaterThan(tester.getTopLeft(platformFinder).dy),
+        find.byKey(const ValueKey('departure-metadata-inline')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('departure-metadata-stacked')),
+        findsNothing,
+      );
+      expect(
+        tester.getCenter(trackingFinder).dy,
+        closeTo(tester.getCenter(platformFinder).dy, 1),
       );
 
       final badgeCenter = tester.getCenter(badgeFinder);
@@ -407,6 +417,44 @@ void main() {
       expect(routeTextCenter.dy, closeTo(badgeCenter.dy, 0.5));
 
       semantics.dispose();
+    });
+
+    testWidgets('narrow departure tile stacks metadata and map action safely', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        localizedTestApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: DepartureTile(
+                departure: Departure(
+                  routeShortName: '904',
+                  routeType: 'bus',
+                  headsign: 'Sidliste Pisnice',
+                  departureTime: DateTime(2026, 6, 22, 10, 15),
+                  platform: 'Dlouhe nastupiste',
+                  vehicleId: 'service-3-904',
+                  isWheelchairAccessible: true,
+                ),
+                timeDisplayMode: DepartureTimeDisplayMode.clockFirst,
+                referenceTime: _testNow,
+                onToggleTimeDisplayMode: () {},
+                onOpenVehicleMap: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('departure-metadata-stacked')),
+        findsOneWidget,
+      );
+      expect(find.text('Sledovat na mapě →'), findsOneWidget);
+      expect(find.byTooltip('Bezbariérové'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('back button returns to stops callback', (
