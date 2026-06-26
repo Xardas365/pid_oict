@@ -5,8 +5,9 @@ import '../../../../core/network/golemio_query_parameters.dart';
 
 const departureBoardsPath = '/v2/public/departureboards';
 
-// Golemio OpenAPI names the departure board filter `stopIds`. Keep this exact
-// key, not `stopIds[]`, and put the grouped stop IDs into the JSON value:
+// Golemio OpenAPI names the departure board filter `stopIds`.
+// The live API also accepts array-style `stopIds[]`, but the app uses the plain
+// `stopIds` key with grouped stop IDs encoded as a JSON object:
 // stopIds={"0":["U717Z5P","U718Z5P"]}.
 const departureBoardsStopFilterParameter = 'stopIds';
 const departureBoardMaxGroups = 50;
