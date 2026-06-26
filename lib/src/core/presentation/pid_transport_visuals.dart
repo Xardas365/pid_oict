@@ -29,6 +29,42 @@ class PidLineBadgeColors {
 }
 
 abstract final class PidLineBadgeColorResolver {
+  static const tram = PidLineBadgeColors(
+    backgroundColor: Color(0xFFFFECEF),
+    foregroundColor: Color(0xFFA1122F),
+    borderColor: Color(0xFFF2B8C1),
+  );
+
+  static const bus = PidLineBadgeColors(
+    backgroundColor: Color(0xFFEAF3FF),
+    foregroundColor: Color(0xFF1555B7),
+    borderColor: Color(0xFFB8D4FF),
+  );
+
+  static const trolleybus = PidLineBadgeColors(
+    backgroundColor: Color(0xFFE7F8FB),
+    foregroundColor: Color(0xFF0D6472),
+    borderColor: Color(0xFFA9E2EA),
+  );
+
+  static const train = PidLineBadgeColors(
+    backgroundColor: Color(0xFFF3ECFF),
+    foregroundColor: Color(0xFF6D2AB7),
+    borderColor: Color(0xFFD8C2FF),
+  );
+
+  static const ferry = PidLineBadgeColors(
+    backgroundColor: Color(0xFFE4FAF6),
+    foregroundColor: Color(0xFF0F766E),
+    borderColor: Color(0xFF99E6DA),
+  );
+
+  static const other = PidLineBadgeColors(
+    backgroundColor: Color(0xFFFFF4E8),
+    foregroundColor: Color(0xFF9A4A10),
+    borderColor: Color(0xFFF3C99E),
+  );
+
   static const metroA = PidLineBadgeColors(
     backgroundColor: Color(0xFF007A3D),
     foregroundColor: Colors.white,
@@ -47,19 +83,36 @@ abstract final class PidLineBadgeColorResolver {
     borderColor: Color(0xFFA30D25),
   );
 
-  static PidLineBadgeColors? resolve({
-    required PidLineType lineType,
-    required String routeShortName,
-  }) {
-    if (lineType != PidLineType.metro) {
-      return null;
-    }
-
+  static PidLineBadgeColors? resolveMetroLine(String routeShortName) {
     return switch (routeShortName.trim().toUpperCase()) {
       'A' => metroA,
       'B' => metroB,
       'C' => metroC,
       _ => null,
+    };
+  }
+
+  static PidLineBadgeColors? resolve({
+    required PidLineType lineType,
+    required String routeShortName,
+  }) {
+    if (lineType == PidLineType.metro) {
+      return resolveMetroLine(routeShortName);
+    }
+
+    return switch (lineType.mode) {
+      PidTransportMode.tram => tram,
+      PidTransportMode.bus => bus,
+      PidTransportMode.trolleybus => trolleybus,
+      PidTransportMode.train => train,
+      PidTransportMode.ferry => ferry,
+      PidTransportMode.funicular => other,
+      PidTransportMode.unknown => switch (lineType) {
+        PidLineType.specialOther || PidLineType.replacementUnknown => other,
+        PidLineType.unknown => null,
+        _ => null,
+      },
+      PidTransportMode.metro => other,
     };
   }
 }

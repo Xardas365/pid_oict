@@ -1190,12 +1190,9 @@ class _VehicleRouteStyle {
     final colorScheme = Theme.of(context).colorScheme;
     final routeLabel = _routeLabel(args, position);
     final lineType = _lineType(args, position, routeLabel);
-    final metroColors = routeLabel == null
+    final metroColors = routeLabel == null || lineType != PidLineType.metro
         ? null
-        : PidLineBadgeColorResolver.resolve(
-            lineType: lineType,
-            routeShortName: routeLabel,
-          );
+        : PidLineBadgeColorResolver.resolveMetroLine(routeLabel);
     final modeColor = _colorForMode(colorScheme, lineType.mode);
     final backgroundColor = metroColors?.backgroundColor ?? modeColor;
 

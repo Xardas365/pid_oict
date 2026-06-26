@@ -115,6 +115,15 @@ void main() {
       expect(find.text('·'), findsNothing);
       expect(find.text('A'), findsOneWidget);
 
+      final tramLabel = tester.widget<DecoratedBox>(
+        find.byKey(const ValueKey('departure-route-label-22')),
+      );
+      final tramDecoration = tramLabel.decoration as BoxDecoration;
+      expect(
+        tramDecoration.color,
+        PidLineBadgeColorResolver.tram.backgroundColor,
+      );
+
       final metroLabel = tester.widget<DecoratedBox>(
         find.byKey(const ValueKey('departure-route-label-A')),
       );
@@ -353,6 +362,15 @@ void main() {
       expect(find.text('Beroun'), findsOneWidget);
       expect(find.textContaining('Nástupiště 7J'), findsOneWidget);
       expect(find.byTooltip('Bezbariérové'), findsOneWidget);
+
+      final trainLabel = tester.widget<DecoratedBox>(
+        find.byKey(const ValueKey('departure-route-label-S7')),
+      );
+      final trainDecoration = trainLabel.decoration as BoxDecoration;
+      expect(
+        trainDecoration.color,
+        PidLineBadgeColorResolver.train.backgroundColor,
+      );
     });
 
     testWidgets('night indicator is metadata and route label stays centered', (
@@ -388,6 +406,12 @@ void main() {
           matching: find.text('Noční'),
         ),
         findsNothing,
+      );
+      final badge = tester.widget<DecoratedBox>(badgeFinder);
+      final badgeDecoration = badge.decoration as BoxDecoration;
+      expect(
+        badgeDecoration.color,
+        PidLineBadgeColorResolver.bus.backgroundColor,
       );
       expect(find.text('Noční'), findsOneWidget);
       expect(find.text('Noční spoj'), findsNothing);

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/domain/pid_line_type.dart';
 import 'package:pid_oict/src/core/presentation/pid_transport_visuals.dart';
@@ -105,18 +106,87 @@ void main() {
       );
     });
 
-    test('falls back for non-metro and unknown metro route labels', () {
+    test('resolves transport mode badge colors', () {
       expect(
         PidLineBadgeColorResolver.resolve(
           lineType: PidLineType.tram,
-          routeShortName: 'A',
+          routeShortName: '10',
+        ),
+        same(PidLineBadgeColorResolver.tram),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.cityBus,
+          routeShortName: '176',
+        ),
+        same(PidLineBadgeColorResolver.bus),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.trainS,
+          routeShortName: 'S7',
+        ),
+        same(PidLineBadgeColorResolver.train),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.ferry,
+          routeShortName: 'P2',
+        ),
+        same(PidLineBadgeColorResolver.ferry),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.funicular,
+          routeShortName: 'LD',
+        ),
+        same(PidLineBadgeColorResolver.other),
+      );
+    });
+
+    test('night lines keep their base transport badge color', () {
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.tramNight,
+          routeShortName: '91',
+        ),
+        same(PidLineBadgeColorResolver.tram),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.cityBusNight,
+          routeShortName: '901',
+        ),
+        same(PidLineBadgeColorResolver.bus),
+      );
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.regionalBusNight,
+          routeShortName: '951',
+        ),
+        same(PidLineBadgeColorResolver.bus),
+      );
+    });
+
+    test('metro B uses dark foreground for readable contrast', () {
+      expect(
+        PidLineBadgeColorResolver.metroB.foregroundColor,
+        const Color(0xFF1F2937),
+      );
+    });
+
+    test('falls back for unknown line types and unknown metro labels', () {
+      expect(
+        PidLineBadgeColorResolver.resolve(
+          lineType: PidLineType.metro,
+          routeShortName: 'D',
         ),
         isNull,
       );
       expect(
         PidLineBadgeColorResolver.resolve(
-          lineType: PidLineType.metro,
-          routeShortName: 'D',
+          lineType: PidLineType.unknown,
+          routeShortName: '?',
         ),
         isNull,
       );
