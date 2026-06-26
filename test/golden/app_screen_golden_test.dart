@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,21 +30,24 @@ import '../helpers/fake_repositories.dart';
 import '../helpers/test_data.dart';
 import '../src/test_localized_app.dart';
 
-const _maxGoldenDiffRate = 0.01;
-
 void main() {
-  late GoldenFileComparator previousGoldenFileComparator;
+  late bool previousDebugDisableShadows;
 
   setUpAll(() {
-    previousGoldenFileComparator = goldenFileComparator;
-    goldenFileComparator = _TolerantGoldenFileComparator(
-      previousGoldenFileComparator,
-      maxDiffRate: _maxGoldenDiffRate,
-    );
+    previousDebugDisableShadows = debugDisableShadows;
+    debugDisableShadows = true;
   });
 
   tearDownAll(() {
-    goldenFileComparator = previousGoldenFileComparator;
+    debugDisableShadows = previousDebugDisableShadows;
+  });
+
+  setUp(() {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+  });
+
+  tearDown(() {
+    debugDefaultTargetPlatformOverride = null;
   });
 
   group('screen goldens', () {
@@ -60,10 +61,7 @@ void main() {
         ),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/stops_success.png'),
-      );
+      await _expectScaffoldGolden('goldens/stops_success.png');
     });
 
     testWidgets('StopsScreen empty', (tester) async {
@@ -72,10 +70,7 @@ void main() {
         _stopsScreen(QueueStopsRepository([const RepositorySuccess(<Stop>[])])),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/stops_empty.png'),
-      );
+      await _expectScaffoldGolden('goldens/stops_empty.png');
     });
 
     testWidgets('StopsScreen error', (tester) async {
@@ -93,10 +88,7 @@ void main() {
         ),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/stops_error.png'),
-      );
+      await _expectScaffoldGolden('goldens/stops_error.png');
     });
 
     testWidgets('DeparturesScreen success', (tester) async {
@@ -113,10 +105,7 @@ void main() {
         ),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/departures_success.png'),
-      );
+      await _expectScaffoldGolden('goldens/departures_success.png');
     });
 
     testWidgets('DeparturesScreen filtered', (tester) async {
@@ -136,10 +125,7 @@ void main() {
       await tester.tap(find.text('Bus'));
       await tester.pumpAndSettle();
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/departures_filtered.png'),
-      );
+      await _expectScaffoldGolden('goldens/departures_filtered.png');
     });
 
     testWidgets('DeparturesScreen empty', (tester) async {
@@ -150,10 +136,7 @@ void main() {
         ),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/departures_empty.png'),
-      );
+      await _expectScaffoldGolden('goldens/departures_empty.png');
     });
 
     testWidgets('DeparturesScreen initial error', (tester) async {
@@ -168,10 +151,7 @@ void main() {
         ),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/departures_error.png'),
-      );
+      await _expectScaffoldGolden('goldens/departures_error.png');
     });
 
     testWidgets('DeparturesScreen refresh loading', (tester) async {
@@ -194,10 +174,7 @@ void main() {
       bloc.add(const DeparturesRefreshed());
       await tester.pump();
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/departures_refresh_loading.png'),
-      );
+      await _expectScaffoldGolden('goldens/departures_refresh_loading.png');
 
       refreshCompleter.complete([_busDeparture()]);
       await tester.pumpAndSettle();
@@ -224,10 +201,7 @@ void main() {
       bloc.add(const DeparturesRefreshed());
       await tester.pumpAndSettle();
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/departures_refresh_warning.png'),
-      );
+      await _expectScaffoldGolden('goldens/departures_refresh_warning.png');
     });
 
     testWidgets('VehicleMapScreen loaded', (tester) async {
@@ -240,10 +214,7 @@ void main() {
         ),
       );
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/vehicle_map_loaded.png'),
-      );
+      await _expectScaffoldGolden('goldens/vehicle_map_loaded.png');
     });
 
     testWidgets('VehicleMapScreen stale warning', (tester) async {
@@ -267,10 +238,7 @@ void main() {
       bloc.add(const VehicleMapRefreshTicked());
       await tester.pumpAndSettle();
 
-      await expectLater(
-        find.byType(Scaffold),
-        matchesGoldenFile('goldens/vehicle_map_stale_warning.png'),
-      );
+      await _expectScaffoldGolden('goldens/vehicle_map_stale_warning.png');
     });
   });
 }
@@ -281,10 +249,19 @@ Future<void> _pumpGolden(WidgetTester tester, Widget home) async {
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  await tester.pumpWidget(
-    localizedTestApp(home: home, platform: TargetPlatform.android),
-  );
+  await tester.pumpWidget(localizedTestApp(home: home));
   await tester.pumpAndSettle();
+}
+
+Future<void> _expectScaffoldGolden(String goldenPath) async {
+  try {
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile(goldenPath),
+    );
+  } finally {
+    debugDefaultTargetPlatformOverride = null;
+  }
 }
 
 Widget _stopsScreen(StopsRepository repository) {
@@ -354,103 +331,4 @@ Departure _busDeparture() {
     vehicleId: 'service-3-176',
     isWheelchairAccessible: false,
   );
-}
-
-class _TolerantGoldenFileComparator extends GoldenFileComparator {
-  _TolerantGoldenFileComparator(
-    this._baseComparator, {
-    required this.maxDiffRate,
-  });
-
-  final GoldenFileComparator _baseComparator;
-  final double maxDiffRate;
-
-  @override
-  Uri getTestUri(Uri key, int? version) {
-    return _baseComparator.getTestUri(key, version);
-  }
-
-  @override
-  Future<void> update(Uri golden, Uint8List imageBytes) {
-    return _baseComparator.update(golden, imageBytes);
-  }
-
-  @override
-  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
-    final goldenFile = File.fromUri(getTestUri(golden, null));
-
-    if (!goldenFile.existsSync()) {
-      return _baseComparator.compare(imageBytes, golden);
-    }
-
-    final diffRate = await _calculatePixelDiffRate(
-      imageBytes,
-      await goldenFile.readAsBytes(),
-    );
-
-    if (diffRate <= maxDiffRate) {
-      return true;
-    }
-
-    return _baseComparator.compare(imageBytes, golden);
-  }
-}
-
-Future<double> _calculatePixelDiffRate(
-  Uint8List actualBytes,
-  Uint8List goldenBytes,
-) async {
-  final actual = await _decodeRgba(actualBytes);
-  final golden = await _decodeRgba(goldenBytes);
-
-  if (actual.width != golden.width || actual.height != golden.height) {
-    return double.infinity;
-  }
-
-  var differentPixels = 0;
-
-  for (var offset = 0; offset < actual.bytes.length; offset += 4) {
-    if (actual.bytes[offset] != golden.bytes[offset] ||
-        actual.bytes[offset + 1] != golden.bytes[offset + 1] ||
-        actual.bytes[offset + 2] != golden.bytes[offset + 2] ||
-        actual.bytes[offset + 3] != golden.bytes[offset + 3]) {
-      differentPixels += 1;
-    }
-  }
-
-  return differentPixels / (actual.width * actual.height);
-}
-
-Future<_RgbaImage> _decodeRgba(Uint8List pngBytes) async {
-  final codec = await ui.instantiateImageCodec(pngBytes);
-  final frame = await codec.getNextFrame();
-  final image = frame.image;
-
-  try {
-    final byteData = await image.toByteData();
-
-    if (byteData == null) {
-      throw StateError('Could not decode golden image bytes.');
-    }
-
-    return _RgbaImage(
-      width: image.width,
-      height: image.height,
-      bytes: Uint8List.fromList(byteData.buffer.asUint8List()),
-    );
-  } finally {
-    image.dispose();
-  }
-}
-
-class _RgbaImage {
-  const _RgbaImage({
-    required this.width,
-    required this.height,
-    required this.bytes,
-  });
-
-  final int width;
-  final int height;
-  final Uint8List bytes;
 }
