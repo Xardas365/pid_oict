@@ -30,6 +30,18 @@ with Flutter 3.44.1 and Dart 3.12.1.
 - Czech and English UI localization through Slang.
 - Offline unit, widget, and golden tests.
 
+## Screenshots
+
+![App overview](docs/screenshots/overview.png)
+
+| Stops | Departures | Vehicle map |
+| --- | --- | --- |
+| <img src="docs/screenshots/01_stops.png" width="260" alt="Stops list screen"> | <img src="docs/screenshots/02_departures.png" width="260" alt="Departures board screen"> | <img src="docs/screenshots/03_vehicle_map.png" width="260" alt="Vehicle map screen"> |
+
+Optional real-time departures view:
+
+<img src="docs/screenshots/04_departures_realtime.png" width="320" alt="Departures with real-time updates">
+
 ## API Token
 
 Generate a Golemio API token at:
@@ -175,8 +187,9 @@ Used endpoints:
   - `aswIds[]`
   - `cisIds[]`
 - `GET /v2/public/departureboards`
-  - grouped `stopIds` query parameter, not `stopIds[]`, for example
+  - grouped `stopIds` query parameter, for example
     `stopIds={"0":["U118Z101P","U118Z102P"]}`
+    - the live API also accepts documented array-style `stopIds[]`.
 - `GET /v2/public/vehiclepositions/{vehicleId}`
   - `scopes=info`
 
