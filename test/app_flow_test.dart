@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pid_oict/src/core/errors/app_exception.dart';
 import 'package:pid_oict/src/features/stops/domain/stop.dart';
+import 'package:pid_oict/src/features/stops/domain/stop_group.dart';
 
 import 'helpers/pid_oict_test_app.dart';
 import 'helpers/test_data.dart';
@@ -11,7 +12,7 @@ void main() {
     testWidgets(
       'loads stops, opens departures, and tracks a selected vehicle on the map',
       (tester) async {
-        final receivedStops = <Stop>[];
+        final receivedStops = <StopGroup>[];
         final receivedVehicleIds = <String>[];
 
         await tester.pumpWidget(
@@ -47,7 +48,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(receivedStops, hasLength(1));
-        expect(receivedStops.single.id, andelStop.id);
+        expect(receivedStops.single.stopIds, [andelStop.id]);
         expect(find.text('Sidliste Repy'), findsOneWidget);
         expect(find.text('Nemocnice Motol'), findsOneWidget);
 
@@ -65,6 +66,49 @@ void main() {
         await tester.tap(find.byTooltip('Zpět na odjezdy'));
         await tester.pumpAndSettle();
 
+        expect(find.text('Sidliste Repy'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'opens departure board with all child stop IDs from a logical group',
+      (tester) async {
+        StopGroup? receivedStop;
+
+        await tester.pumpWidget(
+          PidOictTestApp(
+            showMapTiles: false,
+            vehicleMapRefreshInterval: Duration.zero,
+            loadStops: () async => const [
+              _vltavskaMetroStop,
+              _vltavskaTramStop,
+              _vltavskaBusStop,
+            ],
+            loadDepartures: (stop) async {
+              receivedStop = stop;
+
+              return [
+                motolDeparture(gtfsTripId: 'trip-a'),
+                repyDeparture(gtfsTripId: 'trip-b'),
+              ];
+            },
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.text('Vltavska'), findsOneWidget);
+
+        await tester.tap(find.text('Vltavska'));
+        await tester.pumpAndSettle();
+
+        expect(receivedStop?.name, 'Vltavska');
+        expect(receivedStop?.stopIds, [
+          'U100Z1',
+          'U200Z1',
+          'U300Z1',
+        ]);
+        expect(find.text('Nemocnice Motol'), findsOneWidget);
         expect(find.text('Sidliste Repy'), findsOneWidget);
       },
     );
@@ -163,3 +207,36 @@ void main() {
     );
   });
 }
+
+const _vltavskaMetroStop = Stop(
+  id: 'U100Z1',
+  name: 'Vltavska',
+  platformCode: 'M',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U100S1',
+  latitude: 50.0991,
+  longitude: 14.4383,
+);
+
+const _vltavskaTramStop = Stop(
+  id: 'U200Z1',
+  name: 'Vltavska',
+  platformCode: 'A',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U200S1',
+  latitude: 50.09935,
+  longitude: 14.4386,
+);
+
+const _vltavskaBusStop = Stop(
+  id: 'U300Z1',
+  name: 'Vltavska',
+  platformCode: 'B',
+  zoneId: 'P',
+  locationType: 0,
+  parentStationId: 'U300S1',
+  latitude: 50.09948,
+  longitude: 14.4389,
+);

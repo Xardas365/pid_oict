@@ -34,9 +34,11 @@ class GolemioDeparturesRepository implements DeparturesRepository {
   Future<ParsedResult<Departure>> fetchDeparturesForStopWithDiagnostics(
     StopGroup stop,
   ) async {
+    final seenStopIds = <String>{};
     final stopIds = stop.stopIds
         .map((id) => id.trim())
         .where((id) => id.isNotEmpty)
+        .where(seenStopIds.add)
         .toList(growable: false);
 
     if (stopIds.isEmpty) {

@@ -57,6 +57,18 @@ void main() {
     test(
       'aggregates duplicate grouped-stop departures and sorts by time',
       () async {
+        const group = StopGroup(
+          id: 'logical:staromestska',
+          name: 'Staromestska',
+          latitude: 50.08708,
+          longitude: 14.42078,
+          stops: [
+            Stop(id: 'U123Z1', name: 'Staromestska'),
+            Stop(id: 'U123Z2', name: 'Staromestska'),
+          ],
+          stopIds: ['U123Z1', 'U123Z2'],
+          platformCodes: ['A', 'B'],
+        );
         final apiClient = mockGolemioApiClient(
           response: [
             [
@@ -91,8 +103,17 @@ void main() {
         );
         final repository = _repository(apiClient);
 
-        final departures = await repository.fetchDeparturesForStop(stop);
+        final departures = await repository.fetchDeparturesForStop(group);
 
+        final queryParameters = verifySingleGetJson(
+          apiClient,
+          '/v2/public/departureboards',
+          notFoundEmptyListAsSuccess: true,
+        );
+
+        expect(queryParameters.toSingleValueMap(), {
+          'stopIds': '{"0":["U123Z1","U123Z2"]}',
+        });
         expect(departures, hasLength(2));
         expect(departures.map((departure) => departure.gtfsTripId), [
           'trip-10-repy',
@@ -140,6 +161,35 @@ void main() {
       });
       expect(queryParameters.encoded, startsWith('stopIds='));
       expect(queryParameters.encoded, isNot(contains('stopIds[]')));
+    });
+
+    test('deduplicates grouped stop ids before sending request', () async {
+      final apiClient = mockGolemioApiClient(response: <Object?>[]);
+      final repository = _repository(apiClient);
+      const group = StopGroup(
+        id: 'logical:andel',
+        name: 'Andel',
+        latitude: 50.07128,
+        longitude: 14.40312,
+        stops: [
+          Stop(id: 'U123Z1', name: 'Andel'),
+          Stop(id: 'U123Z1', name: 'Andel'),
+          Stop(id: 'U123Z2', name: 'Andel'),
+        ],
+        stopIds: ['U123Z1', 'U123Z1', ' U123Z2 '],
+        platformCodes: ['A', 'B'],
+      );
+
+      await repository.fetchDeparturesForStop(group);
+
+      final queryParameters = verifySingleGetJson(
+        apiClient,
+        '/v2/public/departureboards',
+        notFoundEmptyListAsSuccess: true,
+      );
+      expect(queryParameters.toSingleValueMap(), {
+        'stopIds': '{"0":["U123Z1","U123Z2"]}',
+      });
     });
 
     test(

@@ -32,7 +32,7 @@ class PidOictTestApp extends StatefulWidget {
 
   final AppLocale locale;
   final Future<List<Stop>> Function()? loadStops;
-  final Future<List<Departure>> Function(Stop stop)? loadDepartures;
+  final Future<List<Departure>> Function(StopGroup stop)? loadDepartures;
   final Future<VehiclePosition> Function(String vehicleId)? loadVehiclePosition;
   final Duration departureRefreshInterval;
   final Duration vehicleMapRefreshInterval;
@@ -119,11 +119,11 @@ class _CallbackStopsRepository implements StopsRepository {
 class _CallbackDeparturesRepository implements DeparturesRepository {
   const _CallbackDeparturesRepository(this._loadDepartures);
 
-  final Future<List<Departure>> Function(Stop stop) _loadDepartures;
+  final Future<List<Departure>> Function(StopGroup stop) _loadDepartures;
 
   @override
   Future<List<Departure>> fetchDeparturesForStop(StopGroup stop) {
-    return _loadDepartures(stop.representativeStop);
+    return _loadDepartures(stop);
   }
 }
 
