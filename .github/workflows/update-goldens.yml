@@ -3,6 +3,10 @@ name: Update goldens
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update-goldens:
     name: Update screen golden baselines
@@ -40,3 +44,16 @@ jobs:
 
       - name: Show changed golden files
         run: git diff --name-only -- test/golden/goldens
+
+      - name: Create pull request with updated screen goldens
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: 'test: regenerate screen goldens on Ubuntu'
+          branch: automation/update-screen-goldens
+          title: 'test: regenerate screen goldens on Ubuntu'
+          body: |
+            Regenerates screen golden PNG baselines on ubuntu-latest with Flutter 3.44.1.
+
+            This pull request is created by the manual Update goldens workflow.
+          add-paths: |
+            test/golden/goldens/*.png
