@@ -118,6 +118,19 @@ flutter test
 git diff --check
 ```
 
+Full CI verification on Ubuntu runs all tests, including screen goldens:
+
+```bash
+flutter test
+```
+
+For local Windows verification, run the non-golden test suite and leave screen
+goldens to the canonical Linux renderer:
+
+```bash
+flutter test --exclude-tags golden
+```
+
 Also run the project token scan used during review and confirm it returns no
 real token-like strings.
 
@@ -128,8 +141,9 @@ rendering. After intentional UI changes, run the manual GitHub Actions workflow
 reviewed PNG changes locally. The workflow does not commit changes
 automatically.
 
-An equivalent Ubuntu environment with Flutter `3.44.1` can update and verify
-the screen goldens with:
+Screen golden verification and updates should run only in Ubuntu, WSL with a
+Linux Flutter SDK, or GitHub Actions. An equivalent Ubuntu environment with
+Flutter `3.44.1` can update and verify the screen goldens with:
 
 ```bash
 flutter test test/golden/app_screen_golden_test.dart --update-goldens
