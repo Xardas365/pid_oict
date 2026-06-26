@@ -213,6 +213,7 @@ class _Translations$vehicleMap$en extends Translations$vehicleMap$cs {
 	@override String lastUpdatedAgoMinutes({required Object minutes}) => 'Last updated ${minutes} min ago';
 	@override String nextStop({required Object stop}) => 'Next: ${stop}';
 	@override String nextStopAt({required Object stop, required Object time}) => 'Next: ${stop} at ${time}';
+	@override String nextStopSemantic({required Object stop}) => 'Next stop: ${stop}';
 	@override String get wheelchairAccessible => 'Accessible';
 	@override String get airConditioned => 'Air-conditioned';
 	@override String get usbChargers => 'USB charging';
@@ -413,6 +414,7 @@ extension on TranslationsEn {
 			'vehicleMap.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Last updated ${minutes} min ago',
 			'vehicleMap.nextStop' => ({required Object stop}) => 'Next: ${stop}',
 			'vehicleMap.nextStopAt' => ({required Object stop, required Object time}) => 'Next: ${stop} at ${time}',
+			'vehicleMap.nextStopSemantic' => ({required Object stop}) => 'Next stop: ${stop}',
 			'vehicleMap.wheelchairAccessible' => 'Accessible',
 			'vehicleMap.airConditioned' => 'Air-conditioned',
 			'vehicleMap.usbChargers' => 'USB charging',

@@ -108,7 +108,11 @@ const _vehicleMapNearbyStopLimit = 4;
 const _vehicleMapMarkerWidth = 50.0;
 const _vehicleMapMarkerHeight = 56.0;
 const _vehicleMapMarkerBodySize = 46.0;
+const _vehicleMapNextStopMarkerWidth = 164.0;
+const _vehicleMapNextStopMarkerHeight = 48.0;
 const _vehicleMapMarkerKey = Key('vehicle-map-marker');
+const _vehicleMapNextStopMarkerKey = Key('vehicle-map-next-stop-marker');
+const _vehicleMapNextStopLabelKey = Key('vehicle-map-next-stop-label');
 const Key _vehicleMapPanelKey = ValueKey('vehicle-map-info-panel');
 const Key _mapAttributionKey = ValueKey('vehicle-map-attribution');
 
@@ -221,6 +225,7 @@ class _MapStateState extends State<_MapState> {
     final point = _vehiclePoint(position);
     final routeStyle = _VehicleRouteStyle.from(context, widget.args, position);
     final routeSegments = _vehicleRouteSegments(position);
+    final nextStop = _nextStop(position);
 
     return Stack(
       children: [
@@ -255,9 +260,24 @@ class _MapStateState extends State<_MapState> {
                 style: routeStyle,
               ),
             if (position.stopTimes.isNotEmpty)
-              _RouteStopLayer(position: position, style: routeStyle),
+              _RouteStopLayer(
+                position: position,
+                style: routeStyle,
+                nextStop: nextStop,
+              ),
             MarkerLayer(
               markers: [
+                if (nextStop != null)
+                  Marker(
+                    point: LatLng(nextStop.latitude, nextStop.longitude),
+                    width: _vehicleMapNextStopMarkerWidth,
+                    height: _vehicleMapNextStopMarkerHeight,
+                    alignment: Alignment.center,
+                    child: _NextStopMapMarker(
+                      stop: nextStop,
+                      style: routeStyle,
+                    ),
+                  ),
                 Marker(
                   point: point,
                   width: _vehicleMapMarkerWidth,
@@ -304,6 +324,7 @@ class _MapStateState extends State<_MapState> {
                 _VehiclePositionCard(
                   args: widget.args,
                   position: position,
+                  nextStop: nextStop,
                   staleError: widget.staleError,
                   style: routeStyle,
                 ),
@@ -367,14 +388,24 @@ class _RoutePolylineLayer extends StatelessWidget {
 }
 
 class _RouteStopLayer extends StatelessWidget {
-  const _RouteStopLayer({required this.position, required this.style});
+  const _RouteStopLayer({
+    required this.position,
+    required this.style,
+    required this.nextStop,
+  });
 
   final VehiclePosition position;
   final _VehicleRouteStyle style;
+  final VehicleRouteStop? nextStop;
 
   @override
   Widget build(BuildContext context) {
-    final markerStyles = _RouteStopMarkerStyles.from(context, position, style);
+    final markerStyles = _RouteStopMarkerStyles.from(
+      context,
+      position,
+      style,
+      nextStop,
+    );
 
     return CircleLayer(
       circles: [
@@ -411,9 +442,8 @@ class _RouteStopMarkerStyles {
     required this.position,
     required this.routeStyle,
     required this.colorScheme,
-    required this.nextStopSequence,
+    required this.nextStop,
     required this.destinationStopSequence,
-    required this.nextShapeDistance,
     required this.destinationShapeDistance,
   });
 
@@ -421,14 +451,14 @@ class _RouteStopMarkerStyles {
     BuildContext context,
     VehiclePosition position,
     _VehicleRouteStyle routeStyle,
+    VehicleRouteStop? nextStop,
   ) {
     return _RouteStopMarkerStyles(
       position: position,
       routeStyle: routeStyle,
       colorScheme: Theme.of(context).colorScheme,
-      nextStopSequence: _nextStopSequence(position),
+      nextStop: nextStop,
       destinationStopSequence: _destinationStopSequence(position.stopTimes),
-      nextShapeDistance: _nextStopShapeDistance(position),
       destinationShapeDistance: _destinationShapeDistance(position.stopTimes),
     );
   }
@@ -436,9 +466,8 @@ class _RouteStopMarkerStyles {
   final VehiclePosition position;
   final _VehicleRouteStyle routeStyle;
   final ColorScheme colorScheme;
-  final int? nextStopSequence;
+  final VehicleRouteStop? nextStop;
   final int? destinationStopSequence;
-  final double? nextShapeDistance;
   final double? destinationShapeDistance;
 
   _RouteStopMarkerStyle styleFor(VehicleRouteStop stop) {
@@ -448,17 +477,17 @@ class _RouteStopMarkerStyles {
     return switch (kind) {
       _RouteStopMarkerKind.current => _RouteStopMarkerStyle(
         kind: kind,
-        radius: 7,
-        fillColor: activeColor,
+        radius: 5.8,
+        fillColor: activeColor.withValues(alpha: 0.78),
         borderColor: Colors.white,
-        borderStrokeWidth: 3,
+        borderStrokeWidth: 2.4,
       ),
       _RouteStopMarkerKind.next => _RouteStopMarkerStyle(
         kind: kind,
-        radius: 5.8,
-        fillColor: activeColor.withValues(alpha: 0.9),
+        radius: 8.6,
+        fillColor: activeColor,
         borderColor: Colors.white,
-        borderStrokeWidth: 2,
+        borderStrokeWidth: 3.6,
       ),
       _RouteStopMarkerKind.destination => _RouteStopMarkerStyle(
         kind: kind,
@@ -497,8 +526,8 @@ class _RouteStopMarkerStyles {
     if (_matchesStop(
       stopSequence,
       shapeDistance,
-      nextStopSequence,
-      nextShapeDistance,
+      nextStop?.stopSequence,
+      nextStop?.shapeDistTraveled,
     )) {
       return _RouteStopMarkerKind.next;
     }
@@ -541,6 +570,119 @@ class _RouteStopMarkerStyle {
   final double borderStrokeWidth;
 }
 
+class _NextStopMapMarker extends StatelessWidget {
+  const _NextStopMapMarker({required this.stop, required this.style});
+
+  final VehicleRouteStop stop;
+  final _VehicleRouteStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      key: _vehicleMapNextStopMarkerKey,
+      container: true,
+      label: context.t.vehicleMap.nextStopSemantic(stop: stop.name),
+      child: ExcludeSemantics(
+        child: SizedBox(
+          width: _vehicleMapNextStopMarkerWidth,
+          height: _vehicleMapNextStopMarkerHeight,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              _NextStopHalo(style: style),
+              Positioned(
+                left: (_vehicleMapNextStopMarkerWidth / 2) + 13,
+                child: _NextStopLabel(stop: stop, style: style),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NextStopHalo extends StatelessWidget {
+  const _NextStopHalo({required this.style});
+
+  final _VehicleRouteStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: style.remainingRouteColor.withValues(alpha: 0.22),
+          ),
+          child: const SizedBox.square(dimension: 28),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: style.remainingRouteColor,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x33000000),
+                blurRadius: 10,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const SizedBox.square(dimension: 16),
+        ),
+      ],
+    );
+  }
+}
+
+class _NextStopLabel extends StatelessWidget {
+  const _NextStopLabel({required this.stop, required this.style});
+
+  final VehicleRouteStop stop;
+  final _VehicleRouteStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      key: _vehicleMapNextStopLabelKey,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.94),
+        borderRadius: const BorderRadius.all(Radius.circular(999)),
+        border: Border.all(
+          color: style.remainingRouteColor.withValues(alpha: 0.72),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 82),
+          child: Text(
+            stop.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 bool _matchesStop(
   int? stopSequence,
   double? shapeDistance,
@@ -554,39 +696,6 @@ bool _matchesStop(
   return targetSequence == null &&
       targetShapeDistance != null &&
       shapeDistance == targetShapeDistance;
-}
-
-int? _nextStopSequence(VehiclePosition position) {
-  final lastStopSequence = position.lastStopSequence;
-  final candidates =
-      position.stopTimes
-          .map((stop) => stop.stopSequence)
-          .whereType<int>()
-          .where(
-            (sequence) =>
-                lastStopSequence == null || sequence > lastStopSequence,
-          )
-          .toList(growable: false)
-        ..sort();
-
-  return candidates.isEmpty ? null : candidates.first;
-}
-
-double? _nextStopShapeDistance(VehiclePosition position) {
-  final traveledDistance = position.shapeDistTraveled;
-  if (traveledDistance == null) {
-    return null;
-  }
-
-  final candidates =
-      position.stopTimes
-          .map((stop) => stop.shapeDistTraveled)
-          .whereType<double>()
-          .where((distance) => distance > traveledDistance)
-          .toList(growable: false)
-        ..sort();
-
-  return candidates.isEmpty ? null : candidates.first;
 }
 
 int? _destinationStopSequence(List<VehicleRouteStop> stops) {
@@ -744,12 +853,14 @@ class _VehiclePositionCard extends StatelessWidget {
   const _VehiclePositionCard({
     required this.args,
     required this.position,
+    required this.nextStop,
     required this.staleError,
     required this.style,
   });
 
   final VehicleMapArgs args;
   final VehiclePosition position;
+  final VehicleRouteStop? nextStop;
   final AppFailure? staleError;
   final _VehicleRouteStyle style;
 
@@ -767,7 +878,7 @@ class _VehiclePositionCard extends StatelessWidget {
         ? title
         : _headsign(args, position) ?? title;
     final delay = formatRealtimeDelayLabel(position.delaySeconds);
-    final nextStopText = _nextStopText(context, position);
+    final nextStopText = _nextStopText(context, nextStop);
     final metadata = _metadataLabels(context, args, position, routeLabel);
     final subtleInfoStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -967,8 +1078,7 @@ class _MetadataSummary extends StatelessWidget {
   }
 }
 
-String? _nextStopText(BuildContext context, VehiclePosition position) {
-  final stop = _nextStop(position);
+String? _nextStopText(BuildContext context, VehicleRouteStop? stop) {
   if (stop == null) {
     return null;
   }

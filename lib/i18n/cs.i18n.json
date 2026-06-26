@@ -140,6 +140,7 @@
     "lastUpdatedAgoMinutes": "Poslední aktualizace před $minutes min",
     "nextStop": "Další: $stop",
     "nextStopAt": "Další: $stop v $time",
+    "nextStopSemantic": "Další zastávka: $stop",
     "wheelchairAccessible": "Bezbariérové",
     "airConditioned": "Klimatizace",
     "usbChargers": "USB nabíjení",

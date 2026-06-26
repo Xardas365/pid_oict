@@ -59,9 +59,13 @@ void main() {
       expect(map.options.initialCenter.longitude, closeTo(14.4378, 0.0001));
       expect(map.options.initialZoom, 15);
       final markerLayer = tester.widget<MarkerLayer>(find.byType(MarkerLayer));
-      expect(markerLayer.markers.single.width, inInclusiveRange(44, 56));
-      expect(markerLayer.markers.single.height, inInclusiveRange(44, 56));
-      expect(markerLayer.markers.single.alignment, Alignment.topCenter);
+      expect(markerLayer.markers, hasLength(2));
+      expect(markerLayer.markers.first.width, 164);
+      expect(markerLayer.markers.first.height, 48);
+      expect(markerLayer.markers.first.alignment, Alignment.center);
+      expect(markerLayer.markers.last.width, inInclusiveRange(44, 56));
+      expect(markerLayer.markers.last.height, inInclusiveRange(44, 56));
+      expect(markerLayer.markers.last.alignment, Alignment.topCenter);
       final polylineLayer = tester.widget<PolylineLayer>(
         find.byType(PolylineLayer),
       );
@@ -105,14 +109,28 @@ void main() {
         (circle) =>
             circle.key == const ValueKey('vehicle-route-stop-destination-4'),
       );
-      expect(currentStop.radius, greaterThan(nextStop.radius));
+      expect(nextStop.radius, greaterThan(currentStop.radius));
       expect(nextStop.radius, greaterThan(traveledStop.radius));
-      expect(destinationStop.radius, greaterThan(nextStop.radius));
+      expect(nextStop.radius, greaterThan(destinationStop.radius));
       expect(traveledStop.radius, lessThan(3));
       expect(find.text('10 – Sidliste Repy'), findsWidgets);
       expect(find.byTooltip('Zpět na odjezdy'), findsOneWidget);
       expect(find.byTooltip('Vycentrovat vozidlo'), findsOneWidget);
       expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('vehicle-map-next-stop-marker')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('vehicle-map-next-stop-label')),
+        findsOneWidget,
+      );
+      final semantics = tester.ensureSemantics();
+      expect(
+        find.bySemanticsLabel('Další zastávka: Narodni divadlo'),
+        findsOneWidget,
+      );
+      semantics.dispose();
       expect(find.textContaining('vehicle-123'), findsNothing);
       expect(find.text('Sidliste Repy'), findsOneWidget);
       expect(find.text('+1 min'), findsOneWidget);
@@ -142,6 +160,55 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('highlights next stop from shape distance fallback', (
+      tester,
+    ) async {
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _QueueVehiclePositionRepository([
+          _VehiclePositionSuccess(_positionWithoutLastStopSequence()),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      final circleLayer = tester.widget<CircleLayer>(find.byType(CircleLayer));
+      final nextStop = circleLayer.circles.singleWhere(
+        (circle) => circle.key == const ValueKey('vehicle-route-stop-next-3'),
+      );
+      final destinationStop = circleLayer.circles.singleWhere(
+        (circle) =>
+            circle.key == const ValueKey('vehicle-route-stop-destination-4'),
+      );
+
+      expect(nextStop.radius, greaterThan(destinationStop.radius));
+      expect(
+        find.byKey(const ValueKey('vehicle-map-next-stop-marker')),
+        findsOneWidget,
+      );
+      expect(find.text('Další: Narodni divadlo v 10:24'), findsOneWidget);
+    });
+
+    testWidgets('renders map without route stops', (tester) async {
+      await _pumpVehicleMapScreen(
+        tester,
+        repository: _QueueVehiclePositionRepository([
+          _VehiclePositionSuccess(_positionWithoutStopTimes()),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(find.byType(CircleLayer), findsNothing);
+      expect(
+        find.byKey(const ValueKey('vehicle-map-next-stop-marker')),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey('vehicle-map-marker')), findsOneWidget);
+      expect(find.byTooltip('Vycentrovat vozidlo'), findsOneWidget);
     });
 
     testWidgets('shows live relative last update in the info panel', (
@@ -509,6 +576,108 @@ VehiclePosition _position(
       hasUsbChargers: true,
     ),
     lastUpdated: lastUpdated ?? DateTime(2026, 6, 22, 10, 20),
+  );
+}
+
+VehiclePosition _positionWithoutLastStopSequence() {
+  return VehiclePosition(
+    vehicleId: 'vehicle-123',
+    latitude: 50.0755,
+    longitude: 14.4378,
+    routeShortName: '10',
+    routeType: 'tram',
+    headsign: 'Sidliste Repy',
+    delaySeconds: 60,
+    shapeDistTraveled: 1200,
+    routePoints: const [
+      VehicleRoutePoint(
+        latitude: 50.0748,
+        longitude: 14.4358,
+        shapeDistTraveled: 900,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0755,
+        longitude: 14.4378,
+        shapeDistTraveled: 1200,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0763,
+        longitude: 14.4402,
+        shapeDistTraveled: 1500,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0771,
+        longitude: 14.4424,
+        shapeDistTraveled: 1800,
+      ),
+    ],
+    stopTimes: [
+      const VehicleRouteStop(
+        name: 'Andel',
+        latitude: 50.0748,
+        longitude: 14.4358,
+        stopSequence: 1,
+        zoneId: 'P',
+        shapeDistTraveled: 900,
+      ),
+      const VehicleRouteStop(
+        name: 'Zborovska',
+        latitude: 50.0755,
+        longitude: 14.4378,
+        stopSequence: 2,
+        zoneId: 'P',
+        shapeDistTraveled: 1200,
+      ),
+      VehicleRouteStop(
+        name: 'Narodni divadlo',
+        latitude: 50.0763,
+        longitude: 14.4402,
+        stopSequence: 3,
+        zoneId: 'P',
+        shapeDistTraveled: 1500,
+        realtimeArrivalTime: DateTime(2026, 6, 22, 10, 24),
+      ),
+      const VehicleRouteStop(
+        name: 'Sidliste Repy',
+        latitude: 50.0771,
+        longitude: 14.4424,
+        stopSequence: 4,
+        zoneId: 'P',
+        shapeDistTraveled: 1800,
+      ),
+    ],
+    lastUpdated: DateTime(2026, 6, 22, 10, 20),
+  );
+}
+
+VehiclePosition _positionWithoutStopTimes() {
+  return VehiclePosition(
+    vehicleId: 'vehicle-123',
+    latitude: 50.0755,
+    longitude: 14.4378,
+    routeShortName: '10',
+    routeType: 'tram',
+    headsign: 'Sidliste Repy',
+    delaySeconds: 60,
+    shapeDistTraveled: 1200,
+    routePoints: const [
+      VehicleRoutePoint(
+        latitude: 50.0748,
+        longitude: 14.4358,
+        shapeDistTraveled: 900,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0755,
+        longitude: 14.4378,
+        shapeDistTraveled: 1200,
+      ),
+      VehicleRoutePoint(
+        latitude: 50.0763,
+        longitude: 14.4402,
+        shapeDistTraveled: 1500,
+      ),
+    ],
+    lastUpdated: DateTime(2026, 6, 22, 10, 20),
   );
 }
 

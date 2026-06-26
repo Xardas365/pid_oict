@@ -397,6 +397,9 @@ class Translations$vehicleMap$cs {
 	/// cs: 'Další: $stop v $time'
 	String nextStopAt({required Object stop, required Object time}) => 'Další: ${stop} v ${time}';
 
+	/// cs: 'Další zastávka: $stop'
+	String nextStopSemantic({required Object stop}) => 'Další zastávka: ${stop}';
+
 	/// cs: 'Bezbariérové'
 	String get wheelchairAccessible => 'Bezbariérové';
 
@@ -678,6 +681,7 @@ extension on Translations {
 			'vehicleMap.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Poslední aktualizace před ${minutes} min',
 			'vehicleMap.nextStop' => ({required Object stop}) => 'Další: ${stop}',
 			'vehicleMap.nextStopAt' => ({required Object stop, required Object time}) => 'Další: ${stop} v ${time}',
+			'vehicleMap.nextStopSemantic' => ({required Object stop}) => 'Další zastávka: ${stop}',
 			'vehicleMap.wheelchairAccessible' => 'Bezbariérové',
 			'vehicleMap.airConditioned' => 'Klimatizace',
 			'vehicleMap.usbChargers' => 'USB nabíjení',

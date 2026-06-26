@@ -140,6 +140,7 @@
     "lastUpdatedAgoMinutes": "Last updated $minutes min ago",
     "nextStop": "Next: $stop",
     "nextStopAt": "Next: $stop at $time",
+    "nextStopSemantic": "Next stop: $stop",
     "wheelchairAccessible": "Accessible",
     "airConditioned": "Air-conditioned",
     "usbChargers": "USB charging",
