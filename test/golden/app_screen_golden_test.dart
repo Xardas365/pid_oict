@@ -357,7 +357,7 @@ Departure _busDeparture() {
 }
 
 class _TolerantGoldenFileComparator extends GoldenFileComparator {
-  const _TolerantGoldenFileComparator(
+  _TolerantGoldenFileComparator(
     this._baseComparator, {
     required this.maxDiffRate,
   });
@@ -427,7 +427,7 @@ Future<_RgbaImage> _decodeRgba(Uint8List pngBytes) async {
   final image = frame.image;
 
   try {
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final byteData = await image.toByteData();
 
     if (byteData == null) {
       throw StateError('Could not decode golden image bytes.');
