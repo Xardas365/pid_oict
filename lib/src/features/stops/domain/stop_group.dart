@@ -6,6 +6,7 @@ import '../../../core/utils/value_equality.dart';
 import 'stop.dart';
 
 const double logicalStopGroupProximityThresholdMeters = 500;
+const double _logicalStopSpatialBucketSizeDegrees = 0.01;
 
 @immutable
 class StopGroup {
@@ -245,39 +246,108 @@ List<String> _platformCodes(List<Stop> stops) {
 
 List<_StopGroupCluster> _clusterLogicalStops(Iterable<Stop> stops) {
   final sortedStops = stops.toList(growable: false)
-    ..sort((first, second) {
-      final nameComparison = normalizeStopGroupName(
-        first.name,
-      ).compareTo(normalizeStopGroupName(second.name));
-      if (nameComparison != 0) {
-        return nameComparison;
+    ..sort(_compareStopsForClustering);
+  final disjointSet = _DisjointSet(sortedStops.length);
+  final firstIndexByParentStation = <String, int>{};
+  final indexesByNormalizedName = <String, List<int>>{};
+
+  for (var index = 0; index < sortedStops.length; index++) {
+    final stop = sortedStops[index];
+    final parentStationId = stop.parentStationId?.trim();
+
+    if (parentStationId != null && parentStationId.isNotEmpty) {
+      final existingIndex = firstIndexByParentStation[parentStationId];
+      if (existingIndex == null) {
+        firstIndexByParentStation[parentStationId] = index;
+      } else {
+        disjointSet.union(existingIndex, index);
       }
+    }
 
-      final groupKeyComparison = stopGroupKey(
-        first,
-      ).compareTo(stopGroupKey(second));
-      if (groupKeyComparison != 0) {
-        return groupKeyComparison;
-      }
+    indexesByNormalizedName
+        .putIfAbsent(normalizeStopGroupName(stop.name), () => <int>[])
+        .add(index);
+  }
 
-      return first.id.compareTo(second.id);
-    });
-  final clusters = <_StopGroupCluster>[];
+  for (final indexes in indexesByNormalizedName.values) {
+    _unionSpatiallyCloseStops(sortedStops, indexes, disjointSet);
+  }
 
-  for (final stop in sortedStops) {
-    final clusterIndex = clusters.indexWhere((cluster) {
-      return cluster.canAccept(stop);
-    });
+  final stopsByRoot = <int, List<Stop>>{};
+  for (var index = 0; index < sortedStops.length; index++) {
+    final root = disjointSet.find(index);
+    stopsByRoot.putIfAbsent(root, () => <Stop>[]).add(sortedStops[index]);
+  }
 
-    if (clusterIndex == -1) {
-      clusters.add(_StopGroupCluster([stop]));
+  final clusters =
+      stopsByRoot.values
+          .map((clusterStops) {
+            final sortedClusterStops = clusterStops.toList(growable: false)
+              ..sort((first, second) => first.id.compareTo(second.id));
+
+            return _StopGroupCluster(
+              List<Stop>.unmodifiable(sortedClusterStops),
+            );
+          })
+          .toList(growable: false)
+        ..sort((first, second) {
+          return _compareStopsForClustering(
+            first.stops.first,
+            second.stops.first,
+          );
+        });
+
+  return clusters;
+}
+
+int _compareStopsForClustering(Stop first, Stop second) {
+  final nameComparison = normalizeStopGroupName(
+    first.name,
+  ).compareTo(normalizeStopGroupName(second.name));
+  if (nameComparison != 0) {
+    return nameComparison;
+  }
+
+  final groupKeyComparison = stopGroupKey(
+    first,
+  ).compareTo(stopGroupKey(second));
+  if (groupKeyComparison != 0) {
+    return groupKeyComparison;
+  }
+
+  return first.id.compareTo(second.id);
+}
+
+void _unionSpatiallyCloseStops(
+  List<Stop> stops,
+  List<int> indexes,
+  _DisjointSet disjointSet,
+) {
+  final indexesByBucket = <_SpatialBucketKey, List<int>>{};
+
+  for (final index in indexes) {
+    final stop = stops[index];
+    if (!_hasValidCoordinates(stop)) {
       continue;
     }
 
-    clusters[clusterIndex] = clusters[clusterIndex].withStop(stop);
-  }
+    final bucket = _SpatialBucketKey.fromStop(stop);
+    for (final neighborBucket in bucket.neighbors) {
+      final candidateIndexes = indexesByBucket[neighborBucket];
+      if (candidateIndexes == null) {
+        continue;
+      }
 
-  return clusters;
+      for (final candidateIndex in candidateIndexes) {
+        if (_distanceMeters(stop, stops[candidateIndex]) <=
+            logicalStopGroupProximityThresholdMeters) {
+          disjointSet.union(index, candidateIndex);
+        }
+      }
+    }
+
+    indexesByBucket.putIfAbsent(bucket, () => <int>[]).add(index);
+  }
 }
 
 Map<String, int> _legacyGroupCounts(List<_StopGroupCluster> clusters) {
@@ -348,45 +418,87 @@ class _StopGroupCluster {
   const _StopGroupCluster(this.stops);
 
   final List<Stop> stops;
+}
 
-  _StopGroupCluster withStop(Stop stop) {
-    return _StopGroupCluster(List<Stop>.unmodifiable([...stops, stop]));
+@immutable
+class _SpatialBucketKey {
+  const _SpatialBucketKey(this.latitude, this.longitude);
+
+  factory _SpatialBucketKey.fromStop(Stop stop) {
+    return _SpatialBucketKey(
+      (stop.latitude! / _logicalStopSpatialBucketSizeDegrees).floor(),
+      (stop.longitude! / _logicalStopSpatialBucketSizeDegrees).floor(),
+    );
   }
 
-  bool canAccept(Stop stop) {
-    return _sharesParentStation(stop) ||
-        (_sharesNormalizedName(stop) && _isSpatiallyClose(stop));
+  final int latitude;
+  final int longitude;
+
+  Iterable<_SpatialBucketKey> get neighbors sync* {
+    for (var latitudeOffset = -1; latitudeOffset <= 1; latitudeOffset++) {
+      for (var longitudeOffset = -1; longitudeOffset <= 1; longitudeOffset++) {
+        yield _SpatialBucketKey(
+          latitude + latitudeOffset,
+          longitude + longitudeOffset,
+        );
+      }
+    }
   }
 
-  bool _sharesParentStation(Stop stop) {
-    final parentStationId = stop.parentStationId?.trim();
-    if (parentStationId == null || parentStationId.isEmpty) {
-      return false;
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is _SpatialBucketKey &&
+            latitude == other.latitude &&
+            longitude == other.longitude;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(latitude, longitude);
+  }
+}
+
+class _DisjointSet {
+  _DisjointSet(int size)
+    : _parents = List<int>.generate(size, (index) => index),
+      _ranks = List<int>.filled(size, 0);
+
+  final List<int> _parents;
+  final List<int> _ranks;
+
+  int find(int index) {
+    final parent = _parents[index];
+    if (parent == index) {
+      return index;
     }
 
-    return stops.any((existingStop) {
-      return existingStop.parentStationId?.trim() == parentStationId;
-    });
+    final root = find(parent);
+    _parents[index] = root;
+    return root;
   }
 
-  bool _sharesNormalizedName(Stop stop) {
-    final normalizedName = normalizeStopGroupName(stop.name);
-
-    return stops.any((existingStop) {
-      return normalizeStopGroupName(existingStop.name) == normalizedName;
-    });
-  }
-
-  bool _isSpatiallyClose(Stop stop) {
-    if (!_hasValidCoordinates(stop)) {
-      return false;
+  void union(int first, int second) {
+    final firstRoot = find(first);
+    final secondRoot = find(second);
+    if (firstRoot == secondRoot) {
+      return;
     }
 
-    return stops.any((existingStop) {
-      return _hasValidCoordinates(existingStop) &&
-          _distanceMeters(stop, existingStop) <=
-              logicalStopGroupProximityThresholdMeters;
-    });
+    final firstRank = _ranks[firstRoot];
+    final secondRank = _ranks[secondRoot];
+    if (firstRank < secondRank) {
+      _parents[firstRoot] = secondRoot;
+      return;
+    }
+
+    if (firstRank > secondRank) {
+      _parents[secondRoot] = firstRoot;
+      return;
+    }
+
+    _parents[secondRoot] = firstRoot;
+    _ranks[firstRoot] = firstRank + 1;
   }
 }
 

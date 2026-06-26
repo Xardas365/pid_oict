@@ -73,6 +73,35 @@ void main() {
       expect(group.platformCodes, ['A', 'B']);
     });
 
+    test('keeps close same-name stop chains in one logical group', () {
+      final group = groupStops([
+        _stop(
+          id: 'U1Z1',
+          name: 'Anděl',
+          platformCode: 'A',
+          latitude: 50.07100,
+          longitude: 14.40100,
+        ),
+        _stop(
+          id: 'U1Z2',
+          name: 'Anděl',
+          platformCode: 'B',
+          latitude: 50.07350,
+          longitude: 14.40100,
+        ),
+        _stop(
+          id: 'U1Z3',
+          name: 'Anděl',
+          platformCode: 'C',
+          latitude: 50.07600,
+          longitude: 14.40100,
+        ),
+      ]).single;
+
+      expect(group.stopIds, ['U1Z1', 'U1Z2', 'U1Z3']);
+      expect(group.platformCodes, ['A', 'B', 'C']);
+    });
+
     test('does not merge stops with the same name when they are far apart', () {
       final groups = groupStops([
         _stop(
