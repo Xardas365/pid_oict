@@ -53,7 +53,7 @@ class DepartureTile extends StatelessWidget {
                 ),
                 if (_hasMetadata(departure, hasTracking)) ...[
                   const SizedBox(height: 6),
-                  _DepartureMetadataRow(
+                  _DepartureMetadataSection(
                     departure: departure,
                     hasTracking: hasTracking,
                   ),
@@ -265,8 +265,8 @@ Color _delayTextColor(BuildContext context, int? delaySeconds) {
   };
 }
 
-class _DepartureMetadataRow extends StatelessWidget {
-  const _DepartureMetadataRow({
+class _DepartureMetadataSection extends StatelessWidget {
+  const _DepartureMetadataSection({
     required this.departure,
     required this.hasTracking,
   });
@@ -285,71 +285,66 @@ class _DepartureMetadataRow extends StatelessWidget {
 
     if (departure.isWheelchairAccessible == true) {
       metadata.add(
-        _IconMetadataItem(
-          icon: Icons.accessible_forward,
-          label: context.t.departures.wheelchairAccessible,
-          color: colorScheme.primary,
+        _TextMetadataItem(
+          text: '♿',
+          label: context.t.departures.wheelchairAccessibleShort,
         ),
       );
     }
 
     if (departure.lineType.isNight) {
       metadata.add(
-        _IconMetadataItem(
-          icon: Icons.nightlight_round,
+        _TextMetadataItem(
+          text: context.t.departures.nightRoute,
           label: context.t.departures.nightRoute,
-          color: colorScheme.primary,
-        ),
-      );
-    }
-
-    if (hasTracking) {
-      metadata.add(
-        Semantics(
-          label: context.t.departures.showVehicleTooltip,
-          child: ExcludeSemantics(
-            child: Text(context.t.departures.trackingHint),
-          ),
         ),
       );
     }
 
     return Padding(
       padding: const EdgeInsets.only(left: _lineBadgeWidth + _lineBadgeGap),
-      child: DefaultTextStyle.merge(
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-        ),
-        child: Wrap(
-          spacing: 7,
-          runSpacing: 3,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            for (var index = 0; index < metadata.length; index++)
-              _MetadataWrapItem(
-                showLeadingSeparator: index > 0,
-                child: metadata[index],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (metadata.isNotEmpty)
+            DefaultTextStyle.merge(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
               ),
+              child: Wrap(
+                spacing: 7,
+                runSpacing: 3,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (var index = 0; index < metadata.length; index++)
+                    _MetadataWrapItem(
+                      showLeadingSeparator: index > 0,
+                      child: metadata[index],
+                    ),
+                ],
+              ),
+            ),
+          if (hasTracking) ...[
+            if (metadata.isNotEmpty) const SizedBox(height: 3),
+            _TrackingActionLabel(color: colorScheme.primary),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _IconMetadataItem extends StatelessWidget {
-  const _IconMetadataItem({
-    required this.icon,
+class _TextMetadataItem extends StatelessWidget {
+  const _TextMetadataItem({
+    required this.text,
     required this.label,
-    required this.color,
   });
 
-  final IconData icon;
+  final String text;
   final String label;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +354,32 @@ class _IconMetadataItem extends StatelessWidget {
         container: true,
         label: label,
         child: ExcludeSemantics(
-          child: Icon(icon, size: 16, color: color),
+          child: Text(text),
+        ),
+      ),
+    );
+  }
+}
+
+class _TrackingActionLabel extends StatelessWidget {
+  const _TrackingActionLabel({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.t.departures.showVehicleTooltip,
+      button: true,
+      child: ExcludeSemantics(
+        child: Text(
+          context.t.departures.trackingHint,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );

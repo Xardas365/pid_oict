@@ -90,15 +90,7 @@ void main() {
       expect(find.text('Metro'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('selected-stop-transport-types')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const ValueKey('selected-stop-transport-type-tram')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const ValueKey('selected-stop-transport-type-metro')),
-        findsOneWidget,
+        findsNothing,
       );
       expect(find.byType(LiveRelativeTimeText), findsOneWidget);
       expect(find.textContaining('Aktualizováno před'), findsOneWidget);
@@ -107,12 +99,12 @@ void main() {
       expect(find.text('za 3 min'), findsOneWidget);
       expect(find.text('10:15'), findsOneWidget);
       expect(find.text('+2 min'), findsNothing);
-      expect(find.text('Nástupiště 3'), findsOneWidget);
-      expect(find.byTooltip('Bezbariérový odjezd'), findsOneWidget);
+      expect(find.textContaining('Nástupiště 3'), findsOneWidget);
+      expect(find.text('♿'), findsOneWidget);
+      expect(find.byTooltip('Bezbariérové'), findsOneWidget);
       expect(find.text('Sledovat vozidlo →'), findsOneWidget);
       expect(find.text('·'), findsNothing);
       expect(find.text('A'), findsOneWidget);
-      expect(find.byIcon(Icons.accessible_forward), findsOneWidget);
 
       final metroLabel = tester.widget<DecoratedBox>(
         find.byKey(const ValueKey('departure-route-label-A')),
@@ -124,51 +116,9 @@ void main() {
       );
     });
 
-    testWidgets('loaded header shows one transport type summary icon', (
+    testWidgets('loaded header does not render transport type summary icons', (
       tester,
     ) async {
-      final semantics = tester.ensureSemantics();
-
-      await _pumpDeparturesScreen(
-        tester,
-        repository: _QueueDeparturesRepository([
-          _DeparturesSuccess([
-            Departure(
-              routeShortName: '22',
-              headsign: 'Nadrazi Hostivar',
-              departureTime: DateTime(2026, 6, 22, 10, 15),
-            ),
-          ]),
-        ]),
-      );
-
-      await tester.pumpAndSettle();
-
-      expect(
-        find.byKey(const ValueKey('selected-stop-transport-types')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const ValueKey('selected-stop-transport-type-tram')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const ValueKey('selected-stop-transport-type-bus')),
-        findsNothing,
-      );
-      expect(
-        find.bySemanticsLabel('Typy dopravy: tramvaj'),
-        findsOneWidget,
-      );
-
-      semantics.dispose();
-    });
-
-    testWidgets('loaded header shows multiple transport type summary icons', (
-      tester,
-    ) async {
-      final semantics = tester.ensureSemantics();
-
       await _pumpDeparturesScreen(
         tester,
         repository: _QueueDeparturesRepository([
@@ -186,19 +136,19 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
+        find.byKey(const ValueKey('selected-stop-transport-types')),
+        findsNothing,
+      );
+      expect(
         find.byKey(const ValueKey('selected-stop-transport-type-tram')),
-        findsOneWidget,
+        findsNothing,
       );
       expect(
         find.byKey(const ValueKey('selected-stop-transport-type-bus')),
-        findsOneWidget,
+        findsNothing,
       );
-      expect(
-        find.bySemanticsLabel('Typy dopravy: tramvaj, autobus'),
-        findsOneWidget,
-      );
-
-      semantics.dispose();
+      expect(find.text('Tram'), findsOneWidget);
+      expect(find.text('Bus'), findsOneWidget);
     });
 
     testWidgets('non-accessible departure does not show wheelchair icon', (
@@ -221,7 +171,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
-      expect(find.byIcon(Icons.accessible_forward), findsNothing);
+      expect(find.text('♿'), findsNothing);
     });
 
     testWidgets('time block toggles the display mode for all departures', (
@@ -384,8 +334,8 @@ void main() {
 
       expect(find.text('S7'), findsOneWidget);
       expect(find.text('Beroun'), findsOneWidget);
-      expect(find.text('Nástupiště 7J'), findsOneWidget);
-      expect(find.byTooltip('Bezbariérový odjezd'), findsOneWidget);
+      expect(find.textContaining('Nástupiště 7J'), findsOneWidget);
+      expect(find.byTooltip('Bezbariérové'), findsOneWidget);
     });
 
     testWidgets('night indicator is metadata and route label stays centered', (
@@ -418,14 +368,21 @@ void main() {
       expect(
         find.descendant(
           of: badgeFinder,
-          matching: find.byIcon(Icons.nightlight_round),
+          matching: find.text('Noční spoj'),
         ),
         findsNothing,
       );
       expect(find.byTooltip('Noční spoj'), findsOneWidget);
       expect(find.bySemanticsLabel('Noční spoj'), findsOneWidget);
+      final platformFinder = find.textContaining('Nástupiště D');
+      final trackingFinder = find.text('Sledovat vozidlo →');
+      expect(platformFinder, findsOneWidget);
       expect(find.text('Sledovat vozidlo →'), findsOneWidget);
       expect(find.text('·'), findsNothing);
+      expect(
+        tester.getTopLeft(trackingFinder).dy,
+        greaterThan(tester.getTopLeft(platformFinder).dy),
+      );
 
       final badgeCenter = tester.getCenter(badgeFinder);
       final routeTextCenter = tester.getCenter(find.text('901'));

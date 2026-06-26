@@ -7,7 +7,6 @@ import 'package:pid_seeds/pid_seeds.dart';
 import '../../../../i18n/strings.g.dart';
 import '../../../core/domain/pid_line_type.dart';
 import '../../../core/errors/app_failure.dart';
-import '../../../core/presentation/widgets/pid_transport_icon.dart';
 import '../../../shared/utils/app_error_messages.dart';
 import '../../../shared/widgets/centered_scroll_view.dart';
 import '../../../shared/widgets/empty_state_view.dart';
@@ -24,7 +23,6 @@ import 'bloc/departures_bloc.dart';
 import 'bloc/departures_event.dart';
 import 'bloc/departures_state.dart';
 import 'departure_time_display_mode.dart';
-import 'departure_transport_filter.dart';
 import 'widgets/departure_tile.dart';
 
 class DeparturesScreen extends StatelessWidget {
@@ -120,12 +118,7 @@ class _DeparturesBoard extends StatelessWidget {
       title: context.t.departures.title,
       backTooltip: context.t.departures.backToStops,
       onBack: onBackToStops,
-      stopHeader: _SelectedStopHeader(
-        stop: stop,
-        transportModes: state.status == DeparturesStatus.loaded
-            ? state.availableTransportModes
-            : const <PidTransportMode>[],
-      ),
+      stopHeader: _SelectedStopHeader(stop: stop),
       filterRow: isInitialLoading
           ? const _TransportFilterSkeletonRow()
           : isInitialError
@@ -148,128 +141,35 @@ class _DeparturesBoard extends StatelessWidget {
 }
 
 class _SelectedStopHeader extends StatelessWidget {
-  const _SelectedStopHeader({
-    required this.stop,
-    required this.transportModes,
-  });
+  const _SelectedStopHeader({required this.stop});
 
   final StopGroup stop;
-  final List<PidTransportMode> transportModes;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: SizedBox(
-        width: double.infinity,
-        child: Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  stop.name,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (transportModes.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _StopTransportTypeSummary(transportModes: transportModes),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StopTransportTypeSummary extends StatelessWidget {
-  const _StopTransportTypeSummary({required this.transportModes});
-
-  static const _maxVisibleModes = 3;
-
-  final List<PidTransportMode> transportModes;
-
-  @override
-  Widget build(BuildContext context) {
-    final visibleModes = transportModes.take(_maxVisibleModes).toList();
-    final hiddenModeCount = transportModes.length - visibleModes.length;
-    final semanticLabels = transportModes
-        .map((mode) => _transportModeSemanticLabel(context, mode))
-        .join(', ');
-
-    return Semantics(
-      container: true,
-      label: context.t.departures.transportTypes(types: semanticLabels),
-      child: ExcludeSemantics(
-        child: Wrap(
-          key: const ValueKey('selected-stop-transport-types'),
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final mode in visibleModes) _StopTransportTypeIcon(mode: mode),
-            if (hiddenModeCount > 0) _HiddenTransportTypeCount(hiddenModeCount),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StopTransportTypeIcon extends StatelessWidget {
-  const _StopTransportTypeIcon({required this.mode});
-
-  final PidTransportMode mode;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    return DecoratedBox(
-      key: ValueKey('selected-stop-transport-type-${mode.name}'),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.all(Radius.circular(999)),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(5),
-        child: PidTransportIcon(
-          lineType: representativeLineTypeForMode(mode),
-          size: 16,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          border: Border.all(color: colorScheme.outlineVariant),
         ),
-      ),
-    );
-  }
-}
-
-class _HiddenTransportTypeCount extends StatelessWidget {
-  const _HiddenTransportTypeCount(this.count);
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.all(Radius.circular(999)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        child: Text(
-          '+$count',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w700,
+        child: SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+            child: Text(
+              stop.name,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
         ),
       ),
@@ -738,24 +638,6 @@ String _transportModeLabel(BuildContext context, PidTransportMode mode) {
     PidTransportMode.ferry => strings.filterFerry,
     PidTransportMode.funicular => strings.filterFunicular,
     PidTransportMode.unknown => strings.filterOther,
-  };
-}
-
-String _transportModeSemanticLabel(
-  BuildContext context,
-  PidTransportMode mode,
-) {
-  final strings = context.t.transport.modes;
-
-  return switch (mode) {
-    PidTransportMode.metro => strings.metro,
-    PidTransportMode.tram => strings.tram,
-    PidTransportMode.bus => strings.bus,
-    PidTransportMode.trolleybus => strings.trolleybus,
-    PidTransportMode.train => strings.train,
-    PidTransportMode.ferry => strings.ferry,
-    PidTransportMode.funicular => strings.funicular,
-    PidTransportMode.unknown => strings.unknown,
   };
 }
 
