@@ -45,20 +45,111 @@ void main() {
       expect(groups.single.stopIds, ['U1Z1', 'U1Z2']);
     });
 
+    test('groups stop points with the same name and close coordinates', () {
+      final group = groupStops([
+        _stop(
+          id: 'U1Z1',
+          name: 'Vltavská',
+          parentStationId: 'U1S1',
+          platformCode: 'A',
+          latitude: 50.09911,
+          longitude: 14.43828,
+        ),
+        _stop(
+          id: 'U2Z1',
+          name: 'Vltavská',
+          parentStationId: 'U2S1',
+          platformCode: 'B',
+          latitude: 50.09944,
+          longitude: 14.43872,
+        ),
+      ]).single;
+
+      expect(group.id, 'logical:vltavská:U1S1');
+      expect(group.name, 'Vltavská');
+      expect(group.parentStationIds, ['U1S1', 'U2S1']);
+      expect(group.legacyGroupIds, ['U1S1', 'U2S1']);
+      expect(group.stopIds, ['U1Z1', 'U2Z1']);
+      expect(group.platformCodes, ['A', 'B']);
+    });
+
+    test('does not merge stops with the same name when they are far apart', () {
+      final groups = groupStops([
+        _stop(
+          id: 'U1Z1',
+          name: 'Nová Ves',
+          parentStationId: 'U1S1',
+        ),
+        _stop(
+          id: 'U2Z1',
+          name: 'Nová Ves',
+          parentStationId: 'U2S1',
+          latitude: 49.1,
+          longitude: 15.1,
+        ),
+      ]);
+
+      expect(groups, hasLength(2));
+      expect(groups.map((group) => group.id), ['U1S1', 'U2S1']);
+    });
+
+    test('keeps same-name stops without parent separate when far apart', () {
+      final groups = groupStops([
+        _stop(id: 'U1Z1', name: 'Lhota'),
+        _stop(id: 'U2Z1', name: 'Lhota', latitude: 49.1, longitude: 15.1),
+      ]);
+
+      expect(groups, hasLength(2));
+      expect(groups.map((group) => group.id), [
+        'logical:lhota:U1Z1',
+        'logical:lhota:U2Z1',
+      ]);
+      for (final group in groups) {
+        expect(group.legacyGroupIds, ['name:lhota']);
+      }
+    });
+
+    test('groups Vltavská-like metro, tram and bus stops logically', () {
+      final group = groupStops([
+        _stop(
+          id: 'U100Z1',
+          name: 'Vltavská',
+          parentStationId: 'U100S1',
+          platformCode: 'M',
+          latitude: 50.09910,
+          longitude: 14.43830,
+        ),
+        _stop(
+          id: 'U200Z1',
+          name: 'Vltavská',
+          parentStationId: 'U200S1',
+          platformCode: 'A',
+          latitude: 50.09935,
+          longitude: 14.43860,
+        ),
+        _stop(
+          id: 'U300Z1',
+          name: 'Vltavská',
+          parentStationId: 'U300S1',
+          platformCode: 'B',
+          latitude: 50.09948,
+          longitude: 14.43890,
+        ),
+      ]).single;
+
+      expect(group.name, 'Vltavská');
+      expect(group.stopIds, ['U100Z1', 'U200Z1', 'U300Z1']);
+      expect(group.platformCodes, ['A', 'B', 'M']);
+      expect(group.parentStationIds, ['U100S1', 'U200S1', 'U300S1']);
+    });
+
     test('chooses deterministic display name', () {
-      final mostCommonName = groupStops([
-        _stop(id: 'U1Z1', name: 'Flora', parentStationId: 'U1S1'),
-        _stop(id: 'U1Z2', name: 'Želivského', parentStationId: 'U1S1'),
-        _stop(id: 'U1Z3', name: 'Želivského', parentStationId: 'U1S1'),
+      final group = groupStops([
+        _stop(id: 'U1Z2', name: 'anděl', parentStationId: 'U1S1'),
+        _stop(id: 'U1Z1', name: 'Anděl', parentStationId: 'U1S1'),
       ]).single;
 
-      final tiedName = groupStops([
-        _stop(id: 'U2Z1', name: 'Beta', parentStationId: 'U2S1'),
-        _stop(id: 'U2Z2', name: 'Alfa', parentStationId: 'U2S1'),
-      ]).single;
-
-      expect(mostCommonName.name, 'Želivského');
-      expect(tiedName.name, 'Alfa');
+      expect(group.name, 'Anděl');
     });
 
     test('deduplicates platform codes and sorts them naturally', () {
@@ -89,7 +180,13 @@ void main() {
       final groups = groupStops([
         _stop(id: 'U2Z1', name: 'Flora', parentStationId: 'U2S1'),
         _stop(id: 'U1Z1', name: 'Anděl', parentStationId: 'U1S1'),
-        _stop(id: 'U3Z1', name: 'Anděl', parentStationId: 'U3S1'),
+        _stop(
+          id: 'U3Z1',
+          name: 'Anděl',
+          parentStationId: 'U3S1',
+          latitude: 49.1,
+          longitude: 15.1,
+        ),
       ]);
 
       expect(groups.map((group) => group.id), ['U1S1', 'U3S1', 'U2S1']);

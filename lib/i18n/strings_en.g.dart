@@ -143,6 +143,8 @@ class _Translations$stops$en extends Translations$stops$cs {
 	@override String platformWithId({required Object platform, required Object id}) => 'Platform ${platform} • ID ${id}';
 	@override String platformsWithZone({required Object platforms, required Object zone}) => 'Platforms ${platforms} • zone ${zone}';
 	@override String platforms({required Object platforms}) => 'Platforms ${platforms}';
+	@override String platformCountWithZone({required Object count, required Object zone}) => '${count} platforms • zone ${zone}';
+	@override String platformCount({required Object count}) => '${count} platforms';
 	@override String stopPointsWithZone({required Object count, required Object zone}) => '${count} stop points • zone ${zone}';
 	@override String stopPoints({required Object count}) => '${count} stop points';
 	@override String coordinatesWithId({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}';
@@ -363,6 +365,8 @@ extension on TranslationsEn {
 			'stops.platformWithId' => ({required Object platform, required Object id}) => 'Platform ${platform} • ID ${id}',
 			'stops.platformsWithZone' => ({required Object platforms, required Object zone}) => 'Platforms ${platforms} • zone ${zone}',
 			'stops.platforms' => ({required Object platforms}) => 'Platforms ${platforms}',
+			'stops.platformCountWithZone' => ({required Object count, required Object zone}) => '${count} platforms • zone ${zone}',
+			'stops.platformCount' => ({required Object count}) => '${count} platforms',
 			'stops.stopPointsWithZone' => ({required Object count, required Object zone}) => '${count} stop points • zone ${zone}',
 			'stops.stopPoints' => ({required Object count}) => '${count} stop points',
 			'stops.coordinatesWithId' => ({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}',

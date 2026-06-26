@@ -61,7 +61,7 @@ class StopsState {
   bool get hasCacheWarning => isCacheStale || cacheRefreshError != null;
 
   bool isFavorite(StopGroup group) {
-    return favoriteGroupIds.contains(group.id);
+    return favoriteGroupIds.any(group.matchesSavedGroupId);
   }
 
   StopsState copyWith({

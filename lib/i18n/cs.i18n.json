@@ -84,6 +84,8 @@
     "platformWithId": "Nástupiště $platform • ID $id",
     "platformsWithZone": "Nástupiště $platforms • zóna $zone",
     "platforms": "Nástupiště $platforms",
+    "platformCountWithZone": "$count nástupiště • zóna $zone",
+    "platformCount": "$count nástupiště",
     "stopPointsWithZone": "$count označníky • zóna $zone",
     "stopPoints": "$count označníky",
     "coordinatesWithId": "ID $id • $latitude, $longitude",

@@ -223,6 +223,12 @@ class Translations$stops$cs {
 	/// cs: 'Nástupiště $platforms'
 	String platforms({required Object platforms}) => 'Nástupiště ${platforms}';
 
+	/// cs: '$count nástupiště • zóna $zone'
+	String platformCountWithZone({required Object count, required Object zone}) => '${count} nástupiště • zóna ${zone}';
+
+	/// cs: '$count nástupiště'
+	String platformCount({required Object count}) => '${count} nástupiště';
+
 	/// cs: '$count označníky • zóna $zone'
 	String stopPointsWithZone({required Object count, required Object zone}) => '${count} označníky • zóna ${zone}';
 
@@ -632,6 +638,8 @@ extension on Translations {
 			'stops.platformWithId' => ({required Object platform, required Object id}) => 'Nástupiště ${platform} • ID ${id}',
 			'stops.platformsWithZone' => ({required Object platforms, required Object zone}) => 'Nástupiště ${platforms} • zóna ${zone}',
 			'stops.platforms' => ({required Object platforms}) => 'Nástupiště ${platforms}',
+			'stops.platformCountWithZone' => ({required Object count, required Object zone}) => '${count} nástupiště • zóna ${zone}',
+			'stops.platformCount' => ({required Object count}) => '${count} nástupiště',
 			'stops.stopPointsWithZone' => ({required Object count, required Object zone}) => '${count} označníky • zóna ${zone}',
 			'stops.stopPoints' => ({required Object count}) => '${count} označníky',
 			'stops.coordinatesWithId' => ({required Object id, required Object latitude, required Object longitude}) => 'ID ${id} • ${latitude}, ${longitude}',

@@ -263,6 +263,69 @@ void main() {
     expect((await savedStops.readRecent()).recentGroupIds, ['U123S1']);
   });
 
+  testWidgets('logical stop group opens departures with all child stop ids', (
+    tester,
+  ) async {
+    final savedStops = InMemorySavedStopsDataSource();
+    StopGroup? selectedStop;
+
+    await _pumpStopsScreen(
+      tester,
+      _QueueStopsRepository([
+        const _StopsSuccess(_vltavskaLogicalStops),
+      ]),
+      savedStopsDataSource: savedStops,
+      onStopSelected: (stop) {
+        selectedStop = stop;
+      },
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Vltavska'), findsOneWidget);
+    expect(find.text('4 nástupiště • zóna P'), findsOneWidget);
+
+    await tester.tap(find.text('Vltavska'));
+    await tester.pumpAndSettle();
+
+    expect(selectedStop?.stopIds, [
+      'U100Z1',
+      'U200Z1',
+      'U300Z1',
+      'U400Z1',
+    ]);
+    expect(selectedStop?.parentStationIds, [
+      'U100S1',
+      'U200S1',
+      'U300S1',
+      'U400S1',
+    ]);
+    expect((await savedStops.readRecent()).recentGroupIds, [
+      selectedStop?.id,
+    ]);
+  });
+
+  testWidgets('legacy favorite id resolves to merged logical stop group', (
+    tester,
+  ) async {
+    final savedStops = InMemorySavedStopsDataSource();
+    await savedStops.writeFavorites(
+      FavoriteStops(updatedAt: _now, favoriteGroupIds: const ['U100S1']),
+    );
+
+    await _pumpStopsScreen(
+      tester,
+      _QueueStopsRepository([
+        const _StopsSuccess(_vltavskaLogicalStops),
+      ]),
+      savedStopsDataSource: savedStops,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Oblíbené zastávky'), findsOneWidget);
+    expect(find.text('Vltavska'), findsOneWidget);
+    expect(find.byTooltip('Odebrat z oblíbených'), findsOneWidget);
+  });
+
   testWidgets('favorite icon toggles state without opening departures', (
     tester,
   ) async {
@@ -510,6 +573,49 @@ const _staromestskaPublicStop = Stop(
   latitude: 50.08708,
   longitude: 14.42078,
 );
+
+const _vltavskaLogicalStops = [
+  Stop(
+    id: 'U100Z1',
+    name: 'Vltavska',
+    platformCode: 'M',
+    zoneId: 'P',
+    locationType: 0,
+    parentStationId: 'U100S1',
+    latitude: 50.0991,
+    longitude: 14.4383,
+  ),
+  Stop(
+    id: 'U200Z1',
+    name: 'Vltavska',
+    platformCode: 'A',
+    zoneId: 'P',
+    locationType: 0,
+    parentStationId: 'U200S1',
+    latitude: 50.09935,
+    longitude: 14.4386,
+  ),
+  Stop(
+    id: 'U300Z1',
+    name: 'Vltavska',
+    platformCode: 'B',
+    zoneId: 'P',
+    locationType: 0,
+    parentStationId: 'U300S1',
+    latitude: 50.09948,
+    longitude: 14.4389,
+  ),
+  Stop(
+    id: 'U400Z1',
+    name: 'Vltavska',
+    platformCode: 'C',
+    zoneId: 'P',
+    locationType: 0,
+    parentStationId: 'U400S1',
+    latitude: 50.09958,
+    longitude: 14.4391,
+  ),
+];
 
 List<Stop> _manyPublicStops(int count) {
   return List<Stop>.generate(

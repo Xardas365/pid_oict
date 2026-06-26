@@ -138,17 +138,26 @@ class StopsStateFactory {
     List<StopGroup> groups,
     List<String> groupIds,
   ) {
-    final groupsById = {for (final group in groups) group.id: group};
     final resolvedGroups = <StopGroup>[];
 
     for (final groupId in groupIds) {
-      final group = groupsById[groupId];
+      final group = _findGroupBySavedId(groups, groupId);
       if (group != null) {
         resolvedGroups.add(group);
       }
     }
 
     return List<StopGroup>.unmodifiable(resolvedGroups);
+  }
+
+  StopGroup? _findGroupBySavedId(List<StopGroup> groups, String groupId) {
+    for (final group in groups) {
+      if (group.matchesSavedGroupId(groupId)) {
+        return group;
+      }
+    }
+
+    return null;
   }
 
   List<Stop> _representativeStops(List<StopGroup> groups) {

@@ -84,6 +84,8 @@
     "platformWithId": "Platform $platform • ID $id",
     "platformsWithZone": "Platforms $platforms • zone $zone",
     "platforms": "Platforms $platforms",
+    "platformCountWithZone": "$count platforms • zone $zone",
+    "platformCount": "$count platforms",
     "stopPointsWithZone": "$count stop points • zone $zone",
     "stopPoints": "$count stop points",
     "coordinatesWithId": "ID $id • $latitude, $longitude",

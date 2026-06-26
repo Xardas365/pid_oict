@@ -384,6 +384,18 @@ extension on StopGroup {
   String _subtitle(Translations strings) {
     final platforms = platformCodes.join(', ');
     final zone = zoneId?.trim();
+    final hasManyPlatforms = platformCodes.length > 3;
+
+    if (hasManyPlatforms && zone != null && zone.isNotEmpty) {
+      return strings.stops.platformCountWithZone(
+        count: platformCodes.length,
+        zone: zone,
+      );
+    }
+
+    if (hasManyPlatforms) {
+      return strings.stops.platformCount(count: platformCodes.length);
+    }
 
     if (platforms.isNotEmpty && zone != null && zone.isNotEmpty) {
       return strings.stops.platformsWithZone(platforms: platforms, zone: zone);
