@@ -90,8 +90,8 @@ void main() {
       expect(find.text('10:15'), findsOneWidget);
       expect(find.text('+2 min'), findsNothing);
       expect(find.text('Nástupiště 3'), findsOneWidget);
-      expect(find.text('Bezbariérové'), findsOneWidget);
-      expect(find.text('Poloha →'), findsOneWidget);
+      expect(find.byTooltip('Bezbariérový odjezd'), findsOneWidget);
+      expect(find.text('Sledovat vozidlo →'), findsOneWidget);
       expect(find.text('·'), findsNothing);
       expect(find.text('A'), findsOneWidget);
       expect(find.byIcon(Icons.accessible_forward), findsOneWidget);
@@ -290,7 +290,54 @@ void main() {
       expect(find.text('S7'), findsOneWidget);
       expect(find.text('Beroun'), findsOneWidget);
       expect(find.text('Nástupiště 7J'), findsOneWidget);
-      expect(find.text('Bezbariérové'), findsOneWidget);
+      expect(find.byTooltip('Bezbariérový odjezd'), findsOneWidget);
+    });
+
+    testWidgets('night indicator is metadata and route label stays centered', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: '901',
+              headsign: 'Skalka',
+              departureTime: DateTime(2026, 6, 22, 12, 18),
+              platform: 'D',
+              vehicleId: 'service-3-901',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      final badgeFinder = find.byKey(
+        const ValueKey('departure-route-label-901'),
+      );
+      expect(badgeFinder, findsOneWidget);
+      expect(find.text('901'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: badgeFinder,
+          matching: find.byIcon(Icons.nightlight_round),
+        ),
+        findsNothing,
+      );
+      expect(find.byTooltip('Noční spoj'), findsOneWidget);
+      expect(find.bySemanticsLabel('Noční spoj'), findsOneWidget);
+      expect(find.text('Sledovat vozidlo →'), findsOneWidget);
+      expect(find.text('·'), findsNothing);
+
+      final badgeCenter = tester.getCenter(badgeFinder);
+      final routeTextCenter = tester.getCenter(find.text('901'));
+      expect(routeTextCenter.dx, closeTo(badgeCenter.dx, 0.5));
+      expect(routeTextCenter.dy, closeTo(badgeCenter.dy, 0.5));
+
+      semantics.dispose();
     });
 
     testWidgets('back button returns to stops callback', (
@@ -410,7 +457,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.text('Poloha →'), findsNothing);
+      expect(find.text('Sledovat vozidlo →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
@@ -443,7 +490,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.text('Poloha →'), findsNothing);
+      expect(find.text('Sledovat vozidlo →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 

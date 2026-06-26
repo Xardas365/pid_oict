@@ -312,14 +312,17 @@ class Translations$departures$cs {
 	/// cs: 'Nástupiště $platform'
 	String platform({required Object platform}) => 'Nástupiště ${platform}';
 
-	/// cs: 'Poloha →'
-	String get trackingHint => 'Poloha →';
+	/// cs: 'Sledovat vozidlo →'
+	String get trackingHint => 'Sledovat vozidlo →';
 
 	/// cs: 'Přepnout zobrazení času odjezdu'
 	String get toggleTimeDisplay => 'Přepnout zobrazení času odjezdu';
 
 	/// cs: 'Zobrazit polohu vozidla'
 	String get showVehicleTooltip => 'Zobrazit polohu vozidla';
+
+	/// cs: 'Noční spoj'
+	String get nightRoute => 'Noční spoj';
 
 	/// cs: 'Bezbariérový odjezd'
 	String get wheelchairAccessible => 'Bezbariérový odjezd';
@@ -599,9 +602,10 @@ extension on Translations {
 			'departures.lastUpdatedAgo' => ({required Object seconds}) => 'Aktualizované před ${seconds} s',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
-			'departures.trackingHint' => 'Poloha →',
+			'departures.trackingHint' => 'Sledovat vozidlo →',
 			'departures.toggleTimeDisplay' => 'Přepnout zobrazení času odjezdu',
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',
+			'departures.nightRoute' => 'Noční spoj',
 			'departures.wheelchairAccessible' => 'Bezbariérový odjezd',
 			'departures.wheelchairAccessibleShort' => 'Bezbariérové',
 			'departures.departingNow' => 'teď',

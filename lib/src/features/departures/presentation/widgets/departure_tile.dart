@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../i18n/strings.g.dart';
+import '../../../../core/domain/pid_line_type.dart';
 import '../../../../core/presentation/pid_transport_visuals.dart';
-import '../../../../core/presentation/widgets/pid_transport_icon.dart';
 import '../../../../shared/utils/date_time_formatters.dart';
 import '../../domain/departure.dart';
 import '../departure_time_display_mode.dart';
 import 'departure_delay_badge.dart';
 
-const double _lineBadgeWidth = 58;
-const double _lineBadgeHeight = 48;
+const double _lineBadgeWidth = 56;
+const double _lineBadgeHeight = 44;
 const double _lineBadgeGap = 12;
 const double _timeBlockWidth = 72;
 
@@ -41,7 +41,7 @@ class DepartureTile extends StatelessWidget {
         child: InkWell(
           onTap: onOpenVehicleMap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -70,6 +70,7 @@ class DepartureTile extends StatelessWidget {
 bool _hasMetadata(Departure departure, bool hasTracking) {
   return departure.platform != null ||
       departure.isWheelchairAccessible == true ||
+      departure.lineType.isNight ||
       hasTracking;
 }
 
@@ -140,40 +141,22 @@ class _DepartureLineBadge extends StatelessWidget {
       child: SizedBox(
         width: _lineBadgeWidth,
         height: _lineBadgeHeight,
-        child: Stack(
-          children: [
-            Positioned(
-              top: 5,
-              left: 6,
-              child: ExcludeSemantics(
-                child: Opacity(
-                  opacity: 0.68,
-                  child: PidTransportIcon(
-                    lineType: departure.lineType,
-                    size: 12,
-                  ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                departure.routeShortName,
+                maxLines: 1,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: routeColors?.foregroundColor ?? colorScheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0,
                 ),
               ),
             ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(7, 8, 7, 5),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    departure.routeShortName,
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color:
-                          routeColors?.foregroundColor ?? colorScheme.onSurface,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -302,36 +285,31 @@ class _DepartureMetadataRow extends StatelessWidget {
 
     if (departure.isWheelchairAccessible == true) {
       metadata.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.accessible_forward,
-              size: 16,
-              color: colorScheme.primary,
-              semanticLabel: context.t.departures.wheelchairAccessible,
-            ),
-            const SizedBox(width: 3),
-            Text(context.t.departures.wheelchairAccessibleShort),
-          ],
+        _IconMetadataItem(
+          icon: Icons.accessible_forward,
+          label: context.t.departures.wheelchairAccessible,
+          color: colorScheme.primary,
+        ),
+      );
+    }
+
+    if (departure.lineType.isNight) {
+      metadata.add(
+        _IconMetadataItem(
+          icon: Icons.nightlight_round,
+          label: context.t.departures.nightRoute,
+          color: colorScheme.primary,
         ),
       );
     }
 
     if (hasTracking) {
       metadata.add(
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.location_on_outlined,
-              size: 16,
-              color: colorScheme.primary,
-              semanticLabel: context.t.departures.showVehicleTooltip,
-            ),
-            const SizedBox(width: 3),
-            Text(context.t.departures.trackingHint),
-          ],
+        Semantics(
+          label: context.t.departures.showVehicleTooltip,
+          child: ExcludeSemantics(
+            child: Text(context.t.departures.trackingHint),
+          ),
         ),
       );
     }
@@ -356,6 +334,32 @@ class _DepartureMetadataRow extends StatelessWidget {
                 child: metadata[index],
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IconMetadataItem extends StatelessWidget {
+  const _IconMetadataItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        container: true,
+        label: label,
+        child: ExcludeSemantics(
+          child: Icon(icon, size: 16, color: color),
         ),
       ),
     );
