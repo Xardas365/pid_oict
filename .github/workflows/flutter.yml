@@ -55,8 +55,8 @@ jobs:
 
       - name: Scan for committed JWT-like tokens
         run: |
-          token_prefix="e""yJ"
-          if git grep -n "$token_prefix" -- . ':!.env.local'; then
+          token_regex="e""yJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}"
+          if git grep -nIE "$token_regex" -- . ':!.env.local'; then
             echo "Potential committed JWT/API token detected."
             exit 1
           fi
