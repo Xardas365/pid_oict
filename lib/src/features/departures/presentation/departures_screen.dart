@@ -25,6 +25,16 @@ import 'bloc/departures_state.dart';
 import 'departure_time_display_mode.dart';
 import 'widgets/departure_tile.dart';
 
+const double _departuresContentHorizontalPadding = PidSeedSpacing.lg;
+const double _departuresHeaderTopPadding = PidSeedSpacing.sm;
+const double _departuresHeaderBottomPadding = PidSeedSpacing.xxs;
+const double _departuresFilterHeight = 42;
+const double _departuresLastUpdatedTopPadding = PidSeedSpacing.xxs;
+const double _departuresLastUpdatedBottomPadding = PidSeedSpacing.sm;
+const double _departuresListTopPadding = PidSeedSpacing.sm;
+const double _departuresListBottomPadding = PidSeedSpacing.lg;
+const double _departuresListGap = PidSeedSpacing.sm;
+
 class DeparturesScreen extends StatelessWidget {
   const DeparturesScreen({
     required this.stop,
@@ -150,12 +160,18 @@ class _SelectedStopHeader extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      padding: const EdgeInsets.fromLTRB(
+        _departuresContentHorizontalPadding,
+        _departuresHeaderTopPadding,
+        _departuresContentHorizontalPadding,
+        _departuresHeaderBottomPadding,
+      ),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Semantics(
           header: true,
           child: Text(
+            key: const ValueKey('departures-selected-stop-name'),
             stop.name,
             overflow: TextOverflow.ellipsis,
             maxLines: 2,
@@ -175,10 +191,13 @@ class _TransportFilterSkeletonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      height: 48,
+      height: _departuresFilterHeight,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(
+          horizontal: _departuresContentHorizontalPadding,
+        ),
         child: Row(
+          key: ValueKey('departures-filter-row'),
           children: [
             _SkeletonPill(width: 48),
             SizedBox(width: 8),
@@ -217,12 +236,15 @@ class _TransportFilterRow extends StatelessWidget {
     ];
 
     return SizedBox(
-      height: 48,
+      height: _departuresFilterHeight,
       child: Align(
         alignment: Alignment.centerLeft,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: _departuresContentHorizontalPadding,
+          ),
           child: PidFilterChips(
+            key: const ValueKey('departures-filter-row'),
             filters: filters,
             selectedValue: selectedMode?.name ?? _allFilterValue,
             onSelected: (value) {
@@ -280,8 +302,14 @@ class _LastUpdatedRow extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      padding: const EdgeInsets.fromLTRB(
+        _departuresContentHorizontalPadding,
+        _departuresLastUpdatedTopPadding,
+        _departuresContentHorizontalPadding,
+        _departuresLastUpdatedBottomPadding,
+      ),
       child: Row(
+        key: const ValueKey('departures-last-updated-row'),
         children: [
           SizedBox.square(
             dimension: 14,
@@ -322,12 +350,17 @@ class _RefreshableDeparturesContent extends StatelessWidget {
       );
 
       return CenteredScrollView(
-        child: ErrorStateView(
-          message: strings.departures.loadFailed,
-          details: details == strings.departures.loadFailed ? null : details,
-          onRetry: () {
-            context.read<DeparturesBloc>().add(const DeparturesRetried());
-          },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: _departuresContentHorizontalPadding,
+          ),
+          child: ErrorStateView(
+            message: strings.departures.loadFailed,
+            details: details == strings.departures.loadFailed ? null : details,
+            onRetry: () {
+              context.read<DeparturesBloc>().add(const DeparturesRetried());
+            },
+          ),
         ),
       );
     }
@@ -335,11 +368,16 @@ class _RefreshableDeparturesContent extends StatelessWidget {
     final visibleDepartures = state.visibleDepartures;
     if (state.status == DeparturesStatus.empty || visibleDepartures.isEmpty) {
       return CenteredScrollView(
-        child: EmptyStateView(
-          message: state.selectedTransportMode == null
-              ? context.t.departures.empty
-              : context.t.departures.emptyFilter,
-          icon: Icons.departure_board_outlined,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: _departuresContentHorizontalPadding,
+          ),
+          child: EmptyStateView(
+            message: state.selectedTransportMode == null
+                ? context.t.departures.empty
+                : context.t.departures.emptyFilter,
+            icon: Icons.departure_board_outlined,
+          ),
         ),
       );
     }
@@ -366,9 +404,14 @@ class _DeparturesLoadingSkeleton extends StatelessWidget {
     return ListView.separated(
       key: const ValueKey('departures-loading-skeleton'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        _departuresContentHorizontalPadding,
+        _departuresListTopPadding,
+        _departuresContentHorizontalPadding,
+        _departuresListBottomPadding,
+      ),
       itemCount: 5,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: _departuresListGap),
       itemBuilder: (context, index) {
         if (index == 0) {
           return const _LoadingStatusCard();
@@ -591,9 +634,14 @@ class _DeparturesList extends StatelessWidget {
     return ListView.separated(
       key: const ValueKey('departures-list'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(
+        _departuresContentHorizontalPadding,
+        _departuresListTopPadding,
+        _departuresContentHorizontalPadding,
+        _departuresListBottomPadding,
+      ),
       itemCount: itemCount,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: _departuresListGap),
       itemBuilder: (context, index) {
         if (state.refreshError != null && index == 0) {
           return _RefreshWarning(error: state.refreshError);

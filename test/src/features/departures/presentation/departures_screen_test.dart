@@ -47,8 +47,30 @@ void main() {
         find.byKey(const ValueKey('selected-stop-transport-types')),
         findsNothing,
       );
+      expect(
+        find.byKey(const ValueKey('departures-filter-row')),
+        findsOneWidget,
+      );
       expect(find.byType(Card), findsAtLeastNWidgets(5));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byKey(const ValueKey('departures-selected-stop-name')),
+          matching: find.byType(Card),
+        ),
+        findsNothing,
+      );
+      final stopNameLeft = tester
+          .getTopLeft(
+            find.byKey(const ValueKey('departures-selected-stop-name')),
+          )
+          .dx;
+      final filterLeft = tester
+          .getTopLeft(find.byKey(const ValueKey('departures-filter-row')))
+          .dx;
+      final loadingCardLeft = tester.getTopLeft(find.byType(Card).first).dx;
+      expect(filterLeft, stopNameLeft);
+      expect(loadingCardLeft, stopNameLeft);
 
       await tester.pump(const Duration(seconds: 4));
 
@@ -96,6 +118,30 @@ void main() {
         find.byKey(const ValueKey('selected-stop-transport-types')),
         findsNothing,
       );
+      expect(
+        find.ancestor(
+          of: find.byKey(const ValueKey('departures-selected-stop-name')),
+          matching: find.byType(Card),
+        ),
+        findsNothing,
+      );
+      final stopNameLeft = tester
+          .getTopLeft(
+            find.byKey(const ValueKey('departures-selected-stop-name')),
+          )
+          .dx;
+      final filterLeft = tester
+          .getTopLeft(find.byKey(const ValueKey('departures-filter-row')))
+          .dx;
+      final updatedLeft = tester
+          .getTopLeft(find.byKey(const ValueKey('departures-last-updated-row')))
+          .dx;
+      final firstCardLeft = tester
+          .getTopLeft(find.byType(DepartureTile).first)
+          .dx;
+      expect(filterLeft, stopNameLeft);
+      expect(updatedLeft, stopNameLeft);
+      expect(firstCardLeft, stopNameLeft);
       expect(find.byType(LiveRelativeTimeText), findsOneWidget);
       expect(find.textContaining('Aktualizováno před'), findsOneWidget);
       expect(find.text('22'), findsOneWidget);
