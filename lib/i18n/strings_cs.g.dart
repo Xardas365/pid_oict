@@ -319,17 +319,20 @@ class Translations$departures$cs {
 	/// cs: 'Nástupiště $platform'
 	String platform({required Object platform}) => 'Nástupiště ${platform}';
 
-	/// cs: 'Sledovat vozidlo →'
-	String get trackingHint => 'Sledovat vozidlo →';
+	/// cs: 'Sledovat na mapě →'
+	String get trackingHint => 'Sledovat na mapě →';
 
 	/// cs: 'Přepnout zobrazení času odjezdu'
 	String get toggleTimeDisplay => 'Přepnout zobrazení času odjezdu';
 
-	/// cs: 'Zobrazit polohu vozidla'
-	String get showVehicleTooltip => 'Zobrazit polohu vozidla';
+	/// cs: 'Zobrazit polohu vozidla na mapě'
+	String get showVehicleTooltip => 'Zobrazit polohu vozidla na mapě';
 
 	/// cs: 'Noční spoj'
 	String get nightRoute => 'Noční spoj';
+
+	/// cs: 'Noční'
+	String get nightRouteShort => 'Noční';
 
 	/// cs: 'Bezbariérový odjezd'
 	String get wheelchairAccessible => 'Bezbariérový odjezd';
@@ -658,10 +661,11 @@ extension on Translations {
 			'departures.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Aktualizováno před ${minutes} min',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
-			'departures.trackingHint' => 'Sledovat vozidlo →',
+			'departures.trackingHint' => 'Sledovat na mapě →',
 			'departures.toggleTimeDisplay' => 'Přepnout zobrazení času odjezdu',
-			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla',
+			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla na mapě',
 			'departures.nightRoute' => 'Noční spoj',
+			'departures.nightRouteShort' => 'Noční',
 			'departures.wheelchairAccessible' => 'Bezbariérový odjezd',
 			'departures.wheelchairAccessibleShort' => 'Bezbariérové',
 			'departures.departingNow' => 'teď',

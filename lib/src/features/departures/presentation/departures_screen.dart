@@ -147,28 +147,20 @@ class _SelectedStopHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-            child: Text(
-              stop.name,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Semantics(
+          header: true,
+          child: Text(
+            stop.name,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),

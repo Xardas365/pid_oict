@@ -179,14 +179,16 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
     StopGroup stop,
     List<Departure> departures, {
     PidTransportMode? selectedTransportMode,
-    DepartureTimeDisplayMode timeDisplayMode =
-        DepartureTimeDisplayMode.relativeFirst,
+    DepartureTimeDisplayMode? timeDisplayMode,
   }) {
     final immutableDepartures = List<Departure>.unmodifiable(departures);
     final validSelectedTransportMode = _filterPolicy.resolveSelectedMode(
       departures: immutableDepartures,
       selectedMode: selectedTransportMode,
     );
+    final resolvedTimeDisplayMode =
+        timeDisplayMode ??
+        defaultDepartureTimeDisplayMode(immutableDepartures, now: _now());
 
     return DeparturesState(
       status: immutableDepartures.isEmpty
@@ -196,7 +198,7 @@ class DeparturesBloc extends Bloc<DeparturesEvent, DeparturesState> {
       departures: immutableDepartures,
       selectedTransportMode: validSelectedTransportMode,
       lastUpdated: _now(),
-      timeDisplayMode: timeDisplayMode,
+      timeDisplayMode: resolvedTimeDisplayMode,
     );
   }
 

@@ -285,8 +285,8 @@ class _DepartureMetadataSection extends StatelessWidget {
 
     if (departure.isWheelchairAccessible == true) {
       metadata.add(
-        _TextMetadataItem(
-          text: '♿',
+        _IconMetadataItem(
+          icon: Icons.accessible_rounded,
           label: context.t.departures.wheelchairAccessibleShort,
         ),
       );
@@ -295,7 +295,7 @@ class _DepartureMetadataSection extends StatelessWidget {
     if (departure.lineType.isNight) {
       metadata.add(
         _TextMetadataItem(
-          text: context.t.departures.nightRoute,
+          text: context.t.departures.nightRouteShort,
           label: context.t.departures.nightRoute,
         ),
       );
@@ -355,6 +355,34 @@ class _TextMetadataItem extends StatelessWidget {
         label: label,
         child: ExcludeSemantics(
           child: Text(text),
+        ),
+      ),
+    );
+  }
+}
+
+class _IconMetadataItem extends StatelessWidget {
+  const _IconMetadataItem({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        container: true,
+        label: label,
+        child: ExcludeSemantics(
+          child: Icon(
+            icon,
+            size: 15,
+            color: DefaultTextStyle.of(context).style.color,
+          ),
         ),
       ),
     );

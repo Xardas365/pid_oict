@@ -181,10 +181,11 @@ class _Translations$departures$en extends Translations$departures$cs {
 	@override String lastUpdatedAgoMinutes({required Object minutes}) => 'Updated ${minutes} min ago';
 	@override String departureTime({required Object time}) => 'Departure ${time}';
 	@override String platform({required Object platform}) => 'Platform ${platform}';
-	@override String get trackingHint => 'Track vehicle →';
+	@override String get trackingHint => 'Track on map →';
 	@override String get toggleTimeDisplay => 'Toggle departure time display';
-	@override String get showVehicleTooltip => 'Show vehicle position';
+	@override String get showVehicleTooltip => 'Show vehicle position on the map';
 	@override String get nightRoute => 'Night service';
+	@override String get nightRouteShort => 'Night';
 	@override String get wheelchairAccessible => 'Wheelchair-accessible departure';
 	@override String get wheelchairAccessibleShort => 'Accessible';
 	@override String get departingNow => 'now';
@@ -391,10 +392,11 @@ extension on TranslationsEn {
 			'departures.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Updated ${minutes} min ago',
 			'departures.departureTime' => ({required Object time}) => 'Departure ${time}',
 			'departures.platform' => ({required Object platform}) => 'Platform ${platform}',
-			'departures.trackingHint' => 'Track vehicle →',
+			'departures.trackingHint' => 'Track on map →',
 			'departures.toggleTimeDisplay' => 'Toggle departure time display',
-			'departures.showVehicleTooltip' => 'Show vehicle position',
+			'departures.showVehicleTooltip' => 'Show vehicle position on the map',
 			'departures.nightRoute' => 'Night service',
+			'departures.nightRouteShort' => 'Night',
 			'departures.wheelchairAccessible' => 'Wheelchair-accessible departure',
 			'departures.wheelchairAccessibleShort' => 'Accessible',
 			'departures.departingNow' => 'now',

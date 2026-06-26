@@ -196,6 +196,32 @@ void main() {
       );
     });
 
+    test(
+      'uses clock-first display by default for distant departures',
+      () async {
+        final repository = _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: 'S7',
+              routeType: 'train',
+              headsign: 'Beroun',
+              departureTime: DateTime(2026, 6, 22, 12, 18),
+            ),
+          ]),
+        ]);
+        final bloc = _createBloc(
+          repository,
+          now: () => DateTime(2026, 6, 22, 10, 12),
+        );
+        addTearDown(bloc.close);
+
+        bloc.add(DeparturesStarted(stop));
+        await _waitForStatus(bloc, DeparturesStatus.loaded);
+
+        expect(bloc.state.timeDisplayMode, DepartureTimeDisplayMode.clockFirst);
+      },
+    );
+
     test('refresh preserves departure time display mode', () async {
       final repository = _QueueDeparturesRepository([
         _DeparturesSuccess([_departure('Nadrazi Hostivar')]),

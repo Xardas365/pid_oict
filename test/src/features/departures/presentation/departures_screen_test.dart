@@ -102,11 +102,12 @@ void main() {
       expect(find.text('10:15'), findsOneWidget);
       expect(find.text('+2 min'), findsNothing);
       expect(find.textContaining('Nástupiště 3'), findsOneWidget);
-      expect(find.text('♿'), findsOneWidget);
+      expect(find.text('♿'), findsNothing);
+      expect(find.byIcon(Icons.accessible_rounded), findsOneWidget);
       expect(find.byTooltip('Bezbariérové'), findsOneWidget);
-      expect(find.text('Sledovat vozidlo →'), findsOneWidget);
+      expect(find.text('Sledovat na mapě →'), findsOneWidget);
       expect(
-        find.bySemanticsLabel('Zobrazit polohu vozidla'),
+        find.bySemanticsLabel('Zobrazit polohu vozidla na mapě'),
         findsOneWidget,
       );
       expect(find.text('·'), findsNothing);
@@ -260,8 +261,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('za 126 min'), findsNothing);
-      expect(find.text('za 2 h'), findsOneWidget);
       expect(find.text('12:18'), findsOneWidget);
+      expect(find.text('+1 min'), findsOneWidget);
+      expect(find.text('za 2 h'), findsNothing);
+
+      await tester.tap(find.byTooltip('Přepnout zobrazení času odjezdu'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('za 2 h'), findsOneWidget);
 
       final countdownText = tester.widget<Text>(find.text('za 2 h'));
       expect(countdownText.overflow, isNull);
@@ -376,16 +383,18 @@ void main() {
       expect(
         find.descendant(
           of: badgeFinder,
-          matching: find.text('Noční spoj'),
+          matching: find.text('Noční'),
         ),
         findsNothing,
       );
+      expect(find.text('Noční'), findsOneWidget);
+      expect(find.text('Noční spoj'), findsNothing);
       expect(find.byTooltip('Noční spoj'), findsOneWidget);
       expect(find.bySemanticsLabel('Noční spoj'), findsOneWidget);
       final platformFinder = find.textContaining('Nástupiště D');
-      final trackingFinder = find.text('Sledovat vozidlo →');
+      final trackingFinder = find.text('Sledovat na mapě →');
       expect(platformFinder, findsOneWidget);
-      expect(find.text('Sledovat vozidlo →'), findsOneWidget);
+      expect(find.text('Sledovat na mapě →'), findsOneWidget);
       expect(find.text('·'), findsNothing);
       expect(
         tester.getTopLeft(trackingFinder).dy,
@@ -517,7 +526,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.text('Sledovat vozidlo →'), findsNothing);
+      expect(find.text('Sledovat na mapě →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
@@ -550,7 +559,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Nemocnice Motol'), findsOneWidget);
-      expect(find.text('Sledovat vozidlo →'), findsNothing);
+      expect(find.text('Sledovat na mapě →'), findsNothing);
       await tester.tap(find.text('Nemocnice Motol'));
       await tester.pumpAndSettle();
 
