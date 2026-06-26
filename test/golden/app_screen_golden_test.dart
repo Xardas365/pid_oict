@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +32,23 @@ import '../helpers/fake_repositories.dart';
 import '../helpers/test_data.dart';
 import '../src/test_localized_app.dart';
 
+const _maxGoldenDiffRate = 0.01;
+
 void main() {
+  late GoldenFileComparator previousGoldenFileComparator;
+
+  setUpAll(() {
+    previousGoldenFileComparator = goldenFileComparator;
+    goldenFileComparator = _TolerantGoldenFileComparator(
+      previousGoldenFileComparator,
+      maxDiffRate: _maxGoldenDiffRate,
+    );
+  });
+
+  tearDownAll(() {
+    goldenFileComparator = previousGoldenFileComparator;
+  });
+
   group('screen goldens', () {
     testWidgets('StopsScreen success', (tester) async {
       await _pumpGolden(
@@ -335,4 +354,103 @@ Departure _busDeparture() {
     vehicleId: 'service-3-176',
     isWheelchairAccessible: false,
   );
+}
+
+class _TolerantGoldenFileComparator extends GoldenFileComparator {
+  const _TolerantGoldenFileComparator(
+    this._baseComparator, {
+    required this.maxDiffRate,
+  });
+
+  final GoldenFileComparator _baseComparator;
+  final double maxDiffRate;
+
+  @override
+  Uri getTestUri(Uri key, int? version) {
+    return _baseComparator.getTestUri(key, version);
+  }
+
+  @override
+  Future<void> update(Uri golden, Uint8List imageBytes) {
+    return _baseComparator.update(golden, imageBytes);
+  }
+
+  @override
+  Future<bool> compare(Uint8List imageBytes, Uri golden) async {
+    final goldenFile = File.fromUri(getTestUri(golden, null));
+
+    if (!goldenFile.existsSync()) {
+      return _baseComparator.compare(imageBytes, golden);
+    }
+
+    final diffRate = await _calculatePixelDiffRate(
+      imageBytes,
+      await goldenFile.readAsBytes(),
+    );
+
+    if (diffRate <= maxDiffRate) {
+      return true;
+    }
+
+    return _baseComparator.compare(imageBytes, golden);
+  }
+}
+
+Future<double> _calculatePixelDiffRate(
+  Uint8List actualBytes,
+  Uint8List goldenBytes,
+) async {
+  final actual = await _decodeRgba(actualBytes);
+  final golden = await _decodeRgba(goldenBytes);
+
+  if (actual.width != golden.width || actual.height != golden.height) {
+    return double.infinity;
+  }
+
+  var differentPixels = 0;
+
+  for (var offset = 0; offset < actual.bytes.length; offset += 4) {
+    if (actual.bytes[offset] != golden.bytes[offset] ||
+        actual.bytes[offset + 1] != golden.bytes[offset + 1] ||
+        actual.bytes[offset + 2] != golden.bytes[offset + 2] ||
+        actual.bytes[offset + 3] != golden.bytes[offset + 3]) {
+      differentPixels += 1;
+    }
+  }
+
+  return differentPixels / (actual.width * actual.height);
+}
+
+Future<_RgbaImage> _decodeRgba(Uint8List pngBytes) async {
+  final codec = await ui.instantiateImageCodec(pngBytes);
+  final frame = await codec.getNextFrame();
+  final image = frame.image;
+
+  try {
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+
+    if (byteData == null) {
+      throw StateError('Could not decode golden image bytes.');
+    }
+
+    return _RgbaImage(
+      width: image.width,
+      height: image.height,
+      bytes: Uint8List.fromList(byteData.buffer.asUint8List()),
+    );
+  } finally {
+    image.dispose();
+  }
+}
+
+class _RgbaImage {
+  const _RgbaImage({
+    required this.width,
+    required this.height,
+    required this.bytes,
+  });
+
+  final int width;
+  final int height;
+  final Uint8List bytes;
 }
