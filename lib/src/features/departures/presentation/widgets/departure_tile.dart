@@ -21,6 +21,7 @@ class DepartureTile extends StatelessWidget {
     required this.onOpenVehicleMap,
     super.key,
     this.referenceTime,
+    this.showPlatform = true,
   });
 
   final Departure departure;
@@ -28,6 +29,7 @@ class DepartureTile extends StatelessWidget {
   final DateTime? referenceTime;
   final VoidCallback onToggleTimeDisplayMode;
   final VoidCallback? onOpenVehicleMap;
+  final bool showPlatform;
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +53,16 @@ class DepartureTile extends StatelessWidget {
                   referenceTime: referenceTime,
                   onToggleTimeDisplayMode: onToggleTimeDisplayMode,
                 ),
-                if (_hasMetadata(departure, hasTracking)) ...[
+                if (_hasMetadata(
+                  departure,
+                  hasTracking: hasTracking,
+                  showPlatform: showPlatform,
+                )) ...[
                   const SizedBox(height: 6),
                   _DepartureMetadataSection(
                     departure: departure,
                     hasTracking: hasTracking,
+                    showPlatform: showPlatform,
                   ),
                 ],
               ],
@@ -67,8 +74,12 @@ class DepartureTile extends StatelessWidget {
   }
 }
 
-bool _hasMetadata(Departure departure, bool hasTracking) {
-  return departure.platform != null ||
+bool _hasMetadata(
+  Departure departure, {
+  required bool hasTracking,
+  required bool showPlatform,
+}) {
+  return (showPlatform && departure.platform != null) ||
       departure.isWheelchairAccessible == true ||
       departure.lineType.isNight ||
       hasTracking;
@@ -269,17 +280,19 @@ class _DepartureMetadataSection extends StatelessWidget {
   const _DepartureMetadataSection({
     required this.departure,
     required this.hasTracking,
+    required this.showPlatform,
   });
 
   final Departure departure;
   final bool hasTracking;
+  final bool showPlatform;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final metadata = <Widget>[];
     final platform = departure.platform;
-    if (platform != null) {
+    if (showPlatform && platform != null) {
       metadata.add(Text(context.t.departures.platform(platform: platform)));
     }
 

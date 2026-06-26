@@ -117,6 +117,7 @@
     "lastUpdatedAgoMinutes": "Updated $minutes min ago",
     "departureTime": "Departure $time",
     "platform": "Platform $platform",
+    "platformUnknown": "Unmarked platform",
     "trackingHint": "Track on map →",
     "toggleTimeDisplay": "Toggle departure time display",
     "showVehicleTooltip": "Show vehicle position on the map",

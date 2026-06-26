@@ -150,6 +150,14 @@ void main() {
       expect(find.text('10:15'), findsOneWidget);
       expect(find.text('+2 min'), findsNothing);
       expect(find.textContaining('Nástupiště 3'), findsOneWidget);
+      expect(find.text('Bez označení'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(DepartureTile),
+          matching: find.textContaining('Nástupiště 3'),
+        ),
+        findsNothing,
+      );
       expect(find.text('♿'), findsNothing);
       expect(find.byIcon(Icons.accessible_rounded), findsOneWidget);
       expect(find.byTooltip('Bezbariérové'), findsOneWidget);
@@ -215,6 +223,64 @@ void main() {
       );
       expect(find.text('Tram'), findsOneWidget);
       expect(find.text('Bus'), findsOneWidget);
+    });
+
+    testWidgets('groups departures by platform section', (tester) async {
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: '905',
+              routeType: 'bus',
+              headsign: 'Sidliste Cimice',
+              departureTime: DateTime(2026, 6, 22, 10, 27),
+              platform: 'E',
+            ),
+            Departure(
+              routeShortName: '911',
+              routeType: 'bus',
+              headsign: 'Cukrovar Cakovice',
+              departureTime: DateTime(2026, 6, 22, 10, 42),
+              platform: 'E',
+            ),
+            Departure(
+              routeShortName: '14',
+              headsign: 'Sidliste Barrandov',
+              departureTime: DateTime(2026, 6, 22, 10, 18),
+              platform: 'A',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('departure-platform-section-A')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('departure-platform-section-E')),
+        findsOneWidget,
+      );
+      expect(find.text('Nástupiště A'), findsOneWidget);
+      expect(find.text('Nástupiště E'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Nástupiště A')).dy,
+        lessThan(tester.getTopLeft(find.text('Nástupiště E')).dy),
+      );
+      expect(
+        tester.getTopLeft(find.text('Sidliste Cimice')).dy,
+        lessThan(tester.getTopLeft(find.text('Cukrovar Cakovice')).dy),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(DepartureTile),
+          matching: find.textContaining('Nástupiště'),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('non-accessible departure does not show wheelchair icon', (
@@ -351,6 +417,7 @@ void main() {
 
       expect(find.text('Nadrazi Hostivar'), findsOneWidget);
       expect(find.textContaining('Nástupiště'), findsNothing);
+      expect(find.text('Bez označení'), findsNothing);
     });
 
     testWidgets('long destination name ellipsizes without overflow', (
@@ -407,6 +474,13 @@ void main() {
       expect(find.text('S7'), findsOneWidget);
       expect(find.text('Beroun'), findsOneWidget);
       expect(find.textContaining('Nástupiště 7J'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(DepartureTile),
+          matching: find.textContaining('Nástupiště 7J'),
+        ),
+        findsNothing,
+      );
       expect(find.byTooltip('Bezbariérové'), findsOneWidget);
 
       final trainLabel = tester.widget<DecoratedBox>(
@@ -464,6 +538,7 @@ void main() {
       expect(find.byTooltip('Noční spoj'), findsOneWidget);
       expect(find.bySemanticsLabel('Noční spoj'), findsOneWidget);
       final platformFinder = find.textContaining('Nástupiště D');
+      final nightFinder = find.text('Noční');
       final trackingFinder = find.text('Sledovat na mapě →');
       expect(platformFinder, findsOneWidget);
       expect(find.text('Sledovat na mapě →'), findsOneWidget);
@@ -478,7 +553,7 @@ void main() {
       );
       expect(
         tester.getCenter(trackingFinder).dy,
-        closeTo(tester.getCenter(platformFinder).dy, 1),
+        closeTo(tester.getCenter(nightFinder).dy, 1),
       );
 
       final badgeCenter = tester.getCenter(badgeFinder);
@@ -578,11 +653,47 @@ void main() {
 
       expect(find.text('Sidliste Repy'), findsNothing);
       expect(find.text('Koleje Strahov'), findsOneWidget);
+      expect(find.textContaining('Nástupiště'), findsNothing);
 
       await tester.tap(find.text('Vše'));
       await tester.pumpAndSettle();
 
       expect(find.text('Sidliste Repy'), findsOneWidget);
+      expect(find.text('Koleje Strahov'), findsOneWidget);
+    });
+
+    testWidgets('filters hide empty platform sections', (tester) async {
+      await _pumpDeparturesScreen(
+        tester,
+        repository: _QueueDeparturesRepository([
+          _DeparturesSuccess([
+            Departure(
+              routeShortName: '14',
+              headsign: 'Sidliste Barrandov',
+              departureTime: DateTime(2026, 6, 22, 10, 15),
+              platform: 'A',
+            ),
+            Departure(
+              routeShortName: '176',
+              routeType: 'bus',
+              headsign: 'Koleje Strahov',
+              departureTime: DateTime(2026, 6, 22, 10, 16),
+              platform: 'B',
+            ),
+          ]),
+        ]),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nástupiště A'), findsOneWidget);
+      expect(find.text('Nástupiště B'), findsOneWidget);
+
+      await tester.tap(find.text('Bus'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nástupiště A'), findsNothing);
+      expect(find.text('Nástupiště B'), findsOneWidget);
       expect(find.text('Koleje Strahov'), findsOneWidget);
     });
 

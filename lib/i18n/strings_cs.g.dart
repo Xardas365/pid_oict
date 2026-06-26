@@ -325,6 +325,9 @@ class Translations$departures$cs {
 	/// cs: 'Nástupiště $platform'
 	String platform({required Object platform}) => 'Nástupiště ${platform}';
 
+	/// cs: 'Bez označení'
+	String get platformUnknown => 'Bez označení';
+
 	/// cs: 'Sledovat na mapě →'
 	String get trackingHint => 'Sledovat na mapě →';
 
@@ -669,6 +672,7 @@ extension on Translations {
 			'departures.lastUpdatedAgoMinutes' => ({required Object minutes}) => 'Aktualizováno před ${minutes} min',
 			'departures.departureTime' => ({required Object time}) => 'Odjezd ${time}',
 			'departures.platform' => ({required Object platform}) => 'Nástupiště ${platform}',
+			'departures.platformUnknown' => 'Bez označení',
 			'departures.trackingHint' => 'Sledovat na mapě →',
 			'departures.toggleTimeDisplay' => 'Přepnout zobrazení času odjezdu',
 			'departures.showVehicleTooltip' => 'Zobrazit polohu vozidla na mapě',

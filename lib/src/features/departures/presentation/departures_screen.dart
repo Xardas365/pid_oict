@@ -22,6 +22,7 @@ import '../domain/departure.dart';
 import 'bloc/departures_bloc.dart';
 import 'bloc/departures_event.dart';
 import 'bloc/departures_state.dart';
+import 'departure_platform_sections.dart';
 import 'departure_time_display_mode.dart';
 import 'widgets/departure_tile.dart';
 
@@ -628,10 +629,17 @@ class _DeparturesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headerCount = state.refreshError != null ? 1 : 0;
-    final itemCount = departures.length + headerCount;
+    final sections = groupDeparturesByPlatform(
+      departures,
+      platformLabelBuilder: (platform) =>
+          context.t.departures.platform(platform: platform),
+      unknownPlatformLabel: context.t.departures.platformUnknown,
+    );
+    final showUnknownPlatformHeader =
+        sections.length > 1 ||
+        sections.any((section) => section.platformCode != null);
 
-    return ListView.separated(
+    return ListView(
       key: const ValueKey('departures-list'),
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
@@ -640,28 +648,140 @@ class _DeparturesList extends StatelessWidget {
         _departuresContentHorizontalPadding,
         _departuresListBottomPadding,
       ),
-      itemCount: itemCount,
-      separatorBuilder: (_, _) => const SizedBox(height: _departuresListGap),
-      itemBuilder: (context, index) {
-        if (state.refreshError != null && index == 0) {
-          return _RefreshWarning(error: state.refreshError);
-        }
+      children: [
+        if (state.refreshError != null) ...[
+          _RefreshWarning(error: state.refreshError),
+          const SizedBox(height: _departuresListGap),
+        ],
+        for (var index = 0; index < sections.length; index++) ...[
+          _DeparturePlatformSectionView(
+            section: sections[index],
+            showUnknownPlatformHeader: showUnknownPlatformHeader,
+            timeDisplayMode: timeDisplayMode,
+            referenceTime: state.lastUpdated,
+            onOpenVehicleMap: onOpenVehicleMap,
+            onToggleTimeDisplayMode: onToggleTimeDisplayMode,
+          ),
+          if (index < sections.length - 1)
+            const SizedBox(height: _departuresListGap + 4),
+        ],
+      ],
+    );
+  }
+}
 
-        final departure = departures[index - headerCount];
-        // Departure boards can omit vehicle.id. A separate lookup would be
-        // needed; do not fake vehicle tracking from gtfsTripId.
-        final mapArgs = VehicleMapArgs.fromDeparture(departure);
+class _DeparturePlatformSectionView extends StatelessWidget {
+  const _DeparturePlatformSectionView({
+    required this.section,
+    required this.showUnknownPlatformHeader,
+    required this.timeDisplayMode,
+    required this.onOpenVehicleMap,
+    required this.onToggleTimeDisplayMode,
+    this.referenceTime,
+  });
 
-        return DepartureTile(
-          departure: departure,
-          timeDisplayMode: timeDisplayMode,
-          referenceTime: state.lastUpdated,
-          onToggleTimeDisplayMode: onToggleTimeDisplayMode,
-          onOpenVehicleMap: mapArgs == null
-              ? null
-              : () => onOpenVehicleMap(mapArgs),
-        );
-      },
+  final DeparturePlatformSection section;
+  final bool showUnknownPlatformHeader;
+  final DepartureTimeDisplayMode timeDisplayMode;
+  final DateTime? referenceTime;
+  final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
+  final VoidCallback onToggleTimeDisplayMode;
+
+  bool get _showHeader {
+    return section.platformCode != null || showUnknownPlatformHeader;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_showHeader) ...[
+          _DeparturePlatformHeader(section: section),
+          const SizedBox(height: 6),
+        ],
+        for (var index = 0; index < section.departures.length; index++) ...[
+          _DepartureListTile(
+            departure: section.departures[index],
+            timeDisplayMode: timeDisplayMode,
+            referenceTime: referenceTime,
+            onOpenVehicleMap: onOpenVehicleMap,
+            onToggleTimeDisplayMode: onToggleTimeDisplayMode,
+          ),
+          if (index < section.departures.length - 1)
+            const SizedBox(height: _departuresListGap),
+        ],
+      ],
+    );
+  }
+}
+
+class _DeparturePlatformHeader extends StatelessWidget {
+  const _DeparturePlatformHeader({required this.section});
+
+  final DeparturePlatformSection section;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      header: true,
+      child: DecoratedBox(
+        key: ValueKey(
+          'departure-platform-section-${section.platformCode ?? 'unknown'}',
+        ),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.52),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Text(
+            section.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DepartureListTile extends StatelessWidget {
+  const _DepartureListTile({
+    required this.departure,
+    required this.timeDisplayMode,
+    required this.onOpenVehicleMap,
+    required this.onToggleTimeDisplayMode,
+    this.referenceTime,
+  });
+
+  final Departure departure;
+  final DepartureTimeDisplayMode timeDisplayMode;
+  final DateTime? referenceTime;
+  final ValueChanged<VehicleMapArgs> onOpenVehicleMap;
+  final VoidCallback onToggleTimeDisplayMode;
+
+  @override
+  Widget build(BuildContext context) {
+    // Departure boards can omit vehicle.id. A separate lookup would be needed;
+    // do not fake vehicle tracking from gtfsTripId.
+    final mapArgs = VehicleMapArgs.fromDeparture(departure);
+
+    return DepartureTile(
+      departure: departure,
+      timeDisplayMode: timeDisplayMode,
+      referenceTime: referenceTime,
+      showPlatform: false,
+      onToggleTimeDisplayMode: onToggleTimeDisplayMode,
+      onOpenVehicleMap: mapArgs == null
+          ? null
+          : () => onOpenVehicleMap(mapArgs),
     );
   }
 }

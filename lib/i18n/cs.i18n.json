@@ -117,6 +117,7 @@
     "lastUpdatedAgoMinutes": "Aktualizováno před $minutes min",
     "departureTime": "Odjezd $time",
     "platform": "Nástupiště $platform",
+    "platformUnknown": "Bez označení",
     "trackingHint": "Sledovat na mapě →",
     "toggleTimeDisplay": "Přepnout zobrazení času odjezdu",
     "showVehicleTooltip": "Zobrazit polohu vozidla na mapě",
